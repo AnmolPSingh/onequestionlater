@@ -56,11 +56,13 @@ void main() {
   // Toned stone: dark hair, beard, brows and eyes from the front, thrown straight back along the head.
   float row = ${PIVOT_ROW.toFixed(1)} - vSeed.y;
   float toned = texture2D(uTone, vec2((vSeed.x + ${PHOTO_CENTRE.toFixed(1)}) / 1333.0, row / 2000.0)).r;
-  float behind = mix(0.09, 0.42, smoothstep(760.0, 830.0, row));
-  float stone = mix(behind, toned, smoothstep(0.05, 0.45, vRaw.z));
-  vec3 graphite = vec3(0.34, 0.335, 0.345) * stone;
-  vec3 ink = vec3(0.051, 0.047, 0.043);
-  gl_FragColor = vec4(mix(ink, mix(ink, graphite * (0.72 + light * 1.25) + sheen, uShade), lowEdge(vSeed.y)), 1.0);
+  // The tone photo only informs subtle relief, never acts as a projected facial texture.
+  // Keep the full volume visible even outside the pointer pool.
+  float stone = mix(0.60, 0.77 + toned * 0.12, smoothstep(0.05, 0.45, vRaw.z));
+  vec3 graphite = vec3(0.38, 0.395, 0.42) * stone;
+  vec3 ink = vec3(0.065, 0.068, 0.075);
+  float fill = 0.32 + light * 1.06;
+  gl_FragColor = vec4(mix(ink, mix(ink, graphite * fill + sheen * 0.32, uShade), lowEdge(vSeed.y)), 1.0);
 }`;
 
 const STRAND_VERT = `
@@ -90,7 +92,7 @@ void main() {
   vec3 line = normalize(turned(along));
   float glint = 1.0 - abs(dot(line, normalize(vec3(uMouse, 1.0) - p)));
   float taper = sin(t * 3.14159);
-  vAlpha = taper * aShape.w * (0.05 + light * 0.34 + pool * glint * glint * 0.8) * smoothstep(0.35, 1.0, uBody) * lowEdge(aStart.y);
+  vAlpha = taper * aShape.w * (0.09 + light * 0.36 + pool * glint * glint * 0.7) * smoothstep(0.35, 1.0, uBody) * lowEdge(aStart.y);
   gl_Position = onScreen(p);
 }`;
 
@@ -114,7 +116,7 @@ void main() {
   float along = fract(aMeta.x * 0.0021 - uTime * aMeta.w * 0.055 + aMeta.y);
   float passing = smoothstep(0.86, 0.985, along) * smoothstep(1.0, 0.985, along);
   float breath = 0.82 + 0.18 * sin(uTime * (0.3 + aMeta.y * 0.3) + aMeta.y * 40.0 + aMeta.x * 0.004);
-  vAlpha = aMeta.z * (0.16 + light * 0.5 + pool * 0.55 + passing * 0.95) * breath * smoothstep(0.35, 1.0, uBody) * lowEdge(aPosition.y);
+  vAlpha = aMeta.z * (0.28 + light * 0.78 + pool * 0.62 + passing * 0.82) * breath * smoothstep(0.35, 1.0, uBody) * lowEdge(aPosition.y);
   gl_Position = onScreen(p);
 }`;
 
