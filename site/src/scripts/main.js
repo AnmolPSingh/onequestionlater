@@ -7,6 +7,7 @@ import { playLoader } from './loader.js';
 import { isCalm } from './calm.js';
 import { createBust, readBust, surfaceDot } from './bust.js';
 import { createDunes } from './dunes.js';
+import { startLivingDesert } from './living-desert.js';
 import { fitThreads } from './thread.js';
 
 // The conductor: one loop reads the scroll position and drives the figure, the particle morphs,
@@ -188,6 +189,10 @@ async function startMotion() {
   const closeDetails = document.querySelector('[data-close-details]');
   const whiteLayer = document.querySelector('[data-white]');
   const ghost = document.querySelector('[data-ghost]');
+  const livingCanvas = document.querySelector('[data-close-live]');
+  let livingDesert = null;
+  startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
+    .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
   const head = session.querySelector('[data-head]');
   const pin = session.querySelector('[data-pin]');
   const nextLine = session.querySelector('[data-next-line]');
@@ -513,12 +518,18 @@ async function startMotion() {
     const white = ease(ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[1]));
     const desertShown = (fromName === 'desert' && toName === 'desert' ? 1 : toName === 'desert' ? ramp(morph, 0.6, 1) : 0) * (1 - ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[0] + 0.14));
     const nearClose = y > closeTop - vh * 1.9;
-    ghost.style.visibility = nearClose ? 'visible' : 'hidden';
+    // The photographic landscape and its independent live grain become visible as the footer arrives.
+    // The original global point-cloud renderer recedes instead of obscuring the source image.
+    const sceneArrival = livingDesert ? ramp(y, closeTop - vh * 0.92, closeTop - vh * 0.08) : 0;
+    if (nearClose && livingDesert) livingDesert.draw(closing, time);
+    livingCanvas.style.opacity = (sceneArrival * (1 - white)).toFixed(3);
+    scene.canvas.style.opacity = (1 - sceneArrival).toFixed(3);
+    ghost.style.visibility = nearClose && !livingDesert ? 'visible' : 'hidden';
     if (nearClose) {
       const arrive = ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9);
       // Keep the source landscape readable while the independent dots and contours breathe over it.
       // The image and shader share a focal point and push forward together, without shrinking the figure.
-      ghost.style.opacity = (arrive * 0.82 * (1 - white)).toFixed(3);
+      ghost.style.opacity = livingDesert ? '0' : (arrive * 0.82 * (1 - white)).toFixed(3);
       ghost.style.transform = `scale(${(1 + walk * 0.55).toFixed(4)})`;
       whiteLayer.style.opacity = white.toFixed(3);
       closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(closing, 0.73, 0.82))).toFixed(3);
