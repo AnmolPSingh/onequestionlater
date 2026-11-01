@@ -25,7 +25,7 @@ jobs:
       - name: Install Playwright
         run: cd site && npm install --no-save playwright@1.57.0 && npx playwright install --with-deps chromium
       - name: Test real browser render
-        run: node site/scripts/visual-qa.mjs
+        run: xvfb-run -a node site/scripts/visual-qa.mjs
       - name: Upload screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
