@@ -29,7 +29,7 @@ try {
   if (!opened) throw new Error('Astro dev server not ready');
 
   browser = await chromium.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader',
       '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'],
   });
@@ -37,6 +37,7 @@ try {
   for (const device of [{ name: 'desktop', width: 1440, height: 900 },
                         { name: 'mobile', width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport: device, deviceScaleFactor: 1 });
+    page.setDefaultTimeout(12000);
     const runtimeErrors = [];
     page.on('pageerror', (error) => runtimeErrors.push(error.message));
     page.on('console', (message) => {
