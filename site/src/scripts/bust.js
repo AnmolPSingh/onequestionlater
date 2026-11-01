@@ -56,9 +56,10 @@ void main() {
   // Toned stone: dark hair, beard, brows and eyes from the front, thrown straight back along the head.
   float row = ${PIVOT_ROW.toFixed(1)} - vSeed.y;
   float toned = texture2D(uTone, vec2((vSeed.x + ${PHOTO_CENTRE.toFixed(1)}) / 1333.0, row / 2000.0)).r;
-  // The tone photo only informs subtle relief, never acts as a projected facial texture.
-  // Keep the full volume visible even outside the pointer pool.
-  float stone = mix(0.60, 0.77 + toned * 0.12, smoothstep(0.05, 0.45, vRaw.z));
+  // Flat matte zones (hair, beard, brows, irises) over sculpted shapes, never the photo's shading.
+  // Surfaces the zones can't reach take the hair's tone above the fade and the skin's below it.
+  float behind = mix(0.14, 0.6, smoothstep(790.0, 930.0, row));
+  float stone = mix(behind, toned * 1.25, smoothstep(0.05, 0.45, vRaw.z));
   vec3 graphite = vec3(0.38, 0.395, 0.42) * stone;
   vec3 ink = vec3(0.065, 0.068, 0.075);
   float fill = 0.32 + light * 1.06;
@@ -133,9 +134,9 @@ const TILT = [0.1, 0.74, 0.66]; // the planes lean back, so lines run round the 
 // Per part of the head: which lines to keep, how bright, how fast the light runs. Quieter on the face.
 const ZONES = {
   hair: { every: 2, bright: 0.34, pace: 1.1 },
-  face: { every: 3, bright: 0.3, pace: 0.45 },
-  neck: { every: 3, bright: 0.3, pace: 0.6 },
-  body: { every: 5, bright: 0.28, pace: 0.5 },
+  face: { every: 2, bright: 0.15, pace: 0.45 },
+  neck: { every: 2, bright: 0.16, pace: 0.6 },
+  body: { every: 3, bright: 0.2, pace: 0.5 },
 };
 // Left clear, or lines would tangle in the eyes and nostrils. Centre and radii in px about the pivot.
 const CLEAR = [[-108, -71, 66, 28], [112, -78, 66, 28], [0, -200, 62, 22]];

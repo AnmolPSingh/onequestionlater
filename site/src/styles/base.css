@@ -368,7 +368,7 @@ html.js:not(.calm):not(.no-scene) .desert { display: none; }
 .close-lead { max-width: 18ch; font-size: clamp(1.5rem, 1rem + 1.8vw, 2.8rem); font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
 html.scene-on .close-lead { position: absolute; left: 5vw; top: 50%; transform: translateY(-50%); z-index: 3; text-align: left; opacity: 0; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
 @media (max-width: 899px) {
-  html.scene-on .close-lead { left: var(--gutter); right: var(--gutter); top: auto; bottom: 6svh; transform: none; max-width: none; text-align: center; }
+  html.scene-on .close-lead { left: var(--gutter); right: var(--gutter); top: 11svh; transform: none; max-width: none; text-align: left; } /* the open sky: at the foot of the frame it landed on my legs */
 }
 .close-white { display: none; }
 .close-end { display: grid; gap: 2.5rem; justify-items: center; width: 100%; }

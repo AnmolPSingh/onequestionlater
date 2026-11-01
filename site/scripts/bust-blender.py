@@ -14,7 +14,8 @@ import bpy
 
 args = sys.argv[sys.argv.index('--') + 1:]
 source, glb, sheet = args[0], args[1], args[2]
-TARGET_FACES = 60000
+TARGET_FACES = 62000  # also the browser's mesh; most of them go to the face, since hair is carried by strands
+FACE_WEIGHT = 0.35
 YAWS = (0, 45, -45, 90, 180)
 
 meta = json.load(open(source + '.json'))
@@ -45,10 +46,15 @@ bpy.ops.object.mode_set(mode='OBJECT')
 
 smooth = bust.modifiers.new('smooth', 'SMOOTH')
 smooth.factor = 0.5
-smooth.iterations = 2
+smooth.iterations = 1
 bpy.ops.object.modifier_apply(modifier='smooth')
 decimate = bust.modifiers.new('decimate', 'DECIMATE')
 decimate.ratio = min(1, TARGET_FACES / len(mesh.polygons))
+# In this group a lower weight survives longer, and 0 never collapses at all.
+keep = bust.vertex_groups.new(name='keep')
+for v in mesh.vertices:
+    keep.add([v.index], FACE_WEIGHT if -1.27 < v.co.z < -0.78 and v.co.y < 0.06 else 1.0, 'REPLACE')
+decimate.vertex_group = 'keep'
 bpy.ops.object.modifier_apply(modifier='decimate')
 bpy.ops.object.shade_smooth()
 

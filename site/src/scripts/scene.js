@@ -116,6 +116,7 @@ vec3 live(vec4 s) {
     vec3 tangent = normalize(cross(aNormal, vec3(0.0, 1.0, 0.015)) + vec3(0.0001));
     p += tangent * sin(uTime * (0.52 + aSeed * 0.36) + phase * 7.0) * 1.25;
     gLit *= 0.76 + 0.24 * sin(uTime * (0.43 + aSeed * 0.19) + phase * 8.0);
+    gLit *= 1.0 - 0.72 * smoothstep(0.5, 0.85, aNormal.z); // on the open skin they read as blemishes; they live on the hair and edges
     return placed(turned(p), 0.55);
   } else if (code < 0.5) {
     p.xy += vec2(cos(phase + uTime * 0.5), sin(phase * 1.7 + uTime * 0.42)) * (0.0012 + uLevel * 0.0015);

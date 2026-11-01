@@ -191,8 +191,7 @@ async function startMotion() {
   const ghost = document.querySelector('[data-ghost]');
   const livingCanvas = document.querySelector('[data-close-live]');
   let livingDesert = null;
-  startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
-    .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
+  let desertAsked = false; // its images are only fetched as the close nears
   const head = session.querySelector('[data-head]');
   const pin = session.querySelector('[data-pin]');
   const nextLine = session.querySelector('[data-next-line]');
@@ -521,6 +520,11 @@ async function startMotion() {
     // The photographic landscape and its independent live grain become visible as the footer arrives.
     // The original global point-cloud renderer recedes instead of obscuring the source image.
     const sceneArrival = livingDesert ? ramp(y, closeTop - vh * 0.92, closeTop - vh * 0.08) : 0;
+    if (nearClose && !desertAsked) {
+      desertAsked = true;
+      startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
+        .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
+    }
     if (nearClose && livingDesert) livingDesert.draw(closing, time);
     livingCanvas.style.opacity = (sceneArrival * (1 - white)).toFixed(3);
     scene.canvas.style.opacity = (1 - sceneArrival).toFixed(3);
