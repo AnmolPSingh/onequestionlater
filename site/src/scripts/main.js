@@ -20,7 +20,7 @@ const PHOTO_HOLD = 0.7; // seconds the loader's last photo lies as dots before t
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN = -0.48; // radians, so I end up looking toward the words. Daniel turns 0.6, but his face is wider in its head, so this reads the same
 const IDLE_TURN = 0.05; // radians either way the head drifts at rest
-const SURFACE_DOTS = 0; // how bright the dots on the sculpture are at rest; off until the particle stage is approved
+const SURFACE_DOTS = 0.18; // restrained surface-attached points accompanying the living contours
 const layer = new URLSearchParams(location.search).get('layer'); // ?layer=mesh or contours, to judge each alone
 const HERO_TURN_SCROLL = 1.05; // screens of scroll the turn takes
 const PAIR_GAP = 0.018; // of the screen's width, between two pictures that share a scene
@@ -191,8 +191,7 @@ async function startMotion() {
   const ghost = document.querySelector('[data-ghost]');
   const livingCanvas = document.querySelector('[data-close-live]');
   let livingDesert = null;
-  startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
-    .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
+  let desertAsked = false; // its images are only fetched as the close nears
   const head = session.querySelector('[data-head]');
   const pin = session.querySelector('[data-pin]');
   const nextLine = session.querySelector('[data-next-line]');
@@ -521,6 +520,11 @@ async function startMotion() {
     // The photographic landscape and its independent live grain become visible as the footer arrives.
     // The original global point-cloud renderer recedes instead of obscuring the source image.
     const sceneArrival = livingDesert ? ramp(y, closeTop - vh * 0.92, closeTop - vh * 0.08) : 0;
+    if (nearClose && !desertAsked) {
+      desertAsked = true;
+      startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
+        .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
+    }
     if (nearClose && livingDesert) livingDesert.draw(closing, time);
     livingCanvas.style.opacity = (sceneArrival * (1 - white)).toFixed(3);
     scene.canvas.style.opacity = (1 - sceneArrival).toFixed(3);

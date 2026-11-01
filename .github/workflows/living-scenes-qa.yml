@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/living-desert-particles-v2
+      - feature/living-scenes-tested-head-v3
   workflow_dispatch:
 
 permissions:

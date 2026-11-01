@@ -6,7 +6,8 @@ import path from 'node:path';
 
 const output = path.resolve('visual-qa');
 await fs.mkdir(output, { recursive: true });
-const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1'], {
+const SITE = process.env.QA_SITE || 'http://127.0.0.1:4329/'; // astro allows one preview server, so reuse a running one
+const server = spawn('npx', process.env.QA_SITE ? ['--version'] : ['astro', 'preview', '--host', '127.0.0.1', '--port', '4329'], { // the real build, not a dev server
   cwd: 'site',
   env: { ...process.env, CI: '1' },
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -18,18 +19,19 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 try {
   let opened = false;
   for (let attempt = 0; attempt < 80; attempt++) {
-    if (server.exitCode !== null) throw new Error('Astro server exited before becoming ready');
+    if (server.exitCode !== null && !process.env.QA_SITE) throw new Error('Astro server exited before becoming ready');
     try {
-      const result = await fetch('http://127.0.0.1:4321/');
+      const result = await fetch(SITE);
       opened = result.ok;
       if (opened) break;
     } catch {}
     await sleep(400);
   }
-  if (!opened) throw new Error('Astro dev server not ready');
+  if (!opened) throw new Error('Astro preview server not ready');
 
   browser = await chromium.launch({
-    headless: false,
+    headless: !process.env.DISPLAY, // headed under Xvfb in CI; a Mac has its own GPU
+    channel: process.env.CI ? undefined : 'chrome',
     args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader',
       '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'],
   });
@@ -43,7 +45,8 @@ try {
     page.on('console', (message) => {
       if (message.type() === 'error') runtimeErrors.push(message.text());
     });
-    await page.goto('http://127.0.0.1:4321/', { waitUntil: 'domcontentloaded' });
+    await page.goto(SITE, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(5000); // wait for the loader and the portrait's 2.8s formation
     await page.screenshot({ path: path.join(output, device.name + '-hero.png') });
     await page.waitForTimeout(4000);
     await page.evaluate(() => document.documentElement.classList.remove('loading'));
@@ -52,7 +55,7 @@ try {
       height: window.innerHeight,
     }));
     const states = [];
-    for (const percent of [0, 25, 50, 75, 98]) {
+    for (const percent of [0, 25, 50, 75, 100]) {
       await page.evaluate((y) => window.scrollTo(0, y), geom.start + geom.height * 3.2 * percent / 100);
       await page.waitForTimeout(850);
       states.push(await page.evaluate(() => ({
@@ -69,6 +72,7 @@ try {
     // If WebGL is available, the new renderer must have sized its actual canvas.
     if (states[2].canvasWidth === 0) throw new Error(device.name + ': living desert canvas was not initialized');
     if (states[1].canvasOpacity < 0.8) throw new Error(device.name + ': desert did not appear during scroll');
+    if (states[2].leadOpacity < 0.4) throw new Error(device.name + ': footer lead disappeared in the middle of the desert scroll');
     if (states[4].whiteOpacity < 0.6) throw new Error(device.name + ': transition to white failed');
     if (runtimeErrors.length) throw new Error(device.name + ': ' + runtimeErrors.join(' | '));
     await page.close();
