@@ -29,7 +29,7 @@ try {
   if (!opened) throw new Error('Astro dev server not ready');
 
   browser = await chromium.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader',
       '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'],
   });
