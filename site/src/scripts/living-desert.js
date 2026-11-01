@@ -26,10 +26,10 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     return p;
   };
 
-  const photoV = \`attribute vec2 aPosition;
+  const photoV = `attribute vec2 aPosition;
   varying vec2 vUV;
-  void main() { vUV = 0.5 * (aPosition + 1.0); gl_Position = vec4(aPosition, 0.0, 1.0); }\`;
-  const photoF = \`precision mediump float;
+  void main() { vUV = 0.5 * (aPosition + 1.0); gl_Position = vec4(aPosition, 0.0, 1.0); }`;
+  const photoF = `precision mediump float;
   varying vec2 vUV;
   uniform sampler2D uImage;
   uniform float uRatio, uImageRatio, uPush, uTime;
@@ -47,9 +47,9 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     graphite *= 1.0 - 0.22 * length((vUV - 0.5) * 1.3);
     graphite += 0.005 * sin(vUV.y * 900.0 + vUV.x * 70.0 + uTime * 0.18);
     gl_FragColor = vec4(graphite, 1.0);
-  }\`;
+  }`;
 
-  const dustV = \`precision highp float;
+  const dustV = `precision highp float;
   attribute vec4 aData;
   attribute vec4 aMotion;
   uniform float uTime, uPush, uRatio, uImageRatio, uSize;
@@ -81,8 +81,8 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     float ridge = 0.45 + 0.55 * aData.w;
     vAlpha = (0.06 + 0.17 * ridge) * shimmer * (1.0 - airborne * 0.52);
     vCold = aMotion.y;
-  }\`;
-  const dustF = \`precision mediump float;
+  }`;
+  const dustF = `precision mediump float;
   varying float vAlpha, vCold;
   void main() {
     vec2 q = gl_PointCoord - 0.5;
@@ -91,7 +91,7 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     float alpha = smoothstep(0.25, 0.006, r) * vAlpha;
     vec3 color = mix(vec3(0.87, 0.89, 0.91), vec3(0.96, 0.97, 1.0), vCold);
     gl_FragColor = vec4(color, alpha);
-  }\`;
+  }`;
   const pictureProgram = program(photoV, photoF);
   const dustProgram = program(dustV, dustF);
 
