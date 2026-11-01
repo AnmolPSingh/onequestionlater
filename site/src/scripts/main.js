@@ -20,7 +20,7 @@ const PHOTO_HOLD = 0.7; // seconds the loader's last photo lies as dots before t
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN = -0.48; // radians, so I end up looking toward the words. Daniel turns 0.6, but his face is wider in its head, so this reads the same
 const IDLE_TURN = 0.05; // radians either way the head drifts at rest
-const SURFACE_DOTS = 0; // how bright the dots on the sculpture are at rest; off until the particle stage is approved
+const SURFACE_DOTS = 0.18; // restrained surface-attached points accompanying the living contours
 const layer = new URLSearchParams(location.search).get('layer'); // ?layer=mesh or contours, to judge each alone
 const HERO_TURN_SCROLL = 1.05; // screens of scroll the turn takes
 const PAIR_GAP = 0.018; // of the screen's width, between two pictures that share a scene
