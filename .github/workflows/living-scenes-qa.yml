@@ -1,0 +1,34 @@
+name: Living Scenes — build and browser visual QA
+on:
+  push:
+    branches:
+      - feature/living-desert-particles-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+      - name: Build Astro site
+        run: cd site && npm ci && npm run build
+      - name: Install Playwright
+        run: cd site && npm install --no-save playwright@1.57.0 && npx playwright install --with-deps chromium
+      - name: Test real browser render
+        run: node site/scripts/visual-qa.mjs
+      - name: Upload screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-scenes-visual-qa
+          path: visual-qa/
+          if-no-files-found: warn
