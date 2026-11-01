@@ -36,8 +36,8 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
   uniform vec2 uMouse;
   void main() {
     vec2 uv = vUV - 0.5;
-    uv *= vec2(max(uRatio / uImageRatio, 1.0), max(uImageRatio / uRatio, 1.0));
-    uv = vec2(0.5) + uv / (1.0 + uPush * 0.60);
+    vec2 span = vec2(min(uRatio / uImageRatio, 1.0), min(uImageRatio / uRatio, 1.0));
+    uv = vec2(0.512, 0.47) + uv * span / (1.0 + uPush * 0.60);
     vec3 rgb = texture2D(uImage, uv).rgb;
     float gray = pow(dot(rgb, vec3(0.21, 0.72, 0.07)), 0.92);
     float sky = smoothstep(0.36, 0.49, uv.y);
@@ -70,11 +70,10 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
                           sin(t * 0.64 + phase) * 0.0034 +
                           cos(t * 0.18 + aMotion.z * 12.0) * 0.0019);
     uv += mix(drift, freeMotion, airborne);
-    float cover = max(uRatio / uImageRatio, 1.0);
-    float coverY = max(uImageRatio / uRatio, 1.0);
+    vec2 span = vec2(min(uRatio / uImageRatio, 1.0), min(uImageRatio / uRatio, 1.0));
     vec2 focus = vec2(0.512, 0.47);
-    vec2 xy = (uv - focus) * vec2(1.0 / cover, 1.0 / coverY) *
-              (1.0 + uPush * 0.60 * (0.72 + depth * 0.33)) + focus;
+    vec2 xy = (uv - focus) / span *
+              (1.0 + uPush * 0.60 * (0.72 + depth * 0.33)) + vec2(0.5);
     gl_Position = vec4(xy * 2.0 - 1.0, 0.0, 1.0);
     gl_PointSize = uSize * (0.62 + 0.6 * aMotion.w) * (1.0 + uPush * 0.18);
     float shimmer = 0.72 + 0.28 * sin(t * (0.31 + 0.2 * aMotion.z) + phase);
@@ -149,7 +148,7 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     const box = canvas.getBoundingClientRect();
     mouse = [(event.clientX - box.left) / box.width, 1 - (event.clientY - box.top) / box.height];
   };
-  canvas.addEventListener('pointermove', onMove);
+  window.addEventListener('pointermove', onMove, { passive: true });
   let destroyed = false;
   const draw = (progress, time) => {
     if (destroyed) return;
@@ -203,7 +202,7 @@ export async function startLivingDesert(canvas, imageURL = '/hero/desert-photo.p
     draw,
     destroy() {
       destroyed = true;
-      canvas.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointermove', onMove);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     },
   };
