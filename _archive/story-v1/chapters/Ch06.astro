@@ -1,0 +1,62 @@
+---
+import { getImage } from 'astro:assets';
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import local from '../../assets/photos/isdi-mumbai-local.jpg';
+import sketches from '../../assets/photos/isdi-sketch-wall.jpg';
+import andheri from '../../assets/photos/isdi-andheri-model.jpg';
+import makers from '../../assets/photos/isdi-makers-studio.jpg';
+import workshopPoster from '../../assets/photos/isdi-workshop-poster.jpg';
+import hololens from '../../assets/photos/isdi-hololens.jpg';
+import cat from '../../assets/photos/isdi-arduino-cat.jpg';
+import presentation from '../../assets/photos/isdi-presentation.jpg';
+import sunset from '../../assets/photos/isdi-sunset.jpg';
+import jivamoda from '../../assets/photos/jivamoda.jpg';
+import juryPresenting from '../../assets/photos/isdi-jury-presenting.jpg';
+import juryPanel from '../../assets/photos/isdi-jury-panel.jpg';
+import juryMentor from '../../assets/photos/isdi-jury-mentor.jpg';
+import graduation from '../../assets/photos/isdi-graduation.jpg';
+
+const poster = await getImage({ src: workshopPoster, width: 600, format: 'webp' });
+const tile = '(min-width: 900px) 12rem, 45vw';
+---
+<Chapter id="ch-06" num="06" end="go back to school." theme="paper">
+  <div slot="prints" class="board">
+    <Print crop sizes={tile} src={local} alt="Inside a packed Mumbai local train, yellow grab handles hanging over a crowd of commuters." caption="The Mumbai local. Daily." />
+    <Print crop sizes={tile} src={sketches} alt="Anmol smiling in front of a studio wall covered in product design sketches." />
+    <Print crop sizes={tile} src={andheri} alt="A white and teal scale model of Andheri junction, with a curved roof over the tracks." caption="Andheri junction, at a slightly smaller scale." />
+    <Print crop sizes={tile} src={makers} alt="Two students shaping foam prototypes at a cluttered workbench." caption="Maker's Studio." />
+    <figure class="print crop">
+      <video src="/media/isdi-workshop.mp4" poster={poster.src} muted loop playsinline preload="none" aria-label="A short clip from a workshop day, with lathes and tools." data-loop-video></video>
+      <figcaption>Workshop day.</figcaption>
+    </figure>
+    <Print crop sizes={tile} src={hololens} alt="Anmol wearing a HoloLens headset, reaching into the air at something only he can see." />
+    <Print crop sizes={tile} src={cat} alt="A cat asleep beside Arduino boards and wires, next to an open laptop." />
+    <Print crop sizes={tile} src={presentation} alt="Students presenting a design-thinking project on Andheri junction, with their model on the table." />
+    <Print crop sizes={tile} src={sunset} alt="Anmol seen from behind, watching the sun set over the sea." />
+  </div>
+  <p class="beat">So I went to ISDI in Mumbai for a postgraduate diploma in Design and Innovation.</p>
+  <p class="beat">Long rides on the local. Late nights in the studio. A model of Andheri junction. A cat who sat on my Arduino. A lot of half-finished things.</p>
+  <p class="beat">I'd love to tell you I had a system and a perfect balance.</p>
+  <div class="beat-gap" aria-hidden="true"></div>
+  <p class="beat-h" data-silence>I did not.</p>
+  <p class="beat">For that year, college and life were the same thing, and I think that's why it worked.</p>
+  <div slot="after">
+    <div class="moment">
+      <h3 class="moment-h">JivaModa</h3>
+      <Print class="wide" sizes="(min-width: 900px) 52rem, 92vw" src={jivamoda} alt="The JivaModa XR interface: a virtual fashion store floating in space, with a model in a blue jacket beside a green outfit." />
+      <p>An XR concept for sustainable fashion. It was shortlisted for the XR Awards 2025.</p>
+    </div>
+    <div class="moment">
+      <div class="jury">
+        <Print sizes="(min-width: 900px) 36rem, 66vw" src={juryPresenting} alt="Anmol presenting his final project to the jury in a classroom." />
+        <Print sizes="(min-width: 900px) 26rem, 50vw" src={juryPanel} alt="Anmol in a grey suit between two jury members, all smiling in front of his presentation screen." />
+        <Print sizes="(min-width: 900px) 26rem, 50vw" src={juryMentor} alt="Anmol and his mentor smiling side by side after the jury." />
+      </div>
+      <p>My final jury. The best day I had there.</p>
+    </div>
+    <div class="moment">
+      <Print class="end-print" src={graduation} alt="A packed auditorium of graduates holding their caps up in the air." tilt={1.5} />
+    </div>
+  </div>
+</Chapter>

@@ -1,0 +1,23 @@
+---
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import Orbit from '../../graphics/Orbit.astro';
+import namecard from '../../assets/photos/startup-delhi-fair-namecard.jpg';
+import foreign from '../../assets/photos/startup-design-for-foreign-markets.jpg';
+import goofy from '../../assets/photos/startup-goofy-office.jpg';
+---
+<Chapter id="ch-05" num="05" end="be the only designer in the room.">
+  <Orbit slot="graphic" />
+  <Fragment slot="prints">
+    <Print src={namecard} alt="A table name card reading Anmol Pratap Singh, resting on Delhi Fair 2023 brochures." caption="Delhi Fair. Onboarding artisans from across India to sell to the world." tilt={-2.5} />
+    <Print src={foreign} alt="A meeting room with a projected slide asking how to design for foreign markets, over a photo of a handmade copper vessel." caption="Designing for foreign markets." tilt={2} />
+  </Fragment>
+  <p class="beat">That app took me to a startup, ExpoBazaar, where I was the only designer for a year and a half. Merchandising, development, the VP of Tech, project management and marketing. Five departments, and none of them spoke design.</p>
+  <p class="beat">So I learned to speak theirs. The dashboards I designed raised supplier engagement by 25%, and that number won the argument faster than any design rationale ever did.</p>
+  <div slot="after">
+    <blockquote class="pull"><p>Speak their language first. They'll learn yours later.</p></blockquote>
+    <div class="moment">
+      <Print class="end-print" src={goofy} alt="Anmol in a suit at an office desk, hiding his face behind a teddy bear." caption="Not forgetting to have fun, here and there." tilt={-1.5} />
+    </div>
+  </div>
+</Chapter>

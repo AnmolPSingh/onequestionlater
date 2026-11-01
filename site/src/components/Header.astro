@@ -1,0 +1,47 @@
+---
+import { SITE_NAME } from '../config';
+
+interface Props { plain?: boolean }
+const { plain = false } = Astro.props;
+// Two lines, so the pause in the sentence is a line break.
+const thought = ["I follow questions, and that's the only plan", 'until they open unexpected doors.'];
+let word = 0;
+---
+<header class="site-header label">
+  <div class="identity" data-identity>
+    <a class="wordmark" href="/" data-wordmark>{SITE_NAME.toLowerCase()}</a>
+    <div class="thought" data-thought>
+      <p>
+        {thought.map((line) => (
+          <span class="thought-line">{line.split(' ').map((w) => <span class="thought-word" style={`--w:${word++}`}>{w} </span>)}</span>
+        ))}
+      </p>
+      <a class="thought-link" href="/philosophy" style={`--w:${word + 3}`}>Explore the philosophy <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+  {!plain && (
+    <div class="toggles">
+      <button type="button" data-sound-toggle title="A little of where it all started." hidden>
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span data-sound-label>Sound off</span>
+      </button>
+    </div>
+  )}
+  <nav class="links" aria-label="Site">
+    <a href="/#work">Work</a>
+    <a href="/#contact">Contact</a>
+  </nav>
+</header>
+
+<script>
+  // No hover on a touch screen: the first tap on the name opens the thought, the second follows the link.
+  const identity = document.querySelector('[data-identity]');
+  if (identity && matchMedia('(hover: none)').matches) {
+    identity.querySelector('[data-wordmark]').addEventListener('click', (e) => {
+      if (identity.classList.contains('open')) return;
+      e.preventDefault();
+      identity.classList.add('open');
+    });
+    document.addEventListener('pointerdown', (e) => { if (!identity.contains(e.target)) identity.classList.remove('open'); });
+  }
+</script>

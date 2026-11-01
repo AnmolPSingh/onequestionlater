@@ -1,0 +1,15 @@
+---
+import { CHAPTERS } from '../config';
+---
+<nav class="rail label" aria-label="Chapters">
+  <ol>
+    {CHAPTERS.map((c) => (
+      <li>
+        <a href={`#${c.id}`} data-rail={c.id}>
+          <span class="rail-label">{c.num} {c.label}</span>
+          <span class="tick" aria-hidden="true"></span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</nav>

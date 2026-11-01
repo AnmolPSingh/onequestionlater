@@ -1,0 +1,92 @@
+---
+// My life as a long arrangement. While this section is pinned, scroll flies you through it: each
+// moment appears far away, comes to you and passes, and the tracks run underneath. With no motion
+// the moments are simply a list you read.
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import { TRACKS, MILESTONES, END } from '../data/milestones';
+
+const stops = MILESTONES.filter((m) => !m.quiet);
+const shrink = async (picture: ImageMetadata) => (await getImage({ src: picture, width: Math.min(picture.width, 1200), format: picture.format === 'png' ? 'png' : 'webp', quality: 72 })).src;
+const moments = await Promise.all(MILESTONES.map(async (m) => ({
+  ...m,
+  src: m.photo ? await shrink(m.photo) : null,
+  alsoSrc: m.also ? await shrink(m.also) : null,
+  ratio: m.photo ? (m.photo.width / m.photo.height).toFixed(3) : '1.6',
+  alsoRatio: m.also ? (m.also.width / m.also.height).toFixed(3) : '1',
+})));
+
+// Tracks run on stops, not on years: every stop gets the same width, so the crowded years stay legible
+// and the arrangement moves at one steady speed.
+const atYear = (year: number) => {
+  const next = stops.findIndex((s) => s.from > year);
+  if (next === 0) return 0;
+  if (next < 0) return stops.length - 1 + Math.min(1, (year - stops.at(-1)!.from) / 2);
+  const before = stops[next - 1];
+  return next - 1 + (year - before.from) / (stops[next].from - before.from);
+};
+
+const SHORTEST = 1.6; // in stops, enough for any label
+const ROWS = 4;
+const rowEnds = Array<number>(ROWS).fill(-Infinity);
+const clips = MILESTONES.filter((m) => !m.noClip).map((m) => {
+  const a = atYear(m.from);
+  const b = Math.max(atYear(m.to), a + SHORTEST);
+  // Its own lane, or the first row that's free, or, when none is, the one that frees up soonest: that clip covers the end of the one before.
+  const free = rowEnds.findIndex((end) => end <= a);
+  const row = m.lane ?? (free >= 0 ? free : rowEnds.indexOf(Math.min(...rowEnds)));
+  rowEnds[row] = b;
+  return { ...m, a: a.toFixed(3), b: b.toFixed(3), row, open: m.to === END };
+});
+
+const firstOfYear = [...new Map(stops.filter((s) => s.from >= 2013).map((s, i) => [Math.floor(s.from), atYear(s.from)])).entries()]
+  .filter(([, at], i, all) => i === 0 || at - all[i - 1][1] >= 0.9);
+---
+<section id="session" class="session" data-shape="tunnel" aria-labelledby="session-h" data-session style={`--stops:${stops.length}`}>
+  <div class="session-pin" data-pin>
+    <div class="session-head" data-head>
+      <p class="label eyebrow">The session</p>
+      <h2 id="session-h" class="section-h">Everything so far, on eight tracks.</h2>
+    </div>
+
+    <ol class="moments" data-moments>
+      {moments.map((m) => (
+        <li id={`m-${m.id}`} class:list={['moment', { quiet: m.quiet, paired: m.also }]} data-moment={m.id} data-side={m.alsoSide} data-overlap={m.alsoOverlap}>
+          {m.src && (
+            <div class="moment-visual" style={`--ratio:${m.ratio}`}>
+              <img src={m.src} alt={m.alt} width={m.photo!.width} height={m.photo!.height} loading="lazy" decoding="async" />
+            </div>
+          )}
+          {m.alsoSrc && (
+            <div class="moment-visual also" style={`--ratio:${m.alsoRatio}`}>
+              <img src={m.alsoSrc} alt={m.alsoAlt} width={m.also!.width} height={m.also!.height} loading="lazy" decoding="async" />
+            </div>
+          )}
+          <div class="moment-text">
+            <p class="label">{m.date}</p>
+            <h3>{m.title}</h3>
+            <p>{m.line}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <div class="arrangement" data-arrangement>
+      <div class="strip">
+        <ol class="ruler" aria-hidden="true">
+          {firstOfYear.map(([year, at]) => <li style={`--a:${at.toFixed(3)}`}>{year}</li>)}
+        </ol>
+        <ol class="clips" aria-label="Jump to a moment">
+          {clips.map((c) => (
+            <li class:list={['clip', { open: c.open }]} style={`--a:${c.a};--b:${c.b};--row:${c.row}`}>
+              <a href={`#m-${c.id}`} data-clip={c.id} data-at={c.a}><small>{TRACKS[c.track]}</small><span>{c.title}</span></a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+    <div class="playhead" aria-hidden="true"></div>
+    <p class="next-line" data-next-line aria-hidden="true">I don't know yet. That's the part I like.</p>
+  </div>
+  <div class="session-next" data-shape="next"></div>
+</section>

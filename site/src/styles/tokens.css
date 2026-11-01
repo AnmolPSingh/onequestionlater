@@ -1,0 +1,26 @@
+:root {
+  /* Late night in a studio: warm black, paper, one on-air light. */
+  --ink: #0d0c0b;
+  --raised: #171411;
+  --paper: #f3eee4;
+  --onair: #ff8a2a;
+  --dim: rgba(243, 238, 228, 0.64);
+  --hair: rgba(243, 238, 228, 0.13);
+  --error: #ff9d8a;
+
+
+  --sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  --h-section: clamp(1.9rem, 1.5rem + 2vw, 3.25rem);
+  --body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --label: clamp(0.72rem, 0.7rem + 0.12vw, 0.8125rem);
+  --gutter: clamp(1rem, 0.5rem + 2.6vw, 2.5rem);
+  --measure: 36rem;
+  --header-h: 3rem;
+  --gutter-lane: 5rem;
+}
+
+@media (max-width: 639px) {
+  :root { --header-h: 5rem; --gutter-lane: 3.4rem; }
+}

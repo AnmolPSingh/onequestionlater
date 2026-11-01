@@ -1,0 +1,29 @@
+---
+// Three phone outlines. Final state: each screen filled with UI, as if learned on the job.
+const phones = [60, 195, 330];
+---
+<svg class="g-phones" viewBox="0 0 480 280" aria-hidden="true" focusable="false">
+  {phones.map((x, i) => (
+    <g class="phone">
+      <rect class="body" x={x} y="40" width="90" height="190" rx="14" />
+      <g class="ui">
+        <rect class="ui-bar" x={x + 10} y="58" width="70" height="10" rx="2" />
+        {i === 1 ? (
+          [0, 1, 2, 3].map((r) => <rect class="ui-line" x={x + 10} y={80 + r * 24} width={70 - (r % 2) * 18} height="14" rx="3" />)
+        ) : (
+          <rect class="ui-img" x={x + 10} y="78" width="70" height="58" rx="4" />
+        )}
+        <rect class="ui-line" x={x + 10} y="176" width="52" height="6" />
+        <rect class="ui-btn" x={x + 10} y="196" width="70" height="18" rx="9" />
+      </g>
+    </g>
+  ))}
+</svg>
+
+<style>
+  .g-phones { width: 100%; }
+  .body { fill: none; stroke: var(--fg); stroke-width: 1.4; }
+  .ui-bar, .ui-line { fill: var(--fg); opacity: 0.35; }
+  .ui-img { fill: var(--fg); opacity: 0.14; }
+  .ui-btn { fill: currentColor; }
+</style>

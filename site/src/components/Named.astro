@@ -1,0 +1,9 @@
+---
+// Plain text with every name in PEOPLE turned into a link to that person's profile.
+import { PEOPLE } from '../config';
+
+const { text } = Astro.props as { text: string };
+const names = Object.keys(PEOPLE);
+const parts = names.length ? text.split(new RegExp(`(${names.join('|')})`)) : [text];
+---
+{parts.map((part) => (PEOPLE[part] ? <a href={PEOPLE[part]}>{part}</a> : part))}

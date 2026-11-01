@@ -1,0 +1,78 @@
+{
+  "bpm": 90,
+  "beatsPerBar": 4,
+  "cues": {
+    "opening": {
+      "file": "opening.m4a",
+      "bars": 16,
+      "key": "D minor",
+      "seed": 3955738979
+    },
+    "ch-01": {
+      "file": "ch-01.m4a",
+      "bars": 16,
+      "key": "D minor",
+      "seed": 2367478750
+    },
+    "ch-02": {
+      "file": "ch-02.m4a",
+      "bars": 12,
+      "key": "A minor",
+      "seed": 2906145275
+    },
+    "ch-03": {
+      "file": "ch-03.m4a",
+      "bars": 16,
+      "key": "E minor",
+      "seed": 3512251462
+    },
+    "ch-04": {
+      "file": "ch-04.m4a",
+      "bars": 16,
+      "key": "G major",
+      "seed": 1651979383
+    },
+    "ch-05": {
+      "file": "ch-05.m4a",
+      "bars": 16,
+      "key": "D major",
+      "seed": 1196555088
+    },
+    "ch-06": {
+      "file": "ch-06.m4a",
+      "bars": 16,
+      "key": "A minor",
+      "seed": 650961849
+    },
+    "ch-07": {
+      "file": "ch-07.m4a",
+      "bars": 16,
+      "key": "D minor",
+      "seed": 576979961
+    },
+    "pattern": {
+      "file": "pattern.m4a",
+      "bars": 16,
+      "key": "D major",
+      "seed": 869323860
+    },
+    "door": {
+      "file": "door.m4a",
+      "bars": 16,
+      "key": "F major",
+      "seed": 2499703400
+    },
+    "close": {
+      "file": "close.m4a",
+      "bars": 16,
+      "key": "D major",
+      "seed": 2690085023
+    },
+    "ch-08": {
+      "file": "ch-08.m4a",
+      "bars": 16,
+      "key": "F major",
+      "seed": 288772540
+    }
+  }
+}

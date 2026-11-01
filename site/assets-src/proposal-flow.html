@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<title>Proposal system</title>
+<style>
+  @font-face { font-family: 'Inter Tight'; src: url('../node_modules/@fontsource/inter-tight/files/inter-tight-latin-400-normal.woff2'); font-weight: 400; }
+  @font-face { font-family: 'Inter Tight'; src: url('../node_modules/@fontsource/inter-tight/files/inter-tight-latin-500-normal.woff2'); font-weight: 500; }
+  @font-face { font-family: 'IBM Plex Mono'; src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2'); }
+  html, body { margin: 0; background: #0d0c0b; }
+  svg { display: block; width: 1600px; height: 1000px; }
+  .name { font: 500 46px 'Inter Tight', sans-serif; fill: #f3eee4; }
+  .focal { fill: #0d0c0b; }
+  .sub { font: 400 29px 'IBM Plex Mono', monospace; fill: rgba(243, 238, 228, 0.72); letter-spacing: 0.02em; }
+  .focal-sub { fill: rgba(13, 12, 11, 0.8); }
+  .tag { font: 400 26px 'IBM Plex Mono', monospace; fill: rgba(243, 238, 228, 0.64); letter-spacing: 0.12em; }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1600 1000" role="img" aria-labelledby="proposal-flow-title proposal-flow-desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="proposal-flow-title">What the proposal system does</title>
+  <desc id="proposal-flow-desc">A client brief goes through brief analysis and multi-agent drafting and comes out as a client-ready proposal.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M1 1 L12 7 L1 13" fill="none" stroke="rgba(243,238,228,0.72)" stroke-width="2.5" /></marker>
+    <marker id="arrow-accent" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M1 1 L12 7 L1 13" fill="none" stroke="#ff8a2a" stroke-width="2.5" /></marker>
+  </defs>
+
+  <text class="tag" x="72" y="244">WHAT THE SYSTEM DOES</text>
+
+  <line x1="392" y1="500" x2="436" y2="500" stroke="rgba(243,238,228,0.72)" stroke-width="2.5" marker-end="url(#arrow)" />
+  <line x1="756" y1="500" x2="800" y2="500" stroke="rgba(243,238,228,0.72)" stroke-width="2.5" marker-end="url(#arrow)" />
+  <line x1="1164" y1="500" x2="1208" y2="500" stroke="#ff8a2a" stroke-width="2.5" marker-end="url(#arrow-accent)" />
+
+  <rect x="72" y="300" width="320" height="400" rx="8" fill="#171411" stroke="rgba(243,238,228,0.3)" stroke-width="2" stroke-dasharray="7,6" />
+  <text class="tag" x="108" y="364">IN</text>
+  <text class="name" x="108" y="500">Client brief</text>
+  <text class="sub" x="108" y="556">what they need</text>
+
+  <rect x="440" y="300" width="316" height="400" rx="8" fill="#171411" stroke="rgba(243,238,228,0.3)" stroke-width="2" />
+  <text class="tag" x="476" y="364">STEP 1</text>
+  <text class="name" x="476" y="500">Brief analysis</text>
+  <text class="sub" x="476" y="556">the real ask</text>
+
+  <rect x="804" y="300" width="360" height="400" rx="8" fill="#ff8a2a" />
+  <text class="tag" x="840" y="364" style="fill:#0d0c0b">STEP 2</text>
+  <text class="name focal" x="840" y="500">Drafting agents</text>
+  <text class="sub focal-sub" x="840" y="556">multi-agent</text>
+
+  <rect x="1212" y="300" width="316" height="400" rx="8" fill="#171411" stroke="#ff8a2a" stroke-width="2.5" />
+  <text class="tag" x="1248" y="364">OUT</text>
+  <text class="name" x="1248" y="478">Client-ready</text>
+  <text class="name" x="1248" y="530">proposal</text>
+  <text class="sub" x="1248" y="586">ready to send</text>
+</svg>
+</body>
+</html>

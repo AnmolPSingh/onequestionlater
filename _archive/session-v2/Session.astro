@@ -1,0 +1,84 @@
+---
+// The home hero: my life as a music arrangement, with a particle portrait above it.
+// Everything here is real HTML; session.js only adds the moving playhead.
+import { getImage } from 'astro:assets';
+import { TRACKS, MILESTONES, ERAS, START, END } from '../data/milestones';
+
+const span = END - START;
+const pos = (year: number) => ((year - START) / span).toFixed(4);
+const years = Array.from({ length: span }, (_, i) => START + i);
+
+const photos = await Promise.all(MILESTONES.map(async (m) => (m.photo
+  ? (await getImage({ src: m.photo, width: 200, height: 200, fit: 'cover', format: 'webp' })).src
+  : null)));
+
+const data = {
+  start: START,
+  end: END,
+  eras: ERAS,
+  milestones: MILESTONES.map((m, i) => ({
+    id: m.id, from: m.from, to: m.to, date: m.date, title: m.title, line: m.line, photo: photos[i], work: m.work ?? null,
+  })),
+};
+const latest = data.milestones[data.milestones.length - 1];
+---
+<section class="session" aria-labelledby="name" data-session>
+  <div class="session-text">
+    <h1 id="name" class="name">Anmol Pratap Singh</h1>
+    <p class="role label">AI product builder</p>
+    <p class="lede">I build AI tools and automations for mission-driven organisations, the kind of work that usually needs a technical team but doesn't have to.</p>
+    <aside class="inspector" aria-label="Milestone at the playhead" aria-live="polite" data-inspector>
+      <img data-ins-photo alt="" width="86" height="86" hidden />
+      <div>
+        <p class="inspector-date label" data-ins-date>{latest.date}</p>
+        <h2 data-ins-title>{latest.title}</h2>
+        <p class="inspector-line" data-ins-line>{latest.line}</p>
+        <a data-ins-link href={`/work/${latest.work}`}>Open the release</a>
+      </div>
+    </aside>
+  </div>
+
+  <figure class="portrait" data-portrait>
+    <img src="/hero/portrait.webp" alt="Portrait of Anmol, smiling in square glasses, drawn in points of light that dissolve into dust at the shoulders." width="900" height="1053" />
+  </figure>
+
+  <div class="arrangement">
+    <div class="transport">
+      <button type="button" data-play hidden><span aria-hidden="true" data-play-icon>&#9654;</span> <span data-play-label>Play</span></button>
+      <button type="button" data-sound-toggle title="A little of where it all started." hidden>
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span data-sound-label>Sound off</span>
+      </button>
+      <span class="timecode" data-timecode aria-hidden="true">{END - 1}</span>
+    </div>
+    <div class="lanes" data-lanes style={`--years:${span}`}>
+      <div class="ruler" aria-hidden="true">
+        <span></span>
+        <ol>
+          {years.filter((y) => y % 2 === 1).map((y) => <li style={`--at:${pos(y)}`}>{y}</li>)}
+        </ol>
+      </div>
+      <ul class="tracks">
+        {TRACKS.map((t) => {
+          const clips = MILESTONES.filter((m) => m.track === t.id);
+          const rows = clips.some((m) => m.row) ? 2 : 1;
+          return (
+            <li class={`track track-${t.id}`}>
+              <h3 class="track-name">{t.label}</h3>
+              <ol class="lane" style={`--rows:${rows};--years:${span}`}>
+                {clips.map((m) => (
+                  <li class="clip" style={`--a:${pos(m.from)};--b:${pos(m.to)};--row:${m.row ?? 0}`}>
+                    <a href={`#m-${m.id}`} data-clip={m.id} title={`${m.title}, ${m.date}`}>{m.title}</a>
+                  </li>
+                ))}
+              </ol>
+            </li>
+          );
+        })}
+      </ul>
+      <div class="playhead" role="slider" tabindex="0" aria-label="Year" aria-valuemin={START} aria-valuemax={END} aria-valuenow={END} data-playhead hidden></div>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="session-data" set:html={JSON.stringify(data)}></script>

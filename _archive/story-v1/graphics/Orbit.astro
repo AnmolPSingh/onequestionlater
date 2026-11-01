@@ -1,0 +1,30 @@
+---
+// Five departments orbiting one dot labelled design (labels from 02 Story Arc).
+const departments = ['merchandising', 'development', 'tech', 'project management', 'marketing'];
+const placed = departments.map((name, i) => {
+  const a = ((-90 + i * 72) * Math.PI) / 180;
+  return { name, x: 240 + 190 * Math.cos(a), y: 180 + 118 * Math.sin(a) };
+});
+---
+<svg class="g-orbit" viewBox="0 0 480 360" aria-hidden="true" focusable="false">
+  <ellipse class="path" cx="240" cy="180" rx="190" ry="118" />
+  <g class="sats">
+    {placed.map((p) => (
+      <g class="sat">
+        <circle cx={p.x} cy={p.y} r="4" />
+        <text x={p.x} y={p.y + (p.y < 180 ? -12 : 22)}>{p.name}</text>
+      </g>
+    ))}
+  </g>
+  <circle class="core" cx="240" cy="180" r="9" />
+  <text class="core-label" x="240" y="212">design</text>
+</svg>
+
+<style>
+  .g-orbit { width: 100%; overflow: visible; }
+  .path { fill: none; stroke: var(--fg-dim); stroke-width: 1; stroke-dasharray: 3 6; }
+  .sat circle { fill: var(--fg); }
+  text { fill: var(--fg); font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; text-anchor: middle; text-transform: uppercase; }
+  .core { fill: currentColor; }
+  .core-label { fill: currentColor; }
+</style>

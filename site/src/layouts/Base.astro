@@ -1,0 +1,66 @@
+---
+import '@fontsource/inter-tight/400.css';
+import '@fontsource/inter-tight/500.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { AUTHOR, SITE_NAME } from '../config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  plain?: boolean;
+  /** The home page ends on its own close, which carries the footer. */
+  noFooter?: boolean;
+}
+
+const {
+  title = `${SITE_NAME}, by ${AUTHOR}`,
+  description = 'I follow questions. Occasionally they turn into careers.',
+  plain = false,
+  noFooter = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+// Every page but the home page shares its own title.
+const shareTitle = Astro.props.title ?? SITE_NAME;
+const shareDescription = Astro.props.description ?? `I follow questions. Occasionally they turn into careers. By ${AUTHOR}.`;
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0d0c0b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={shareTitle} />
+    <meta property="og:description" content={shareDescription} />
+    <meta property="og:image" content={new URL('/og.jpg', Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {!plain && (
+      <script is:inline>
+        (function () {
+          var d = document.documentElement;
+          var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          d.classList.add('js');
+          if (calm) d.classList.add('calm');
+          var seen = null;
+          try { seen = sessionStorage.getItem('loaded'); } catch (e) {}
+          if (!calm && !seen && location.pathname === '/') d.classList.add('loading');
+        })();
+      </script>
+    )}
+  </head>
+  <body>
+    <a class="skip-link label" href="#main">Skip to content</a>
+    <Header plain={plain} />
+    <slot />
+    {!noFooter && <Footer />}
+  </body>
+</html>

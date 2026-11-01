@@ -1,0 +1,27 @@
+---
+// Radio waves ripple from a dot, then a film strip runs sideways underneath.
+const rings = [24, 48, 72, 96];
+const holes = Array.from({ length: 24 }, (_, i) => -40 + i * 24);
+const frames = Array.from({ length: 7 }, (_, i) => -40 + i * 96);
+---
+<svg class="g-radio" viewBox="0 0 480 320" aria-hidden="true" focusable="false">
+  <g class="waves">
+    {rings.map((r) => <circle class="ring" cx="240" cy="110" r={r} />)}
+    <circle class="src" cx="240" cy="110" r="5" />
+  </g>
+  <g class="strip">
+    <rect class="band" x="-40" y="228" width="640" height="76" />
+    {holes.map((x) => <rect class="hole" x={x} y="234" width="10" height="8" rx="1.5" />)}
+    {holes.map((x) => <rect class="hole" x={x} y="290" width="10" height="8" rx="1.5" />)}
+    {frames.map((x) => <rect class="frame" x={x + 8} y="250" width="80" height="32" />)}
+  </g>
+</svg>
+
+<style>
+  .g-radio { width: 100%; }
+  .ring { fill: none; stroke: currentColor; stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
+  .src { fill: currentColor; }
+  .band { fill: var(--fg); opacity: 0.9; }
+  .hole { fill: var(--bg); }
+  .frame { fill: var(--bg); stroke: currentColor; stroke-width: 1; }
+</style>

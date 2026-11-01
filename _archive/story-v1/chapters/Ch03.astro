@@ -1,0 +1,21 @@
+---
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import ToolTag from '../ToolTag.astro';
+import RadioFilm from '../../graphics/RadioFilm.astro';
+import radio from '../../assets/photos/radio-air.jpg';
+import film from '../../assets/photos/film-dd-bbc.jpg';
+---
+<Chapter id="ch-03" num="03" end="ask the question nobody asks.">
+  <RadioFilm slot="graphic" />
+  <Fragment slot="prints">
+    <Print src={radio} alt="Close-up of the All India Radio studio desk: rows of switches, knobs and small red lights." caption="All India Radio. Filming wasn't allowed, so here's the desk." tilt={-2} />
+    <Print src={film} alt="Anmol operating a camera on a shoulder rig, lit in deep red, on a film shoot." caption="On a short film with Doordarshan and BBC India." tilt={3} />
+  </Fragment>
+  <p class="beat">Then came the respectable degree, because middle-class Indian parents. Journalism and mass communication at Amity.</p>
+  <p class="beat">Radio first. A summer at All India Radio turned into on-call work, and taught me that a listener can't see you, so every word has to earn its place.</p>
+  <p class="beat">Then film. I learned Premiere from YouTube and directed a public service short that won first prize at college. Then newsrooms, at Doordarshan and BBC India.</p>
+  <p class="beat">Journalism taught me the thing design school later confirmed. Don't start with what you want to say. Start with what you need to understand.</p>
+  <ToolTag tool="Premiere Pro" />
+  <blockquote slot="after" class="pull"><p>The brief is evidence. It isn't always the problem.</p></blockquote>
+</Chapter>

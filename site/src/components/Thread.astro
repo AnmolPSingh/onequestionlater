@@ -1,0 +1,29 @@
+---
+// One thread wandering through the things it found. Points are in % of the stage; the path bends
+// through them, then runs on out of frame, because it doesn't stop at the last one. Used on the
+// home page and, larger, on the philosophy page.
+interface Point { x: number; y: number }
+interface Props { points: Point[]; end: Point; chords?: [number, number][]; class?: string; drawn?: boolean }
+const { points, end, chords = [], class: className = '' } = Astro.props;
+
+function curve(list: Point[]) {
+  const at = (i: number) => list[Math.max(0, Math.min(list.length - 1, i))];
+  let d = `M${list[0].x} ${list[0].y}`;
+  for (let i = 0; i < list.length - 1; i++) {
+    const [a, b, c, e] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    const k = 0.2;
+    d += ` C${(b.x + (c.x - a.x) * k).toFixed(2)} ${(b.y + (c.y - a.y) * k).toFixed(2)} ${(c.x - (e.x - b.x) * k).toFixed(2)} ${(c.y - (e.y - b.y) * k).toFixed(2)} ${c.x} ${c.y}`;
+  }
+  return d;
+}
+
+const path = curve([...points, end]);
+const arc = (a: Point, b: Point) => {
+  const lift = 0.22 * Math.hypot(b.x - a.x, b.y - a.y);
+  return `M${a.x} ${a.y} Q${(a.x + b.x) / 2 + lift * 0.4} ${(a.y + b.y) / 2 - lift} ${b.x} ${b.y}`;
+};
+---
+<svg class:list={['thread', className]} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  <path class="thread-line" d={path} pathLength="1" data-thread />
+  {chords.map(([from, to]) => <path class="thread-chord" d={arc(points[from], points[to])} pathLength="1" data-chord />)}
+</svg>

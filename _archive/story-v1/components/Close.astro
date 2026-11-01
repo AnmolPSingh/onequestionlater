@@ -1,0 +1,16 @@
+---
+import { CONTACT_EMAIL, LINKS } from '../config';
+---
+<section id="close" class="close night" data-theme="night" data-section="close" aria-labelledby="close-h">
+  <h2 id="close-h" class="close-title" data-type>Stay curious enough to find out.</h2>
+</section>
+<footer class="site-footer label">
+  <ul>
+    <li><a href={LINKS.linkedin} rel="me">LinkedIn</a></li>
+    {CONTACT_EMAIL && (
+      <li>Email: <span data-email>{CONTACT_EMAIL}</span> <button type="button" data-copy-email hidden>Copy</button></li>
+    )}
+    <li><a href={LINKS.philanthropel}>Philanthropel</a></li>
+  </ul>
+  <p class="small-print">Made by Anmol, who learned how to make it along the way.</p>
+</footer>

@@ -1,0 +1,15 @@
+---
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import ToolTag from '../ToolTag.astro';
+import Posters from '../../graphics/Posters.astro';
+import raasta from '../../assets/photos/music-dj-delhi-raasta-2014.jpg';
+---
+<Chapter id="ch-02" num="02" end="learn the tool.">
+  <Posters slot="graphic" />
+  <Print slot="prints" src={raasta} alt="Black and white photo of a young Anmol grinning down at the decks during a gig." caption="Delhi Raasta, 2014. Gigs needed posters." tilt={-2.5} />
+  <p class="beat">My first tracks on SoundCloud needed artwork. I had MS Paint and a lot of confidence. A friend told me about Photoshop, so I learned it from YouTube to make covers for my own music.</p>
+  <p class="beat">Then I started playing gigs, and gigs needed posters. My first ones were bad. I got better by rebuilding posters I loved, piece by piece, until I understood why they worked.</p>
+  <ToolTag tool="Photoshop" />
+  <blockquote slot="after" class="pull"><p>I've never learned a tool to put it on a CV. I learned each one because there was something I wanted to make.</p></blockquote>
+</Chapter>

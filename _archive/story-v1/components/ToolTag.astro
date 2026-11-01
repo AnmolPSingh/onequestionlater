@@ -1,0 +1,5 @@
+---
+interface Props { tool: string }
+const { tool } = Astro.props;
+---
+<p class="tool-tag label" data-tool-tag><span class="tool-dot" aria-hidden="true"></span>Tool unlocked: {tool}</p>

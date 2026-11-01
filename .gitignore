@@ -1,0 +1,9 @@
+# Installed and generated
+node_modules/
+site/dist/
+site/.astro/
+
+# Machine and local settings
+.DS_Store
+.claude/
+.env*

@@ -1,0 +1,28 @@
+---
+import { getImage } from 'astro:assets';
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import { SHOW_FULL_CIRCLE, LINKS } from '../../config';
+import logoPoster from '../../assets/photos/philanthropel-logo-poster.jpg';
+import premiere from '../../assets/photos/srishti-premiere.jpg';
+
+const poster = await getImage({ src: logoPoster, width: 1000, format: 'webp' });
+---
+<Chapter id="ch-08" num="08" end="build what comes next.">
+  <video slot="graphic" class="logo-video" src="/media/philanthropel-logo.mp4" poster={poster.src} muted playsinline preload="none" aria-label="The Philanthropel logo forming on deep green, with the line Wielding intelligence for good." data-play-once></video>
+  <p class="beat">Philanthropel is what I'm building now with Srishti Bakshi. AI made with the third sector, not just for it. The sector isn't short of ambition. It's short of capacity.</p>
+  <div slot="after" class="full-circle">
+    {SHOW_FULL_CIRCLE && (
+      <>
+        <p>I knew Srishti's work long before I knew her.</p>
+        <ol class="frames label">
+          <li>Her walk.</li>
+          <li>Her TED talk.</li>
+          <li><Print src={premiere} alt="Anmol with Srishti Bakshi and another guest at a film premiere." caption="Her Prime Video premiere. The day we met." tilt={-2} /></li>
+        </ol>
+        <p>Now we build together.</p>
+      </>
+    )}
+    <p><a class="out-link label" href={LINKS.philanthropel}>Visit Philanthropel</a></p>
+  </div>
+</Chapter>

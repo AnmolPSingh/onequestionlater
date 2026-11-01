@@ -1,0 +1,18 @@
+---
+// Final state is full amplitude; motion.js grows the bars from flat.
+const bars = Array.from({ length: 48 }, (_, i) => {
+  const envelope = Math.sin((i / 47) * Math.PI);
+  const h = 12 + envelope * (60 + 140 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.45)));
+  return { x: i * 10 + 2.5, h: Math.round(h) };
+});
+---
+<svg class="g-wave" viewBox="0 0 480 240" aria-hidden="true" focusable="false">
+  <line class="axis" x1="0" y1="120" x2="480" y2="120" />
+  {bars.map((b) => <rect class="bar" x={b.x} y={120 - b.h / 2} width="5" height={b.h} rx="2.5" />)}
+</svg>
+
+<style>
+  .g-wave { width: 100%; }
+  .bar { fill: currentColor; transform-box: fill-box; transform-origin: center; }
+  .axis { stroke: var(--fg-dim); stroke-width: 1; }
+</style>

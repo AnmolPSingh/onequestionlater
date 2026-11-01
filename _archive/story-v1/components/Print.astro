@@ -1,0 +1,38 @@
+---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+  tilt?: number;
+  crop?: boolean;
+  eager?: boolean;
+  sizes?: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  caption,
+  tilt,
+  crop = false,
+  eager = false,
+  sizes = '(min-width: 900px) 18rem, 82vw',
+  class: cls,
+} = Astro.props;
+---
+<figure class:list={['print', cls, { crop }]} style={tilt === undefined ? undefined : `--tilt:${tilt}deg`}>
+  <Picture
+    src={src}
+    alt={alt}
+    formats={['avif', 'webp']}
+    widths={[400, 800, 1200]}
+    sizes={sizes}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

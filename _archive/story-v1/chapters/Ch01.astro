@@ -1,0 +1,18 @@
+---
+import Chapter from '../Chapter.astro';
+import Print from '../Print.astro';
+import Waveform from '../../graphics/Waveform.astro';
+import batch from '../../assets/photos/music-audio-engineering-batch.jpg';
+import decks from '../../assets/photos/music-dj-festival.jpg';
+---
+<Chapter id="ch-01" num="01" end="make a sound.">
+  <Waveform slot="graphic" />
+  <Fragment slot="prints">
+    <Print src={batch} alt="An audio engineering class posing together for a group photo under a 'Business of Music' banner." caption="Audio engineering batch." tilt={-3} />
+    <Print src={decks} alt="Anmol in dark glasses at a festival set, framed by a pair of glowing neon wings." caption="Behind the decks." tilt={2.5} />
+  </Fragment>
+  <p class="beat">Before design, there was music. I studied audio engineering and digital music production, as hooked on the software as I was on the sound.</p>
+  <p class="beat">Making a track works like this. You have a thought. You make sounds that resemble it. You arrange them until someone else feels something. I didn't know it then, but that was my first design process.</p>
+  <p class="beat">I still make electronic music, and I still release it.</p>
+  <blockquote slot="after" class="pull"><p>Same craft, different material. It took me ten years to notice.</p></blockquote>
+</Chapter>

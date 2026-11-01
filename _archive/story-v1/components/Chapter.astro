@@ -1,0 +1,28 @@
+---
+interface Props {
+  id: string;
+  num: string;
+  end: string;
+  theme?: 'night' | 'paper';
+}
+
+const { id, num, end, theme = 'night' } = Astro.props;
+const hasGraphic = Astro.slots.has('graphic');
+const hasPrints = Astro.slots.has('prints');
+---
+<section id={id} class:list={['chapter', theme]} data-chapter={num} data-theme={theme} aria-labelledby={`${id}-h`}>
+  <header class="ch-head">
+    <p class="ch-num label">{num}</p>
+    <h2 id={`${id}-h`} class="ch-title"><span class="lead label">Be curious enough to</span> <span class="end">{end}</span></h2>
+  </header>
+  <div class="ch-body">
+    {(hasGraphic || hasPrints) && (
+      <div class="stage">
+        {hasGraphic && <div class="graphic"><slot name="graphic" /></div>}
+        {hasPrints && <div class="prints"><slot name="prints" /></div>}
+      </div>
+    )}
+    <div class="beats"><slot /></div>
+  </div>
+  <slot name="after" />
+</section>
