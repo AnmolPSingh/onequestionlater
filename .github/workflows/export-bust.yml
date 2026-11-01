@@ -1,0 +1,19 @@
+name: Export source bust for reconstruction audit
+on:
+  push:
+    branches:
+      - feature/living-desert-particles-v2
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-asset:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive original bust for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-anmol-bust
+          path: site/assets-src/bust/anmol_head_neck_shoulders.glb
+          if-no-files-found: error
