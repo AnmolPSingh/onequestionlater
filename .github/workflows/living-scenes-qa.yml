@@ -24,11 +24,13 @@ jobs:
       - name: Install Playwright
         run: cd site && npm install --no-save playwright@1.57.0 && npx playwright install --with-deps chromium
       - name: Test real browser render
-        run: node site/scripts/visual-qa.mjs
+        run: xvfb-run -a node site/scripts/visual-qa.mjs
       - name: Upload screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: living-scenes-visual-qa
-          path: visual-qa/
+          path: |
+            visual-qa/
+            site/assets-src/bust/anmol_head_neck_shoulders.glb
           if-no-files-found: warn
