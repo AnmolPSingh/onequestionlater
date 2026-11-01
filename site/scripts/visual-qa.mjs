@@ -29,7 +29,7 @@ try {
   if (!opened) throw new Error('Astro dev server not ready');
 
   browser = await chromium.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader',
       '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=swiftshader'],
   });
@@ -44,6 +44,7 @@ try {
       if (message.type() === 'error') runtimeErrors.push(message.text());
     });
     await page.goto('http://127.0.0.1:4321/', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1200);
     await page.screenshot({ path: path.join(output, device.name + '-hero.png') });
     await page.waitForTimeout(4000);
     await page.evaluate(() => document.documentElement.classList.remove('loading'));
@@ -69,6 +70,7 @@ try {
     // If WebGL is available, the new renderer must have sized its actual canvas.
     if (states[2].canvasWidth === 0) throw new Error(device.name + ': living desert canvas was not initialized');
     if (states[1].canvasOpacity < 0.8) throw new Error(device.name + ': desert did not appear during scroll');
+    if (states[2].leadOpacity < 0.4) throw new Error(device.name + ': footer lead disappeared in the middle of the desert scroll');
     if (states[4].whiteOpacity < 0.6) throw new Error(device.name + ': transition to white failed');
     if (runtimeErrors.length) throw new Error(device.name + ': ' + runtimeErrors.join(' | '));
     await page.close();
