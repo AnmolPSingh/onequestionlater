@@ -7,7 +7,8 @@ import path from 'node:path';
 const output = path.resolve('visual-qa');
 await fs.mkdir(output, { recursive: true });
 const SITE = process.env.QA_SITE || 'http://127.0.0.1:4329/'; // astro allows one preview server, so reuse a running one
-const server = spawn('npx', process.env.QA_SITE ? ['--version'] : ['astro', 'preview', '--host', '127.0.0.1', '--port', '4329'], { // the real build, not a dev server
+// Astro itself, not through npx: killing npx leaves the server running, and the job then waits forever.
+const server = spawn(process.execPath, process.env.QA_SITE ? ['--version'] : ['node_modules/astro/bin/astro.mjs', 'preview', '--host', '127.0.0.1', '--port', '4329', '--ignore-lock'], { // the real build, not a dev server
   cwd: 'site',
   env: { ...process.env, CI: '1' },
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -81,3 +82,4 @@ try {
   await browser?.close();
   server.kill('SIGTERM');
 }
+process.exit(0); // a failure above has already exited with an error
