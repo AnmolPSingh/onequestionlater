@@ -28,14 +28,14 @@ vec4 onScreen(vec3 p) {
   return vec4(p.x * scale / uAspect, p.y * scale, -p.z * 0.2, 1.0);
 }`;
 
-// The camera in the desert. uWalk runs 0 to 1 as it eases back along the ground: anything near shrinks
-// toward the horizon and more ground comes in below. BACK must stay under 1, or the ground runs out.
+// The desert camera deliberately pushes IN for two to three scroll lengths. The 2.5D
+// landscape retains its photographic depth and nearer particles expand toward the viewer.
 export const PULL_GLSL = `
 uniform vec2 uFocus;
 uniform float uWalk;
-const float BACK = 0.6;
+const float PUSH = 0.65;
 const float FIGURE_NEAR = 0.83; // how far down the ground my feet are
-vec2 pull(vec2 q, float near) { return uFocus + (q - uFocus) / (1.0 + uWalk * BACK * near); }`;
+vec2 pull(vec2 q, float near) { return uFocus + (q - uFocus) * (1.0 + uWalk * PUSH * max(near, 0.2)); }`;
 
 const VERT = `
 precision highp float;
@@ -88,7 +88,7 @@ vec3 inDesert(vec3 p, bool figure) {
     gLit = mix(0.55, 1.1, twinkle);
   }
   gLit *= 1.0 - smoothstep(aSeed * 0.8, aSeed * 0.8 + 0.2, uFade); // thins out into the white, never to fog
-  gGrow = 1.0 - uWalk * 0.15;
+  gGrow = 1.0 + uWalk * 0.18;
   return vec3(pull(q, near), 0.0);
 }
 
