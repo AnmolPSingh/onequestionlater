@@ -44,7 +44,7 @@ try {
       if (message.type() === 'error') runtimeErrors.push(message.text());
     });
     await page.goto('http://127.0.0.1:4321/', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(5000); // wait for the loader and the portrait's 2.8s formation
     await page.screenshot({ path: path.join(output, device.name + '-hero.png') });
     await page.waitForTimeout(4000);
     await page.evaluate(() => document.documentElement.classList.remove('loading'));
