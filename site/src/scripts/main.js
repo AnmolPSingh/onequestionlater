@@ -30,10 +30,11 @@ const REVEAL = 1; // screens of scroll the projects take to condense out of the 
 const GRAIN = { width: 720, height: 405, frames: 18 }; // one grain is about one particle on a laptop screen
 const SLIDE_HOLD = 0.35; // of each slide's scroll, before the next starts to turn over
 const WAVE_POINTS = 16;
-const CLOSE_SCREENS = 2.9; // screens from the desert arriving to the page being white
-// Through those screens: the landscape is alive, the camera eases back, then it thins into the white.
-const CLOSE_BACK = [0.5, 0.78];
-const CLOSE_WHITE = [0.78, 0.995];
+const CLOSE_SCREENS = 3.2; // three deliberate screen-lengths: reveal, push through the landscape, then fade to white
+// The desert remains recognizable through two sustained scroll lengths. A slow camera push-in
+// starts after arrival; only the final portion fades to the white end card.
+const CLOSE_PUSH = [0.12, 0.78];
+const CLOSE_WHITE = [0.81, 0.995];
 const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -508,16 +509,19 @@ async function startMotion() {
 
     // The close: the particles settle into the landscape, then scrolling walks you into the light.
     const closing = clamp((y - closeTop) / (vh * CLOSE_SCREENS));
-    const walk = ease(ramp(closing, CLOSE_BACK[0], CLOSE_BACK[1]));
+    const walk = ease(ramp(closing, CLOSE_PUSH[0], CLOSE_PUSH[1]));
     const white = ease(ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[1]));
     const desertShown = (fromName === 'desert' && toName === 'desert' ? 1 : toName === 'desert' ? ramp(morph, 0.6, 1) : 0) * (1 - ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[0] + 0.14));
     const nearClose = y > closeTop - vh * 1.9;
     ghost.style.visibility = nearClose ? 'visible' : 'hidden';
     if (nearClose) {
       const arrive = ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9);
-      ghost.style.opacity = (arrive * 0.5 * (1 - ramp(closing, 0.1, 0.42))).toFixed(3); // the photo gives way to the dots
+      // Keep the source landscape readable while the independent dots and contours breathe over it.
+      // The image and shader share a focal point and push forward together, without shrinking the figure.
+      ghost.style.opacity = (arrive * 0.82 * (1 - white)).toFixed(3);
+      ghost.style.transform = `scale(${(1 + walk * 0.55).toFixed(4)})`;
       whiteLayer.style.opacity = white.toFixed(3);
-      closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(closing, 0.34, 0.44))).toFixed(3);
+      closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(closing, 0.73, 0.82))).toFixed(3);
       closeTitle.style.opacity = ramp(y, closeTop + vh * CLOSE_SCREENS * 0.96, closeTop + vh * (CLOSE_SCREENS + 0.35));
       closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_SCREENS + 0.65), closeTop + vh * (CLOSE_SCREENS + 1.05));
       root.classList.toggle('whiteout', white > 0.55);
