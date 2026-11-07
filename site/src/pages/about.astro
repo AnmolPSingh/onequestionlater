@@ -1,0 +1,15 @@
+---
+// About: the journey, everything so far as a session on eight tracks, flown through on scroll.
+import Base from '../layouts/Base.astro';
+import Session from '../components/Session.astro';
+import { SITE_NAME } from '../config';
+---
+<Base title={`About | ${SITE_NAME}`}>
+  <main id="main">
+    <Session level={1} />
+  </main>
+</Base>
+
+<script>
+  import '../scripts/session.js';
+</script>
