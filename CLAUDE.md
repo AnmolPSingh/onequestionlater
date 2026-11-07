@@ -37,7 +37,7 @@
 
 - `/`: loader (the last photo breaks into the dots that form the portrait), hero portrait (it turns and moves right on scroll), approach, Selected Work (four cases, then an index of the rest), Session (a fly-through where each scene arrives with the playhead, ending in "What comes next" in particles), close (the dot desert, a walk into the light, flat white, the line, then contact details).
 - `/work/<slug>`: one page per release (`site/src/data/work.ts`, `site/src/content/work/`). Music is not a release. Philanthropel leads, with Penname and Catalyst as part of it.
-- `/philosophy`: the philosophy as an experience (`site/src/pages/philosophy.astro`, `src/scripts/philosophy.js`, `src/styles/philosophy.css`, `src/data/philosophy.ts`). Its copy is final and supplied by Anmol: never rewrite it. Reached from the hidden thought under the name, top left, and it ends in an arrow into the work, with no footer.
+- `/philosophy`: the philosophy as an experience (`site/src/pages/philosophy.astro`, `src/scripts/philosophy.js`, `src/scripts/cymatics.js`, `src/styles/philosophy.css`, `src/data/philosophy.ts`): six beats, one scroll each, centred words over 3D forms of dust shaped by sound that change with each line, then the home page's desert close. Its copy is final and supplied by Anmol: never rewrite it. He cut it from twelve beats to six on 7 Nov 2026 by dropping lines, not rewording them. Reached from the hidden thought under the name, top left.
 - Project pages tell each story as The question, What I found, What I tried, What it became, The next question. Talking Philanthropy, Philanthropic Intelligence and Back at ISDI keep their short format.
 - `/404`: copy in 03.
 

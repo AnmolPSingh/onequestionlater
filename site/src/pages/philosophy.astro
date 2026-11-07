@@ -1,98 +1,80 @@
 ---
-// The philosophy as a journey: the page pins, and scrolling carries one particle cloud through twelve
-// formations, each meaning something for the words beside it. The words are Anmol's, unchanged. With no
-// motion (or no JS) the beats simply stack, one after another, and read in order.
+// The philosophy in dust shaped by sound: the page pins, and six scrolls carry six beats. Each beat's
+// lines arrive one by one, and the 3D form behind them changes with them; the same dust flows from one
+// form to the next, with the tone that shapes it when sound is on. Then the same close as the home page:
+// the desert, the walk into the light, the contact details. The words are Anmol's, cut by him to six beats
+// on 7 Nov 2026. With no motion (or no JS) the beats simply stack, one after another, and read in order.
 import Base from '../layouts/Base.astro';
+import Close from '../components/Close.astro';
 import { SITE_NAME } from '../config';
-import { FOUND, LEFT_BEHIND, JOINS, LOOP } from '../data/philosophy';
+import { FOUND, LEFT_BEHIND, LOOP } from '../data/philosophy';
 import '../styles/philosophy.css';
 
-const BEATS = 12;
-const n = (i: number) => `${String(i).padStart(2, '0')} / ${BEATS}`;
+const BEATS = 6;
+const pad = (i: number) => String(i).padStart(2, '0');
+const n = (i: number) => `${pad(i)} / ${pad(BEATS)}`;
 ---
 <Base title={`The philosophy | ${SITE_NAME}`} description="I follow questions. That's the only plan. Until they open unexpected doors." noFooter>
-  <main id="main" class="journey" style={`--beats:${BEATS}`} data-journey>
+  <img class="ghost" data-ghost src="/hero/desert-soft.webp" alt="" aria-hidden="true" loading="lazy" />
+  <main id="main">
+  <div class="journey" style={`--beats:${BEATS}`} data-journey>
     <div class="journey-stage">
 
-      <section class="beat" data-shape="galaxy" data-count={n(1)}>
+      <section class="beat" id="b-01" data-count={n(1)}>
         <h1 class="beat-label label">ONE QUESTION LATER</h1>
         <p class="beat-key">I follow questions.</p>
         <p class="beat-line">That's the only plan.</p>
         <p class="beat-line">Until they open unexpected doors.</p>
       </section>
 
-      <section class="beat" data-shape="found" data-count={n(2)}>
-        <p class="beat-quiet">I never really decided what I wanted to become.</p>
-        <p class="beat-line">I just kept finding things I wanted to <span class="lit">understand.</span></p>
-      </section>
-
-      <section class="beat" data-shape="path" data-count={n(3)}>
+      <section class="beat" id="b-02" data-count={n(2)}>
+        <p class="beat-quiet">I never really decided what I wanted to become. I just kept finding things I wanted to <span class="lit">understand.</span></p>
         <ol class="beat-path" data-unfold>
           {FOUND.map((line, i) => <li class:list={{ lit: i === FOUND.length - 1 }}>{line}</li>)}
         </ol>
       </section>
 
-      <section class="beat" data-shape="static" data-count={n(4)}>
-        <p class="beat-line">From the outside, it can look like I changed direction a lot.</p>
+      <section class="beat" id="b-03" data-count={n(3)}>
+        <p class="beat-line" data-line>From the outside, it can look like I changed direction a lot.</p>
+        <p class="beat-line beat-gap" data-line>I don't think I did. I just kept <span class="lit">following the next question.</span></p>
       </section>
 
-      <section class="beat" data-shape="signal" data-count={n(5)}>
-        <p class="beat-line">I don't think I did.</p>
-        <p class="beat-line">I just kept <span class="lit">following the next question.</span></p>
-      </section>
-
-      <section class="beat" data-shape="lessons" data-count={n(6)}>
-        <h2 class="beat-key">One question later...</h2>
+      <section class="beat" id="b-04" data-count={n(4)}>
         <ol class="beat-list" data-unfold>
           {LEFT_BEHIND.map((line) => <li>{line}</li>)}
         </ol>
+        <p class="beat-quiet beat-gap" data-line>But none of these replaced what came before.</p>
+        <h2 class="beat-key" data-line>They accumulated.</h2>
       </section>
 
-      <section class="beat" data-shape="accumulated" data-count={n(7)}>
-        <p class="beat-quiet">But none of these replaced what came before.</p>
-        <h2 class="beat-key">They accumulated.</h2>
-        <ul class="beat-list" data-unfold>
-          {JOINS.map((line) => <li>{line}</li>)}
-        </ul>
-      </section>
-
-      <section class="beat" data-shape="tunnel" data-count={n(8)}>
-        <p class="beat-line">The doors don't close behind me.</p>
-        <p class="beat-line">They lead to other doors.</p>
-      </section>
-
-      <section class="beat" data-shape="static" data-count={n(9)}>
-        <p class="beat-quiet">Maybe that's why I've never been particularly comfortable defining myself by one discipline.</p>
+      <section class="beat" id="b-05" data-count={n(5)}>
         <ul class="beat-changes" data-unfold>
           <li>The title changes.</li>
           <li>The tools change.</li>
           <li>The questions change.</li>
         </ul>
+        <p class="beat-key lit" data-line>The behaviour doesn't.</p>
       </section>
 
-      <section class="beat" data-shape="constant" data-count={n(10)}>
-        <p class="beat-key lit">The behaviour doesn't.</p>
-      </section>
-
-      <section class="beat" data-shape="loop" data-count={n(11)}>
+      <section class="beat beat-end" id="b-06" data-count={n(6)}>
         <ol class="beat-loop" data-unfold>
           {LOOP.map((line, i) => <li class:list={{ lit: i === LOOP.length - 1 }}>{line}</li>)}
         </ol>
-      </section>
-
-      <section class="beat beat-end" data-shape="mark" data-count={n(12)}>
-        <h2 class="beat-label label">ONE QUESTION LATER...</h2>
-        <p class="beat-line">I'm somewhere I hadn't planned to be.</p>
-        <p class="beat-line">With something I didn't know how to make before.</p>
-        <p class="beat-quiet">And usually...</p>
-        <p class="beat-key lit">another question.</p>
-        <p class="beat-line beat-gap">There isn't supposed to be a final chapter.</p>
-        <p class="beat-line">There is only the next question.</p>
+        <p class="beat-line beat-gap" data-line>There isn't supposed to be a final chapter.</p>
+        <p class="beat-line" data-line>There is only the next question.</p>
         <a class="beat-on" href="/#work" aria-label="Carry on, into the work"><span aria-hidden="true">&rarr;</span></a>
       </section>
 
-      <p class="journey-count label" aria-hidden="true" data-count-out>01 / {BEATS}</p>
+      <p class="journey-count label" aria-hidden="true" data-count-out>{n(1)}</p>
+      <p class="hud label" aria-hidden="true"><span data-hud-mode>FORM</span> <span class="hud-dot">&middot;</span> <span data-hud-hz>196 HZ</span></p>
     </div>
+    <nav class="rail label" aria-label="Chapters">
+      <ol>
+        {Array.from({ length: BEATS }, (_, i) => <li><a href={`#b-${pad(i + 1)}`} data-to={i}>{pad(i + 1)}</a></li>)}
+      </ol>
+    </nav>
+  </div>
+  <Close />
   </main>
 </Base>
 

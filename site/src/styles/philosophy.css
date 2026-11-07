@@ -1,11 +1,11 @@
-/* The philosophy page as a journey. Without motion (or JS) the beats simply stack and read in order;
-   with motion the stage pins, the particles carry the scene and the words sit in the space beside them. */
+/* The philosophy page in dust shaped by sound. Without motion (or JS) the beats simply stack and read in
+   order; with motion the stage pins, the words sit in the middle and the dust fills the screen behind them. */
 .journey { position: relative; z-index: 1; }
 .beat { display: grid; align-content: center; gap: clamp(0.5rem, 0.35rem + 0.6vw, 1rem); min-height: 80svh; padding: calc(var(--header-h) + 6svh) 5vw 8svh; max-width: 46rem; }
 .beat-label { color: var(--dim); }
-.beat-key { font-size: clamp(2.1rem, 1rem + 3.8vw, 5.2rem); font-weight: 700; line-height: 0.98; letter-spacing: -0.04em; text-transform: uppercase; text-wrap: balance; }
+.beat-key { font-size: clamp(2.1rem, 1rem + 3.8vw, 5.2rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; text-transform: uppercase; text-wrap: balance; }
 .beat-line { font-size: clamp(1.3rem, 0.95rem + 1.5vw, 2.4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
-.beat-quiet { color: var(--dim); font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.35rem); line-height: 1.35; text-wrap: balance; }
+.beat-quiet { color: var(--dim); font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.35rem); line-height: 1.45; text-wrap: balance; }
 .beat-gap { margin-top: 1.6rem; }
 .lit { color: var(--onair); text-shadow: var(--onair-glow); }
 .beat-path, .beat-list, .beat-changes, .beat-loop { list-style: none; margin: 0; padding: 0; }
@@ -20,17 +20,38 @@
 .beat-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .beat-on:hover span { transform: translateX(0.28em); }
 .journey-count { display: none; }
+.hud { display: none; }
+.rail ol { list-style: none; margin: 0; padding: 0; }
+.rail { display: none; }
 
 /* ---------- With motion: one pinned stage, the scroll carries everything ---------- */
-html.journey-on .journey { height: calc(var(--beats) * 80svh + 100svh); }
+html.journey-on .journey { height: calc(var(--beats) * 100svh + 100svh); } /* STEP in philosophy.js: a screen a beat */
 html.journey-on .journey-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-html.journey-on .beat { position: absolute; left: 5vw; top: 50%; width: min(42vw, 40rem); min-height: 0; padding: 0; transform: translateY(-50%); opacity: 0; visibility: hidden; text-shadow: 0 0 18px var(--ink), 0 0 4px var(--ink); }
+html.journey-on .beat { position: absolute; left: 50%; top: 50%; z-index: 2; width: min(calc(100vw - 2 * var(--gutter)), 44rem); min-height: 0; padding: 0; transform: translate(-50%, -50%); justify-items: center; text-align: center; opacity: 0; visibility: hidden; text-shadow: 0 0 18px var(--ink), 0 0 4px var(--ink); }
+html.journey-on .beat-path { justify-content: center; }
+html.journey-on .beat-list, html.journey-on .beat-changes, html.journey-on .beat-loop { justify-items: center; }
+html.journey-on .beat-on { margin-inline: auto; }
+/* A soft shade in the middle, so the words always read over the dust behind them. */
+html.journey-on .journey-stage::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse 34% 24% at 50% 50%, rgb(13 12 11 / 0.45), transparent 80%); }
 html.journey-on .beat.on { visibility: visible; }
-html.journey-on [data-unfold] li { opacity: 0; transition: opacity 0.25s; }
+html.journey-on [data-unfold] li, html.journey-on [data-line] { opacity: 0; transition: opacity 0.25s; }
 html.journey-on .journey-count { display: block; position: absolute; right: 5vw; bottom: 2.25rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+/* The plate's readout: which mode or form, and the tone that makes it. */
+html.journey-on .hud { display: flex; gap: 0.5rem; align-items: center; position: absolute; left: 5vw; bottom: 2.25rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+html.journey-on .hud::before { content: ''; width: 6px; height: 6px; background: var(--onair); box-shadow: var(--onair-glow); }
+/* Fine film grain over the dark. */
+html.journey-on .journey-stage::before { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.07; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* Chapters, one circle a beat, down the right edge. */
+html.journey-on .rail { display: block; position: fixed; right: 1.5rem; top: 50%; z-index: 30; transform: translateY(-50%); }
+html.journey-on .rail ol { display: grid; gap: 0.4rem; }
+html.journey-on .rail.gone { opacity: 0; visibility: hidden; transition: opacity 0.4s, visibility 0s 0.4s; }
+html.journey-on .rail { transition: opacity 0.4s; }
+html.journey-on .rail a { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid var(--hair); border-radius: 50%; color: var(--dim); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.04em; transition: color 0.25s, border-color 0.25s, background 0.25s; }
+html.journey-on .rail a:hover, html.journey-on .rail a:focus-visible { color: var(--paper); border-color: var(--paper); }
+html.journey-on .rail a[aria-current='step'] { color: var(--ink); background: var(--onair); border-color: var(--onair); box-shadow: var(--onair-glow); }
 @media (max-width: 899px) {
-  /* The formation sits in the upper half; the words take the lower. */
-  html.journey-on .beat { top: auto; bottom: 9svh; left: var(--gutter); right: var(--gutter); width: auto; transform: none; }
   html.journey-on .beat-list, html.journey-on .beat-path { font-size: 1rem; }
   html.journey-on .journey-count { bottom: 1.25rem; right: var(--gutter); }
+  html.journey-on .hud { bottom: 1.25rem; left: var(--gutter); }
+  html.journey-on .rail { display: none; } /* no room beside the words; scrolling reaches every beat */
 }

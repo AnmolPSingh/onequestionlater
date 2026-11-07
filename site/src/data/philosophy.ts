@@ -1,4 +1,5 @@
-// The philosophy page's copy, final and supplied by Anmol: never reword it. The page lays it out in nine screens.
+// The philosophy page's copy, final and supplied by Anmol: never reword it. He cut it to six beats on 7 Nov 2026;
+// the lines he dropped live in git history.
 export const FOUND = [
   'I started with stories.',
   'That led me to journalism.',
@@ -20,13 +21,6 @@ export const LEFT_BEHIND = [
   'Technology taught me to build systems.',
   'XR taught me to step inside ideas.',
   'AI changed the scale of what I could explore.',
-];
-
-export const JOINS = [
-  'A lesson from journalism can show up in an AI project.',
-  'Something I learned making music can change how I think about interaction.',
-  'Design can shape how I approach philanthropy.',
-  'Technology can make an old idea suddenly possible.',
 ];
 
 export const LOOP = ['I get curious.', 'I follow it.', 'I learn whatever the question demands.', 'I make something.', 'And somewhere along the way...', 'another door opens.'];
