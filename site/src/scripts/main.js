@@ -6,6 +6,7 @@ import { startCursor } from './cursor.js';
 import { playLoader } from './loader.js';
 import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
+import { createWhale } from './whale.js';
 
 // The conductor: one loop reads the scroll position and drives the figure, the particle morphs,
 // the flight through the years and the walk into the light. The HTML is
@@ -22,8 +23,11 @@ const RUN_UP = 0.6; // stops of track before the first scene
 const RUN_OUT = 0.2;
 const FLY_TAIL = 1.4; // screens after the last scene: the stars gather into the words and hold
 const WALK_END = 3.97; // just short of the horizon; keep under 1 + FAR in scene.js
-const CLOSE_HOLD = 0.7; // screens the landscape holds before the walk, long enough to read the line beside me
-const CLOSE_WALK = 2.2; // screens the walk into the light takes
+const CLOSE_HOLD = 0.3; // screens the landscape holds before the walk, long enough to read the line beside me
+const CLOSE_WALK = 1.4; // screens the walk into the light takes: with the hold, about two scrolls from the line to white
+const CLOSE_END = CLOSE_HOLD + CLOSE_WALK + 0.6; // screens into the close where the contact details are fully in
+const CLOSE_IDLE_MS = 20000; // if nobody scrolls on from the line, the walk carries on by itself
+const CLOSE_AUTO_SECONDS = 5;
 const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -239,7 +243,7 @@ async function startMotion() {
   // the scene's beginning, but its readable state is near the end of the scroll.
   const navigateToSection = (hash) => {
     if (hash === '#contact') {
-      lenis.scrollTo(closeTop + innerHeight * (CLOSE_HOLD + CLOSE_WALK + 1.2), { immediate: true });
+      lenis.scrollTo(closeTop + innerHeight * CLOSE_END, { immediate: true });
       return true;
     }
     return false;
@@ -288,6 +292,10 @@ async function startMotion() {
   let current = null;
   const t0 = performance.now();
   let raf = 0;
+  let lastY = scrollY;
+  let stillSince = t0;
+  let autoWalked = false;
+  const whale = createWhale(whiteLayer, [closeTitle, closeDetails]);
   markReady();
 
   const frame = (now) => {
@@ -394,9 +402,18 @@ async function startMotion() {
       ghost.style.transform = `scale(${(4 / (4 - walk)).toFixed(4)})`;
       whiteLayer.style.opacity = white.toFixed(3);
       closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(walking, 0.03, 0.16))).toFixed(3);
-      closeTitle.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK * 0.96), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.35));
-      closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.65), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 1.05));
+      closeTitle.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK * 0.96), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.2));
+      closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.3), closeTop + vh * CLOSE_END);
       root.classList.toggle('whiteout', white > 0.55);
+      if (white > 0.01) whale.draw(now, cursor.on ? [cursor.x, cursor.y] : null);
+    }
+
+    // Once the line is up, twenty still seconds and the walk into the light goes on without you.
+    if (Math.abs(y - lastY) > 0.5) { lastY = y; stillSince = now; }
+    if (y < closeTop - vh) autoWalked = false;
+    if (!autoWalked && y > closeTop - vh * 0.05 && walking < 1 && now - stillSince > CLOSE_IDLE_MS) {
+      autoWalked = true;
+      lenis.scrollTo(closeTop + vh * CLOSE_END, { duration: CLOSE_AUTO_SECONDS, easing: ease });
     }
 
     // Words stay dim until the light finds them. With no pointer, the scroll carries the light across.
