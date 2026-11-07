@@ -1,12 +1,16 @@
 ---
-// My story: the journey, everything so far as a session on eight tracks, flown through on scroll.
+// My story: the journey, everything so far as a session on eight tracks, flown through on scroll,
+// then the same close as the home page: the desert, the walk into the light, and the contact details.
 import Base from '../layouts/Base.astro';
 import Session from '../components/Session.astro';
+import Close from '../components/Close.astro';
 import { SITE_NAME } from '../config';
 ---
-<Base title={`My story | ${SITE_NAME}`}>
+<Base title={`My story | ${SITE_NAME}`} noFooter>
+  <img class="ghost" data-ghost src="/hero/desert-soft.webp" alt="" aria-hidden="true" loading="lazy" />
   <main id="main">
     <Session level={1} />
+    <Close />
   </main>
 </Base>
 
