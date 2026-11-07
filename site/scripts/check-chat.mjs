@@ -11,6 +11,7 @@ assert.equal(tidy('[his work](https://onequestionlater.com/story)'), 'his work h
 assert.match(tidy("I'm built on Llama 3 by Meta."), /Anmol's assistant/);
 assert.match(tidy('I run on GPT-4.'), /Anmol's assistant/);
 assert.equal(tidy('He uses Claude sessions.'), 'He uses Claude sessions.');
+assert.equal(tidy('- **AI invoice processing** sorts invoices\n## Next'), '- AI invoice processing sorts invoices\nNext');
 assert.equal(tidy('One thing \u2014 another'), 'One thing, another');
 
 // Requests: wrong origin, malformed or oversized questions never reach the model.

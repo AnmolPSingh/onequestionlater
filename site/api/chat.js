@@ -90,6 +90,7 @@ export function tidy(answer) {
   if (GIVEAWAYS.test(answer)) return DEFLECT;
   return answer
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 $2') // markdown links become plain text and a URL, checked below
+    .replace(/\*\*|__|^#{1,6}\s*/gm, '') // the chat shows plain text, so no bold or heading marks
     .replace(/(https?:\/\/[^\s)<>"']+|mailto:[^\s)<>"']+)/g, (url) => {
       const bare = url.replace(/[.,;:!?]+$/, '');
       const ok = ALLOWED_LINKS.some((allowed) => bare === allowed || bare.startsWith(`${allowed}/`) || bare.startsWith(`${allowed}?`));

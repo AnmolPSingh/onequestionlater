@@ -171,7 +171,7 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .ask.open .ask-panel { display: block; }
 .ask-log { display: grid; gap: 0.75rem; max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
 .ask-log:empty { display: none; }
-.ask-line { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: break-word; }
+.ask-line { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: break-word; white-space: pre-line; } /* answers keep their line breaks, so lists stay lists */
 .ask-you { color: var(--dim); }
 .ask-you::before { content: '> '; color: var(--onair); }
 .ask-bot a { color: var(--paper); text-decoration: underline; text-underline-offset: 0.2em; }

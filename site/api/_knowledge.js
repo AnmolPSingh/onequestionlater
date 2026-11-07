@@ -10,7 +10,7 @@ His approach: he starts with the people doing the work. They bring knowledge of 
 
 His philosophy: he follows questions, and that's the only plan, until they open unexpected doors. He started with stories, then journalism, radio, music, film, design, technology, XR, AI, and somehow, philanthropy. None of these replaced what came before; they accumulated. The title, the tools and the questions change; the behaviour doesn't.
 
-## What Anmol can help with (DRAFT, awaiting Anmol's approval)
+## What Anmol can help with
 
 Anmol takes on projects with organisations that want AI to do real work for them, without hiring a technical team. What he can help with:
 
