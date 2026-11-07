@@ -12,6 +12,7 @@ body {
   font-size: var(--body);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: clip;
 }
 
@@ -20,8 +21,8 @@ a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--onair); outline-offset: 3px; }
-h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0; line-height: 1.08; margin: 0; }
-p { margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: -0.015em; line-height: 1.1; margin: 0; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; } /* no lone word on a paragraph's last line */
 
 .label {
   font-family: var(--mono);
@@ -161,7 +162,7 @@ html.scene-on .statement-pin { position: sticky; top: 0; height: 100svh; padding
 /* Dim words, lit where the pointer is. Large type, so the resting colour still clears 3:1. */
 html.scene-on [data-spot] { color: rgb(243 238 228 / 0.42); background: radial-gradient(320px circle at var(--x, -999px) var(--y, -999px), rgb(255 255 255 / calc(var(--o, 0) * 1)), rgb(255 255 255 / calc(var(--o, 0) * 0.6)) 22%, rgb(255 255 255 / calc(var(--o, 0) * 0.28)) 44%, transparent 72%); -webkit-background-clip: text; background-clip: text; }
 .approach-h { max-width: 30rem; font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem); line-height: 1.15; letter-spacing: -0.01em; color: var(--onair); text-shadow: var(--onair-glow); text-wrap: balance; }
-.approach { max-width: 34rem; font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem); line-height: 1.4; text-wrap: pretty; text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
+.approach { max-width: 34rem; font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem); line-height: 1.5; text-wrap: pretty; text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
 
 /* ---------- Session: a list to read, or with motion on, a flight through the years ---------- */
 .session {
@@ -218,7 +219,7 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .clip { position: absolute; left: calc(var(--lead) + var(--a) * var(--slot)); width: calc((var(--b) - var(--a)) * var(--slot)); top: calc(var(--row) * var(--pitch)); height: var(--clip-h); }
 .clip a { display: block; height: 100%; padding: 0.25rem 0.7rem; color: var(--paper); background: var(--raised); border: 1px solid var(--hair); border-radius: 6px; text-decoration: none; }
 .clip small, .clip span { position: sticky; left: 0.7rem; display: block; width: max-content; white-space: nowrap; }
-.clip small { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; color: var(--dim); }
+.clip small { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; color: var(--dim); }
 .clip span { font-size: 0.975rem; font-weight: 500; line-height: 1.2; }
 .clip.open a { background: linear-gradient(to right, var(--raised) 70%, transparent); border-right-color: transparent; }
 .clip a:hover { border-color: var(--paper); }
@@ -247,7 +248,7 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
   html.scene-on .statement-pin { gap: 0.6rem; padding-top: calc(var(--header-h) + 0.75rem); }
   .statement-big { font-size: 1.25rem; }
   .approach-h { font-size: 1rem; }
-  .approach { font-size: 0.95rem; }
+  .approach { font-size: 1rem; } /* reading text stays at 16px or more */
 }
 
 /* ---------- Work: the four cases to choose from, then everything else as an index ---------- */
@@ -266,10 +267,10 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 @media (min-width: 900px) { .release .iso-figure { width: min(64rem, 90vw); margin-left: 50%; translate: -50% 0; } } /* wider than the reading column, so the labels stay legible */
 @media (min-width: 900px) { .release .architecture-figure { width: min(72rem, 94vw); } }
 .case-number { color: var(--dim); }
-.case-title { font-size: clamp(1.7rem, 1.2rem + 2vw, 3rem); line-height: 1.02; letter-spacing: -0.03em; }
+.case-title { font-size: clamp(1.7rem, 1.2rem + 2vw, 3rem); line-height: 1.1; letter-spacing: -0.02em; }
 .case-title a { text-decoration: none; }
 .case-title a::after { content: ''; position: absolute; inset: 0; } /* the whole case opens it, and the title stays the link's name */
-.case-summary { max-width: 32rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); line-height: 1.45; text-wrap: pretty; }
+.case-summary { max-width: 32rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); line-height: 1.5; text-wrap: pretty; }
 .case:hover .case-title a, .case:focus-within .case-title a { color: var(--onair); text-shadow: var(--onair-glow); }
 .case:hover .case-figure { transform: translateY(-6px); }
 @media (min-width: 900px) {
@@ -280,7 +281,7 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .world { position: relative; height: 150svh; margin-inline: -5vw; }
 .world-pin { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; padding: 0 5vw; overflow: hidden; }
 .world-text { position: relative; z-index: 2; display: grid; gap: 1rem; max-width: 27rem; }
-.world-h { font-size: var(--h-section); font-weight: 700; line-height: 1.1; letter-spacing: -0.025em; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
+.world-h { font-size: var(--h-section); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
 .world-sub { color: var(--paper); text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
 .orbit { position: absolute; left: 50%; top: 50%; width: min(96svh, 96vw); height: min(96svh, 96vw); margin: calc(min(96svh, 96vw) / -2) 0 0 calc(min(96svh, 96vw) / -2); fill: var(--dim); font-size: 13px; font-weight: 500; letter-spacing: 0.34em; text-transform: uppercase; }
 html:not(.calm) .orbit { animation: orbit 60s linear infinite; }
@@ -292,7 +293,7 @@ html:not(.scene-on) .orbit { display: none; }
 .index-wrap { display: grid; gap: clamp(2rem, 1rem + 3vw, 4rem); }
 .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
 .index a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.3rem 2rem; align-items: center; padding: 1.4rem 0; border-bottom: 1px solid var(--hair); text-decoration: none; transition: color 0.3s; }
-.index-title { font-size: clamp(1.5rem, 1.05rem + 1.9vw, 3rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.025em; }
+.index-title { font-size: clamp(1.5rem, 1.05rem + 1.9vw, 3rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
 .index-kind { grid-column: 1; color: var(--dim); }
 .index-year { grid-column: 2; grid-row: 1; color: var(--dim); }
 .index-arrow { display: none; }
@@ -336,7 +337,7 @@ html.scene-on .close-lead { position: absolute; left: 50vw; top: 46%; transform:
 }
 .close-white { display: none; }
 .close-end { display: grid; gap: 2.5rem; justify-items: center; width: 100%; }
-.close-title { margin: 0; max-width: 16ch; text-wrap: balance; font-size: clamp(2.4rem, 1.4rem + 4vw, 6rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
+.close-title { margin: 0; max-width: 16ch; text-wrap: balance; font-size: clamp(2.4rem, 1.4rem + 4vw, 6rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
 .close-details { width: 100%; }
 html.scene-on .close { position: relative; height: 360svh; } /* 1 + CLOSE_END in main.js, with a little room to rest on the details */
 html.scene-on .close-pin { position: sticky; top: 0; height: 100svh; display: block; padding: 0; overflow: hidden; }
@@ -361,11 +362,11 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .site-footer a { text-decoration: none; }
 .site-footer a:hover { color: var(--onair); text-shadow: var(--onair-glow); }
 .site-footer button { color: var(--onair); text-shadow: var(--onair-glow); border: 1px solid var(--hair); border-radius: 999px; padding: 0.25rem 0.75rem; font: inherit; letter-spacing: inherit; text-transform: inherit; }
-.small-print { color: var(--dim); text-transform: none; letter-spacing: 0.02em; }
+.small-print { color: var(--dim); text-transform: none; letter-spacing: 0; }
 
 /* ---------- Release and plain pages ---------- */
 .plain-main { max-width: 42rem; margin: 0 auto; padding: calc(var(--header-h) + 3.5rem) var(--gutter) 6rem; }
-.plain-main h1 { margin-bottom: 0.6rem; font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4.25rem); letter-spacing: 0; }
+.plain-main h1 { margin-bottom: 0.6rem; font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4.25rem); letter-spacing: -0.02em; }
 .plain-main h2 { margin: 2.75rem 0 0.9rem; font-size: 1.35rem; }
 /* Every project ends on what it left open, so the last thing on the page is a question. */
 .release h2:last-of-type { color: var(--onair); text-shadow: var(--onair-glow); }
@@ -388,7 +389,7 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
   .cluster img:nth-child(n + 4) { left: 30%; bottom: 4%; width: 34%; z-index: 1; rotate: 1deg; }
 }
 .kicker { color: var(--dim); margin-bottom: 0.9rem; }
-.summary { font-size: 1.2rem; line-height: 1.45; }
+.summary { font-size: 1.2rem; line-height: 1.5; }
 .stats { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; margin: 1.5rem 0 0.5rem; }
 .stats div { display: grid; gap: 0.1rem; }
 .stats dt { order: 2; font-family: var(--mono); font-size: var(--label); color: var(--dim); }
