@@ -1,35 +1,36 @@
-/* The philosophy page: nine chapters, one screen each, giant type over the particle field.
-   With no motion (or no JS) every word simply sits there, in order. */
-.philosophy { position: relative; z-index: 1; }
-.ch { display: grid; align-content: center; gap: clamp(0.6rem, 0.4rem + 0.8vw, 1.2rem); min-height: 100svh; padding: calc(var(--header-h) + 8svh) 5vw 10svh; max-width: 82rem; }
-.ch-label { color: var(--dim); margin-bottom: 1rem; }
-.ch-giant { font-size: clamp(2.6rem, 0.9rem + 7.4vw, 9rem); font-weight: 700; line-height: 0.96; letter-spacing: -0.045em; text-transform: uppercase; text-wrap: balance; }
-.ch-big { max-width: 22em; font-size: clamp(1.6rem, 1.05rem + 2.6vw, 3.6rem); font-weight: 700; line-height: 1.06; letter-spacing: -0.025em; text-wrap: balance; }
-.ch-quiet { max-width: 30em; color: var(--dim); font-size: clamp(1.1rem, 1rem + 0.6vw, 1.5rem); line-height: 1.3; text-wrap: balance; }
-.ch-gap { margin-top: 3rem; }
+/* The philosophy page as a journey. Without motion (or JS) the beats simply stack and read in order;
+   with motion the stage pins, the particles carry the scene and the words sit in the space beside them. */
+.journey { position: relative; z-index: 1; }
+.beat { display: grid; align-content: center; gap: clamp(0.5rem, 0.35rem + 0.6vw, 1rem); min-height: 80svh; padding: calc(var(--header-h) + 6svh) 5vw 8svh; max-width: 46rem; }
+.beat-label { color: var(--dim); }
+.beat-key { font-size: clamp(2.1rem, 1rem + 3.8vw, 5.2rem); font-weight: 700; line-height: 0.98; letter-spacing: -0.04em; text-transform: uppercase; text-wrap: balance; }
+.beat-line { font-size: clamp(1.3rem, 0.95rem + 1.5vw, 2.4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.beat-quiet { color: var(--dim); font-size: clamp(1.05rem, 0.98rem + 0.4vw, 1.35rem); line-height: 1.35; text-wrap: balance; }
+.beat-gap { margin-top: 1.6rem; }
 .lit { color: var(--onair); text-shadow: var(--onair-glow); }
+.beat-path, .beat-list, .beat-changes, .beat-loop { list-style: none; margin: 0; padding: 0; }
+.beat-path { display: flex; flex-wrap: wrap; gap: 0.1em 0.45em; font-size: clamp(1.2rem, 0.9rem + 1.3vw, 2.1rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+.beat-path li:not(:last-child)::after { content: '\2192' / ''; margin-left: 0.45em; color: var(--dim); font-weight: 400; }
+.beat-list { display: grid; gap: 0.4rem; margin-top: 0.6rem; font-size: clamp(1rem, 0.94rem + 0.35vw, 1.3rem); line-height: 1.3; }
+.beat-changes { display: grid; color: var(--dim); font-size: clamp(1.3rem, 0.95rem + 1.5vw, 2.4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.beat-loop { display: grid; gap: 0.15rem; counter-reset: loop; font-size: clamp(1.25rem, 0.92rem + 1.4vw, 2.3rem); font-weight: 700; line-height: 1.12; letter-spacing: -0.02em; }
+.beat-loop li { counter-increment: loop; }
+.beat-loop li::before { content: counter(loop, decimal-leading-zero); display: inline-block; width: 2.4em; vertical-align: 0.3em; color: var(--dim); font-size: 0.4em; font-weight: 500; letter-spacing: 0.1em; }
+.beat-on { width: fit-content; margin-top: 1rem; font-size: clamp(2.8rem, 2rem + 4vw, 5.5rem); line-height: 1; text-decoration: none; color: var(--onair); text-shadow: var(--onair-glow); }
+.beat-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.beat-on:hover span { transform: translateX(0.28em); }
+.journey-count { display: none; }
 
-/* The path: every stop on one screen, read left to right, top to bottom. */
-.ch-path { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.15em 0.5em; font-size: clamp(1.7rem, 1rem + 3.4vw, 4.6rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; }
-.ch-path li:not(:last-child)::after { content: '\2192' / ''; margin-left: 0.5em; color: var(--dim); font-weight: 400; }
-
-/* What each one left behind, and how they now join up: compact, so the chapter fits one screen. */
-.ch-list, .ch-grid, .ch-changes, .ch-loop { list-style: none; margin: 0; padding: 0; }
-.ch-list { display: grid; gap: 0.35rem; margin-top: 1rem; font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.7rem); line-height: 1.25; }
-.ch-grid { display: grid; gap: 1rem 2.5rem; margin-block: 1.5rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem); line-height: 1.35; }
-.ch-changes { display: grid; font-size: clamp(1.6rem, 1.05rem + 2.6vw, 3.6rem); font-weight: 700; line-height: 1.06; letter-spacing: -0.025em; color: var(--dim); }
-.ch-loop { display: grid; gap: 0.2rem; counter-reset: loop; font-size: clamp(1.5rem, 1rem + 2.4vw, 3.4rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; }
-.ch-loop li { counter-increment: loop; }
-.ch-loop li::before { content: counter(loop, decimal-leading-zero); display: inline-block; width: 2.6em; vertical-align: 0.35em; color: var(--dim); font-size: 0.32em; font-weight: 500; letter-spacing: 0.1em; }
-.ch-on { width: fit-content; margin-top: 1.5rem; font-size: clamp(3rem, 2rem + 5vw, 6.5rem); line-height: 1; text-decoration: none; color: var(--onair); text-shadow: var(--onair-glow); }
-.ch-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.ch-on:hover span { transform: translateX(0.28em); }
-@media (min-width: 900px) {
-  .ch-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
-  .ch-grid { grid-template-columns: repeat(2, minmax(0, 30rem)); }
+/* ---------- With motion: one pinned stage, the scroll carries everything ---------- */
+html.journey-on .journey { height: calc(var(--beats) * 80svh + 100svh); }
+html.journey-on .journey-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+html.journey-on .beat { position: absolute; left: 5vw; top: 50%; width: min(42vw, 40rem); min-height: 0; padding: 0; transform: translateY(-50%); opacity: 0; visibility: hidden; text-shadow: 0 0 18px var(--ink), 0 0 4px var(--ink); }
+html.journey-on .beat.on { visibility: visible; }
+html.journey-on [data-unfold] li { opacity: 0; transition: opacity 0.25s; }
+html.journey-on .journey-count { display: block; position: absolute; right: 5vw; bottom: 2.25rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+@media (max-width: 899px) {
+  /* The formation sits in the upper half; the words take the lower. */
+  html.journey-on .beat { top: auto; bottom: 9svh; left: var(--gutter); right: var(--gutter); width: auto; transform: none; }
+  html.journey-on .beat-list, html.journey-on .beat-path { font-size: 1rem; }
+  html.journey-on .journey-count { bottom: 1.25rem; right: var(--gutter); }
 }
-
-/* With motion: a chapter's lines arrive one after another as it comes into view, then stay. */
-html.reveal-on .ch [style*='--i'] { opacity: 0; filter: blur(4px); transform: translateY(0.4em); transition: opacity 0.55s, filter 0.55s, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--i) * 80ms); }
-html.reveal-on .ch.in [style*='--i'] { opacity: 1; filter: none; transform: none; }
-html.reveal-on .ch-path li, html.reveal-on .ch-list li, html.reveal-on .ch-loop li { transition-duration: 0.45s; transition-delay: calc(var(--i) * 50ms + 80ms); }
