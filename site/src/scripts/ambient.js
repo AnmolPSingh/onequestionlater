@@ -3,7 +3,6 @@ import { createScene } from './scene.js';
 import * as shapes from './shapes.js';
 import { isCalm } from './calm.js';
 import { startCursor } from './cursor.js';
-import { startDisintegrate } from './disintegrate.js';
 
 // Release pages: the same particle cloud, quieter. As you read toward the next question, the dust gathers into a question mark.
 const PARTICLES = innerWidth < 640 ? 9000 : 14000;
@@ -37,7 +36,6 @@ function start() {
   };
   addEventListener('resize', onResize, { passive: true });
 
-  const dust = startDisintegrate(document.querySelectorAll('[data-disintegrate]'));
   const cursor = startCursor();
   const t0 = performance.now();
   let raf = 0;
@@ -49,7 +47,6 @@ function start() {
     cursor.tick();
     const aspect = innerWidth / innerHeight;
     const mouse = cursor.on ? [((cursor.x / innerWidth) * 2 - 1) * aspect, 1 - (cursor.y / innerHeight) * 2] : [-9, -9];
-    dust.tick(time);
     scene.draw({
       from: 'field',
       to: 'mark',

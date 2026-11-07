@@ -19,7 +19,7 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
 <Base title={`${release.title} | ${SITE_NAME}`} description={release.summary}>
   <main id="main" class="plain-main release">
     <p class="kicker label">{[release.group, release.year].filter(Boolean).join(', ')}</p>
-    <h1 data-disintegrate>{release.title}</h1>
+    <h1>{release.title}</h1>
     {release.kind && <p class="kicker">{release.kind}</p>}
     <p class="summary"><Named text={release.summary} /></p>
     {extra.length ? (
