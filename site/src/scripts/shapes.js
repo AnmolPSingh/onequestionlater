@@ -45,20 +45,6 @@ export function cloud(n) {
   return out;
 }
 
-// The loader's last photo as dots, lying where it was on screen, so it can break up into the portrait.
-// Half the particles draw it; the rest wait in the cloud. corners: the photo's top-left and
-// bottom-right in scene units.
-export function photo(n, { width, height, luma }, [[x0, y0], [x1, y1]]) {
-  const out = cloud(n);
-  for (let i = 0; i < n; i += 2) {
-    const u = Math.random();
-    const v = Math.random();
-    const l = luma[Math.floor(v * height) * width + Math.floor(u * width)];
-    write(out, i, x0 + (x1 - x0) * u, y0 + (y1 - y0) * v, 0, STILL, 0.1 + 0.9 * l);
-  }
-  return out;
-}
-
 // The figure turns about its own centre line, this far down the frame: the head, so a turn feels
 // like a head turning.
 export const HEAD_PIVOT = 0.33;
