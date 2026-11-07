@@ -9,8 +9,11 @@
   --error: #ff9d8a;
 
 
-  --sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  /* One voice, Space Grotesk, chosen for energy and directness. Weight does the jobs: 700 for statements
+     and titles, 400 for reading, 500 for navigation, dates and other measured things. */
+  --display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sans: var(--display);
+  --mono: var(--display);
 
   --h-section: clamp(1.9rem, 1.5rem + 2vw, 3.25rem);
   --body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);

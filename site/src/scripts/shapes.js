@@ -3,12 +3,11 @@
 // count, so the scene can morph any particle from one shape to the next.
 const STILL = 0;
 const GLOBE = 2;
-const RIBBON = 3;
 const FIELD = 4;
 const HOT = 5;
 const STATIC = 6;
 const SIGNAL = 7;
-const SOLID = 8; // the portrait relief: stable, fine dust dots, lit in the shader, turned and placed by the conductor
+const VIEW = 12; // me, as one of the reference views in dots: lit like Elimar, placed by the conductor, turned by flowing to the next view
 const TUNNEL = 9; // stars streaming past the camera as the scroll flies forward
 const LANDSCAPE = 10; // the desert, each dot at its own depth, so the camera can walk into it
 const FIGURE = 11; // me in that desert: the wind blows past, and these dots only shimmer in place
@@ -27,7 +26,6 @@ const NEW_YORK = [40.7, -74];
 const SAN_FRANCISCO = [37.8, -122.4];
 
 const rand = (a = 1, b = 0) => b + Math.random() * (a - b);
-const smooth = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 const write = (out, i, x, y, z, code, alpha) => {
   out[i * 4] = x;
   out[i * 4 + 1] = y;
@@ -64,37 +62,44 @@ export function photo(n, { width, height, luma }, [[x0, y0], [x1, y1]]) {
 // The figure turns about its own centre line, this far down the frame: the head, so a turn feels
 // like a head turning.
 export const HEAD_PIVOT = 0.33;
-export const FRAME_WIDTH = 1600; // the hero frame, in the sculpture's px
 
-// The figure's dots, on the sculpture's surface. dotAt(i) gives one in photo px about the head's
-// pivot; scale takes those to scene units. They keep the way their bit of surface faces, for the light.
-export function portrait(n, dotAt, scale) {
-  const out = new Float32Array(n * 4);
-  const normals = new Float32Array(n * 3);
-  const used = Math.floor(n * 0.94); // the rest are faint stars far behind the figure
-  for (let i = 0; i < n; i++) {
-    if (i >= used) { write(out, i, rand(2.4, -2.4), rand(1.4, -1.4), -1.2, FIELD, rand(0.22, 0.05)); continue; }
-    const dot = dotAt(i);
-    write(out, i, dot.x * scale, dot.y * scale, dot.z * scale, SOLID, (0.04 + dot.lum * 0.2) * smooth(-690, -430, dot.y));
-    normals[i * 3] = dot.nx;
-    normals[i * 3 + 1] = dot.ny;
-    normals[i * 3 + 2] = dot.nz;
-  }
-  return { shape: out, normals };
+// Reads public/hero/views.bin from scripts/make-views.py: for each view (front, then slant), Uint16
+// u, v, luma per dot. Dot i is on the same part of me in both, so a turn flows each dot sideways.
+export function readViews(buffer, views = 2) {
+  const all = new Uint16Array(buffer);
+  const count = all.length / 3 / views;
+  return { count, views: Array.from({ length: views }, (_, k) => all.subarray(k * count * 3, (k + 1) * count * 3)) };
 }
 
-export const DESERT = { ratio: 1672 / 941, width: 1672, axis: 0.517, focus: [0.517, 400 / 941], feet: 0.9 }; // focus: the horizon behind me, which the camera pulls back from
+// One view of me in dots. box: the hero frame in scene units; the square view spans its width, so the
+// shoulders run off the bottom.
+export function portrait(n, { count, views }, view, box) {
+  const out = new Float32Array(n * 4);
+  const dots = views[view];
+  const used = Math.min(Math.floor(n * 0.94), count); // the rest are faint stars far behind the figure
+  for (let i = 0; i < n; i++) {
+    if (i >= used) { write(out, i, rand(2.4, -2.4), rand(1.4, -1.4), -1.2, FIELD, rand(0.22, 0.05)); continue; }
+    const j = Math.floor((i * count) / used) * 3; // evenly through the whole figure: the dots are stored top to bottom
+    const u = dots[j] / 65535 - 0.5;
+    const v = dots[j + 1] / 65535;
+    const luma = dots[j + 2] / 65535;
+    write(out, i, u * box.w, HEAD_PIVOT * box.h - v * box.w, 0, VIEW, 0.08 + luma * 0.82);
+  }
+  return out;
+}
 
-// frame: the scene's rectangle in scene units, cover-fitted to the screen. See scripts/make-desert.py for the record.
+export const DESERT = { ratio: 1.6, axis: 0.4127, focus: [0.78, 0.235] }; // focus: the bright edge of the horizon, where the walk ends
+
+// frame: the scene's rectangle in scene units, cover-fitted to the screen. Depth stays in z, 0 far to 1 near.
 export function desert(n, dots, frame) {
   const out = new Float32Array(n * 4);
   const count = dots.length / 4;
   for (let i = 0; i < n; i++) {
     if (i >= count) { write(out, i, rand(frame.w / 2, -frame.w / 2) + frame.x, rand(frame.h / 2, -frame.h / 2), 0, LANDSCAPE, rand(0.12, 0.03)); continue; }
-    const u = (dots[i * 4] / 65535) * 4 - 2;
-    const v = 0.5 - (dots[i * 4 + 1] / 65535) * 3;
+    const u = dots[i * 4] / 65535 - 0.5;
+    const v = 0.5 - dots[i * 4 + 1] / 65535;
     const luma = dots[i * 4 + 3];
-    write(out, i, u * frame.w + frame.x, v * frame.h, (dots[i * 4 + 2] / 65535) * 3, luma & 1 ? FIGURE : LANDSCAPE, luma / 65535);
+    write(out, i, u * frame.w + frame.x, v * frame.h, dots[i * 4 + 2] / 65535, luma & 1 ? FIGURE : LANDSCAPE, 0.1 + (luma / 65535) * 0.9);
   }
   return out;
 }
@@ -127,7 +132,7 @@ export function keptWords(n, words, aspect, narrow) {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#fff';
   const size = narrow ? canvas.width * 0.112 : canvas.height * 0.098;
-  ctx.font = `500 ${size}px 'Inter Tight', sans-serif`;
+  ctx.font = `700 ${size}px 'Space Grotesk', system-ui, sans-serif`;
   // Across the free part of the screen, not in a list: they sit where they fall and lean on each other.
   const places = narrow
     ? [[0.34, 0.21], [0.6, 0.26], [0.3, 0.31], [0.62, 0.36], [0.32, 0.41], [0.6, 0.46], [0.3, 0.51]]
@@ -167,7 +172,7 @@ export function words(n, lines, aspect, scale = 1) {
   canvas.height = Math.round(1600 / aspect);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const size = Math.min((canvas.width * 0.86) / Math.max(...lines.map((line) => line.length * 0.5)), canvas.height * 1.5) * scale;
-  ctx.font = `500 ${size}px 'Inter Tight', sans-serif`;
+  ctx.font = `700 ${size}px 'Space Grotesk', system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#fff';
@@ -233,16 +238,6 @@ export function globe(n, land) {
       const [x, y, z] = onSphere(from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t, GLOBE_RADIUS * lift);
       write(out, i, x, y, z, HOT, 0.75);
     }
-  }
-  return out;
-}
-
-// Stored as (u, v, strand). The shader computes the flowing ribbon every frame.
-export function ribbon(n) {
-  const out = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) {
-    const v = (Math.random() + Math.random() - 1);
-    write(out, i, rand(1, -1), v, i % 2 ? 1 : -1, RIBBON, rand(0.8, 0.25));
   }
   return out;
 }

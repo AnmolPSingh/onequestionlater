@@ -5,37 +5,24 @@ import { createScore } from './score.js';
 import { startCursor } from './cursor.js';
 import { playLoader } from './loader.js';
 import { isCalm } from './calm.js';
-import { createBust, readBust, surfaceDot } from './bust.js';
-import { createDunes } from './dunes.js';
-import { startLivingDesert } from './living-desert.js';
-import { fitThreads } from './thread.js';
 
 // The conductor: one loop reads the scroll position and drives the figure, the particle morphs,
-// the flight through the years, the project slides and the walk into the light. The HTML is
+// the flight through the years and the walk into the light. The HTML is
 // already the finished page, so reduced motion just never starts any of it.
-const PARTICLES = innerWidth < 640 ? 42000 : 58000;
-const STRANDS = innerWidth < 640 ? 12000 : 30000;
+const PARTICLES = innerWidth < 640 ? 26000 : 58000; // a phone builds every shape on a slower CPU, so it gets fewer dots
+const DESERT_AHEAD = 6; // screens before the close at which its 350 KB of dots start to download
 const FORM_SECONDS = 2.8;
 const PHOTO_HOLD = 0.7; // seconds the loader's last photo lies as dots before they leave for the portrait
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
-const HERO_TURN = -0.48; // radians, so I end up looking toward the words. Daniel turns 0.6, but his face is wider in its head, so this reads the same
-const IDLE_TURN = 0.05; // radians either way the head drifts at rest
-const SURFACE_DOTS = 0.18; // restrained surface-attached points accompanying the living contours
-const layer = new URLSearchParams(location.search).get('layer'); // ?layer=mesh or contours, to judge each alone
-const HERO_TURN_SCROLL = 1.05; // screens of scroll the turn takes
+const HERO_TURN_SCROLL = 1.05; // screens of scroll it takes me to turn from facing you to the three-quarter slant, toward the words
+const HERO_ASIDE_SCROLL = 0.45;
 const PAIR_GAP = 0.018; // of the screen's width, between two pictures that share a scene
 const RUN_UP = 0.6; // stops of track before the first scene
 const RUN_OUT = 0.2;
 const FLY_TAIL = 1.4; // screens after the last scene: the stars gather into the words and hold
-const REVEAL = 1; // screens of scroll the projects take to condense out of the particles, and to break back up
-const GRAIN = { width: 720, height: 405, frames: 18 }; // one grain is about one particle on a laptop screen
-const SLIDE_HOLD = 0.35; // of each slide's scroll, before the next starts to turn over
-const WAVE_POINTS = 16;
-const CLOSE_SCREENS = 3.2; // three deliberate screen-lengths: reveal, push through the landscape, then fade to white
-// The desert remains recognizable through two sustained scroll lengths. A slow camera push-in
-// starts after arrival; only the final portion fades to the white end card.
-const CLOSE_PUSH = [0.12, 0.78];
-const CLOSE_WHITE = [0.81, 0.995];
+const WALK_END = 3.97; // just short of the horizon; keep under 1 + FAR in scene.js
+const CLOSE_HOLD = 0.7; // screens the landscape holds before the walk, long enough to read the line beside me
+const CLOSE_WALK = 2.2; // screens the walk into the light takes
 const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -127,52 +114,15 @@ function flyStop(stop, s, index, count, vw, vh, tiltX, tiltY) {
   stop.text.style.transform = `translateY(${((s - 0.5) * 16).toFixed(1)}px)`;
 }
 
-// A strip of masks, each with more grains lit than the last, nearest the middle first. Generated
-// here rather than downloaded, and used as a sprite so stepping through it costs almost nothing.
-function makeGrain() {
-  const { width, height, frames } = GRAIN;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height * frames;
-  const ctx = canvas.getContext('2d');
-  const image = ctx.createImageData(canvas.width, canvas.height);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const out = Math.hypot(x / width - 0.5, y / height - 0.5) / 0.71;
-      const turn = (Math.random() * 0.7 + out * 0.3) * (frames - 1); // the frame this grain lights up in
-      for (let f = Math.ceil(turn); f < frames; f++) image.data[((f * height + y) * width + x) * 4 + 3] = 255;
-    }
-  }
-  ctx.putImageData(image, 0, 0);
-  return new Promise((resolve) => { canvas.toBlob((blob) => resolve(blob ? URL.createObjectURL(blob) : null)); });
-}
-
-// The edge of the next slide: flat at rest, bowing upward in the middle as it comes over.
-function waveClip(k) {
-  const lift = k * (1 - k) * 110;
-  const points = [];
-  for (let i = 0; i <= WAVE_POINTS; i++) {
-    const x = i / WAVE_POINTS;
-    points.push(`${(x * 100).toFixed(2)}% ${Math.max(-5, (1 - k) * 100 - Math.sin(x * Math.PI) * lift).toFixed(2)}%`);
-  }
-  return `polygon(0% 105%, ${points.join(', ')}, 100% 105%)`;
-}
-
 async function startMotion() {
   const scene = createScene(PARTICLES);
   if (!scene) { root.classList.add('no-scene'); markReady(); return; }
 
-  let bust;
-  let land;
+  let figure;
   try {
-    const [mesh, strands, l] = await Promise.all(['/hero/bust.bin', '/hero/strands.bin', '/hero/land.bin'].map(async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`${url} returned ${res.status}`);
-      return res.arrayBuffer();
-    }));
-    bust = readBust(mesh, strands, STRANDS);
-    scene.setBust(createBust(scene.gl, bust, { mesh: layer !== 'contours', contours: layer !== 'mesh', strands: layer !== 'mesh' }));
-    land = new Uint8Array(l);
+    const res = await fetch('/hero/views.bin');
+    if (!res.ok) throw new Error(`/hero/views.bin returned ${res.status}`);
+    figure = shapes.readViews(await res.arrayBuffer());
   } catch (err) {
     console.warn('Particle data unavailable; showing the static page.', err);
     scene.stop();
@@ -189,9 +139,6 @@ async function startMotion() {
   const closeDetails = document.querySelector('[data-close-details]');
   const whiteLayer = document.querySelector('[data-white]');
   const ghost = document.querySelector('[data-ghost]');
-  const livingCanvas = document.querySelector('[data-close-live]');
-  let livingDesert = null;
-  let desertAsked = false; // its images are only fetched as the close nears
   const head = session.querySelector('[data-head]');
   const pin = session.querySelector('[data-pin]');
   const nextLine = session.querySelector('[data-next-line]');
@@ -199,13 +146,6 @@ async function startMotion() {
   const arrangement = session.querySelector('[data-arrangement]');
   const firstClip = session.querySelector('.clip');
   const stops = buildStops();
-  const work = document.querySelector('[data-work]');
-  const stage = document.querySelector('[data-stage]');
-  const slides = [...document.querySelectorAll('[data-slide]')].map((el) => ({ el, body: el.querySelector('.slide-body') }));
-  const ticks = [...document.querySelectorAll('[data-tick]')];
-  const lens = document.querySelector('[data-lens]');
-  const statement = document.querySelector('.statement');
-  const pattern = document.querySelector('[data-pattern]');
   const spots = [...document.querySelectorAll('[data-spot]')].map((el) => ({ el, x: 0, y: 0, o: 0 }));
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
 
@@ -218,26 +158,18 @@ async function startMotion() {
     return [((px / innerWidth) * 2 - 1) * aspect, 1 - (py / innerHeight) * 2];
   };
 
-  let statementTop = 0;
   let tops = [];
   let sessionTop = 0;
   let sessionRange = 1;
   let slotWidth = 1;
   let nextTop = 0;
-  let workTop = 0;
-  let workRange = 1;
-  let slideRange = 1;
-  let grain = null;
-  let grainAsked = false;
-  let grainFrame = -1;
   let closeTop = 0;
   let heroPan = [0, 0];
-  let bustScale = 1;
   let heroEnd = { x: 0, y: 0, zoom: 1 };
   let focus = [0, 0];
   let desertPoints = null;
-  let dunes = null;
-  let desertFeet = 0;
+  let desertAsked = false;
+  let placeDesert = () => {};
   let layoutRun = 0;
 
   const layout = () => {
@@ -248,68 +180,42 @@ async function startMotion() {
     // Measured with the page at rest, so scroll offsets are stable.
     const y = scrollY;
     tops = sections.map((s) => s.getBoundingClientRect().top + y);
-    statementTop = statement.getBoundingClientRect().top + y;
     sessionTop = session.getBoundingClientRect().top + y;
     sessionRange = Math.max(1, session.offsetHeight - innerHeight * (1 + FLY_TAIL));
     nextTop = nextMark.getBoundingClientRect().top + y;
     slotWidth = firstClip.offsetWidth / (parseFloat(firstClip.style.getPropertyValue('--b')) - parseFloat(firstClip.style.getPropertyValue('--a')));
-    workTop = work.getBoundingClientRect().top + y;
-    workRange = Math.max(1, work.offsetHeight - innerHeight);
-    slideRange = Math.max(1, workRange - innerHeight * REVEAL * 2);
     closeTop = closeEl.getBoundingClientRect().top + y;
-    fitThreads();
 
     const fig = portraitEl.getBoundingClientRect();
     const [bx, by] = toUnits(fig.left, fig.top + y);
     const bw = (fig.width / innerWidth) * 2 * aspect;
     const bh = (fig.height / innerHeight) * 2;
     heroPan = [bx + bw / 2, by - shapes.HEAD_PIVOT * bh];
-    heroEnd = wide ? { x: aspect * 0.46, y: heroPan[1] - 0.04, zoom: 1.14 } : { x: aspect * 0.34, y: heroPan[1] - 0.86, zoom: 0.72 };
+    heroEnd = wide ? { x: aspect * 0.56, y: heroPan[1] - 0.04, zoom: 0.98 } : { x: aspect * 0.42, y: heroPan[1] - 1.18, zoom: 0.62 }; // clear of the statement: right on a wide screen, below it on a phone
     scene.setShape('cloud', shapes.cloud(PARTICLES));
-    bustScale = bw / shapes.FRAME_WIDTH;
-    const { shape, normals } = shapes.portrait(PARTICLES, (i) => surfaceDot(bust, i), bustScale);
-    scene.setShape('portrait', shape);
-    scene.setNormals(normals);
+    scene.setShape('portrait', shapes.portrait(PARTICLES, figure, 0, { w: bw, h: bh }));
 
     // The landscape covers the screen. On a narrow one it slides over so I'm in the middle of it.
     const h = Math.max(2, (2 * aspect) / shapes.DESERT.ratio);
     const w = h * shapes.DESERT.ratio;
-    const frame = { w, h, x: wide ? 0 : (0.5 - shapes.DESERT.axis) * w }; // the narrow screen slides over so I'm in the middle
-    desertFeet = (0.5 - shapes.DESERT.feet) * h;
-    focus = [(shapes.DESERT.focus[0] - 0.5) * w + frame.x, (0.5 - shapes.DESERT.focus[1]) * h];
+    const frame = { w, h, x: wide ? 0 : Math.min((0.5 - shapes.DESERT.axis) * w, w / 2 - aspect) };
+    focus = [clamp((shapes.DESERT.focus[0] - 0.5) * w + frame.x, -aspect * 0.8, aspect * 0.8), (0.5 - shapes.DESERT.focus[1]) * h];
     const pxPerUnit = innerHeight / 2;
     ghost.style.width = `${w * pxPerUnit}px`;
     ghost.style.height = `${h * pxPerUnit}px`;
     ghost.style.left = `${innerWidth / 2 + (frame.x - w / 2) * pxPerUnit}px`;
     ghost.style.top = `${innerHeight / 2 - (h / 2) * pxPerUnit}px`;
-    const buildDesert = () => {
-      if (desertPoints) scene.setShape('desert', shapes.desert(PARTICLES, desertPoints, frame));
-      if (dunes) dunes.place(frame, shapes.DESERT.width);
-    };
+    ghost.style.transformOrigin = `${(focus[0] - frame.x + w / 2) * pxPerUnit}px ${(h / 2 - focus[1]) * pxPerUnit}px`;
+    const buildDesert = () => { if (desertPoints) scene.setShape('desert', shapes.desert(PARTICLES, desertPoints, frame)); };
+    placeDesert = buildDesert;
 
     // The rest are built one per idle moment, so loading never blocks the page.
     const pending = [
-      () => scene.setShape('static', shapes.radioStatic(PARTICLES, aspect)),
-      () => scene.setShape('signal', shapes.signal(PARTICLES, aspect)),
+      () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
       () => scene.setShape('tunnel', shapes.tunnel(PARTICLES, aspect)),
       () => scene.setShape('next', shapes.words(PARTICLES, wide ? ['What comes next'] : ['What comes', 'next'], aspect)),
-      () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
-      () => scene.setShape('ribbon', shapes.ribbon(PARTICLES)),
-      () => {
-        if (desertPoints) { buildDesert(); return; }
-        Promise.all(['/hero/desert.bin', '/hero/desert-strands.bin'].map(async (url) => {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`${url} returned ${res.status}`);
-          return res.arrayBuffer();
-        }))
-          .then(([dots, strands]) => {
-            desertPoints = new Uint16Array(dots);
-            dunes = createDunes(scene.gl, strands);
-            scene.setDunes(dunes);
-            buildDesert();
-          })
-          .catch((err) => console.warn('Desert scene unavailable; the page ends on the words.', err));
-      },
+      () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
+      buildDesert, // only once its dots have arrived; they are fetched as the close comes near
     ];
     const run = ++layoutRun;
     const next = () => {
@@ -320,6 +226,28 @@ async function startMotion() {
     whenIdle(next);
   };
   layout();
+
+  // The displayed contact block lives inside a pinned scene. Its DOM position is
+  // the scene's beginning, but its readable state is near the end of the scroll.
+  const navigateToSection = (hash) => {
+    if (hash === '#contact') {
+      lenis.scrollTo(closeTop + innerHeight * (CLOSE_HOLD + CLOSE_WALK + 1.2), { immediate: true });
+      return true;
+    }
+    return false;
+  };
+  document.querySelectorAll('a[href="/#contact"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const hash = new URL(link.href).hash;
+      history.pushState(null, '', hash);
+      navigateToSection(hash);
+    });
+  });
+  addEventListener('popstate', () => navigateToSection(location.hash));
+  requestAnimationFrame(() => navigateToSection(location.hash));
+
 
   let lastWidth = innerWidth;
   let timer = 0;
@@ -346,29 +274,10 @@ async function startMotion() {
   const onClipFocus = (e) => { if (e.currentTarget.matches(':focus-visible')) goToStop(parseFloat(e.currentTarget.dataset.at)); };
   clipLinks.forEach((link) => { link.addEventListener('click', onClip); link.addEventListener('focus', onClipFocus); });
 
-  // The lens follows the pointer over a slide and opens it; links on the slide stay links.
-  const onStageMove = (e) => {
-    lens.classList.toggle('on', !e.target.closest('a'));
-    lens.style.left = `${e.clientX}px`;
-    lens.style.top = `${e.clientY}px`;
-  };
-  const onStageLeave = () => lens.classList.remove('on');
-  let slideNow = 0;
-  const onStageClick = (e) => { if (!e.target.closest('a') && cursor.on) location.href = slides[slideNow].el.dataset.href; };
-  // Tabbing to a link on a slide brings that slide up.
-  const onStageFocus = (e) => {
-    const at = slides.findIndex((slide) => slide.el.contains(e.target));
-    if (at >= 0 && e.target.matches(':focus-visible')) lenis.scrollTo(workTop + innerHeight * REVEAL + (at / Math.max(1, slides.length - 1)) * slideRange, { immediate: true });
-  };
-  stage.addEventListener('pointermove', onStageMove);
-  stage.addEventListener('pointerleave', onStageLeave);
-  stage.addEventListener('click', onStageClick);
-  stage.addEventListener('focusin', onStageFocus);
 
   let bass = 0;
   let shrill = 0;
   let current = null;
-  let shownSlide = -1;
   const t0 = performance.now();
   let raf = 0;
   markReady();
@@ -418,27 +327,28 @@ async function startMotion() {
       const hold = PHOTO_HOLD / FORM_SECONDS;
       morph = fromPhoto ? ease(clamp((formed - hold) / (1 - hold))) : 1 - (1 - clamp(formed)) ** 3;
     }
+    // I turn by flowing from the front view into the three-quarter slant, toward the words; once turned, I stay turned.
+    const turning = ease(clamp(y / (vh * HERO_TURN_SCROLL)));
+    if (y >= 10) {
+      if (fromName === 'portrait' && toName === 'portrait') { toName = 'slant'; morph = turning; }
+      else {
+        if (fromName === 'portrait') fromName = 'slant';
+        if (toName === 'portrait') toName = 'slant';
+      }
+    }
     if (!scene.has(toName)) toName = fromName;
     if (!scene.has(fromName)) { fromName = 'cloud'; toName = 'cloud'; }
-
-    // The sculpture gathers out of its own dots as they land, and breaks back into them as they leave.
-    let body = 0;
-    if (fromName === 'portrait') body = toName === 'portrait' ? 1 : 1 - ramp(morph, 0, 0.45);
-    else if (toName === 'portrait') body = ease(ramp(formed, 0.55, 1));
-    root.classList.toggle('on-sculpture', body > 0.5);
 
     const levels = score.levels();
     bass += (levels.low - bass) * 0.12;
     shrill += (levels.high - shrill) * 0.12;
 
     // The figure: at the hero it faces you; scrolling turns it and walks it to the right.
-    const turning = ease(clamp(y / (vh * HERO_TURN_SCROLL)));
-    const turn = HERO_TURN * turning + Math.sin(time * 0.21) * IDLE_TURN;
-    const pan = [lerp(heroPan[0], heroEnd.x, turning), lerp(heroPan[1], heroEnd.y, turning)];
-    const zoom = lerp(1, heroEnd.zoom, turning);
+    // I step aside faster than I turn, so the statement's words arrive on empty dark and never on me.
+    const aside = ease(clamp(y / (vh * HERO_ASIDE_SCROLL)));
+    const pan = [lerp(heroPan[0], heroEnd.x, aside), lerp(heroPan[1], heroEnd.y, aside)];
+    const zoom = lerp(1, heroEnd.zoom, aside);
 
-    // The steps climb on their own once the statement is in view, so they cost no scroll.
-    pattern.classList.toggle('on', y > statementTop - vh * 0.35);
 
     // The flight through the years: scroll is the camera moving forward.
     const play = clamp((y - sessionTop) / sessionRange);
@@ -462,83 +372,28 @@ async function startMotion() {
       nextLine.style.opacity = ramp(y, nextTop - vh * 0.25, nextTop) * (1 - ramp(y, nextTop + vh * 0.2, nextTop + vh * 0.5));
     }
 
-    // The projects condense out of the particles once the section has settled, turn over slide by
-    // slide, then break back up. The stage never moves, so no edge ever crosses the scene.
-    const box = work.getBoundingClientRect();
-    if (!grainAsked && box.top < vh * 3) { // made on the way there, so it costs the page load nothing
-      grainAsked = true;
-      makeGrain().then((url) => {
-        if (!url) return;
-        grain = url;
-        grainFrame = -1;
-        stage.style.opacity = '';
-        stage.style.webkitMaskImage = `url(${url})`;
-        stage.style.webkitMaskSize = `100% ${GRAIN.frames * 100}%`;
-      }).catch((err) => console.warn('Grain mask unavailable; the slides will fade instead.', err));
-    }
-    if (box.top < vh && box.bottom > 0) {
-      const pinEnd = workTop + workRange;
-      const shown = ramp(y, workTop, workTop + vh * REVEAL) * (1 - ramp(y, pinEnd - vh * REVEAL, pinEnd));
-      stage.style.visibility = shown > 0 ? 'visible' : 'hidden';
-      const step = Math.round(shown * (GRAIN.frames - 1));
-      if (step !== grainFrame) {
-        grainFrame = step;
-        const whole = step === GRAIN.frames - 1;
-        stage.classList.toggle('grained', Boolean(grain) && !whole);
-        if (!grain) stage.style.opacity = shown.toFixed(3);
-        else if (!whole) stage.style.webkitMaskPosition = `0 ${((step / (GRAIN.frames - 1)) * 100).toFixed(3)}%`;
-      }
-
-      const through = clamp((y - workTop - vh * REVEAL) / slideRange);
-      const u = through * (slides.length - 1);
-      const at = Math.min(Math.floor(u), slides.length - 1);
-      const turnOver = ease(ramp(u - at, SLIDE_HOLD, 1));
-      slideNow = turnOver > 0.5 ? Math.min(at + 1, slides.length - 1) : at;
-      if (shownSlide !== at) {
-        slides.forEach((slide, i) => {
-          slide.el.style.clipPath = i <= at ? 'none' : 'inset(100% 0 0 0)';
-          slide.body.style.transform = '';
-          slide.el.classList.toggle('passed', i < at);
-        });
-        shownSlide = at;
-      }
-      slides[at].body.style.transform = `translateY(${(-turnOver * 10).toFixed(2)}svh)`;
-      const incoming = slides[at + 1];
-      if (incoming) {
-        incoming.el.style.clipPath = turnOver > 0 ? waveClip(turnOver) : 'inset(100% 0 0 0)';
-        incoming.body.style.transform = `translateY(${((1 - turnOver) * 14).toFixed(2)}svh)`;
-      }
-      ticks.forEach((tick, i) => { tick.style.transform = `scaleX(${clamp(through * ticks.length - i).toFixed(3)})`; });
-    }
 
     // The close: the particles settle into the landscape, then scrolling walks you into the light.
-    const closing = clamp((y - closeTop) / (vh * CLOSE_SCREENS));
-    const walk = ease(ramp(closing, CLOSE_PUSH[0], CLOSE_PUSH[1]));
-    const white = ease(ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[1]));
-    const desertShown = (fromName === 'desert' && toName === 'desert' ? 1 : toName === 'desert' ? ramp(morph, 0.6, 1) : 0) * (1 - ramp(closing, CLOSE_WHITE[0], CLOSE_WHITE[0] + 0.14));
-    const nearClose = y > closeTop - vh * 1.9;
-    // The photographic landscape and its independent live grain become visible as the footer arrives.
-    // The original global point-cloud renderer recedes instead of obscuring the source image.
-    const sceneArrival = livingDesert ? ramp(y, closeTop - vh * 0.92, closeTop - vh * 0.08) : 0;
-    if (nearClose && !desertAsked) {
+    const walking = clamp((y - closeTop - vh * CLOSE_HOLD) / (vh * CLOSE_WALK));
+    const walk = walking ** 1.7 * WALK_END;
+    const white = ease(ramp(walking, 0.68, 0.97));
+    if (!desertAsked && y > closeTop - vh * DESERT_AHEAD) {
       desertAsked = true;
-      startLivingDesert(livingCanvas).then((layer) => { livingDesert = layer; })
-        .catch((error) => console.warn('Living Desert unavailable; keeping legacy footer fallback.', error));
+      fetch('/hero/desert.bin')
+        .then((res) => { if (!res.ok) throw new Error(`desert.bin returned ${res.status}`); return res.arrayBuffer(); })
+        .then((buffer) => { desertPoints = new Uint16Array(buffer); placeDesert(); })
+        .catch((err) => console.warn('Desert scene unavailable; the page ends on the words.', err));
     }
-    if (nearClose && livingDesert) livingDesert.draw(closing, time);
-    livingCanvas.style.opacity = (sceneArrival * (1 - white)).toFixed(3);
-    scene.canvas.style.opacity = (1 - sceneArrival).toFixed(3);
-    ghost.style.visibility = nearClose && !livingDesert ? 'visible' : 'hidden';
+    const nearClose = y > closeTop - vh * 1.9;
+    ghost.style.visibility = nearClose ? 'visible' : 'hidden';
     if (nearClose) {
       const arrive = ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9);
-      // Keep the source landscape readable while the independent dots and contours breathe over it.
-      // The image and shader share a focal point and push forward together, without shrinking the figure.
-      ghost.style.opacity = livingDesert ? '0' : (arrive * 0.82 * (1 - white)).toFixed(3);
-      ghost.style.transform = `scale(${(1 + walk * 0.55).toFixed(4)})`;
+      ghost.style.opacity = (arrive * (0.3 + walking * 0.6)).toFixed(3);
+      ghost.style.transform = `scale(${(4 / (4 - walk)).toFixed(4)})`;
       whiteLayer.style.opacity = white.toFixed(3);
-      closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(closing, 0.73, 0.82))).toFixed(3);
-      closeTitle.style.opacity = ramp(y, closeTop + vh * CLOSE_SCREENS * 0.96, closeTop + vh * (CLOSE_SCREENS + 0.35));
-      closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_SCREENS + 0.65), closeTop + vh * (CLOSE_SCREENS + 1.05));
+      closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(walking, 0.03, 0.16))).toFixed(3);
+      closeTitle.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK * 0.96), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.35));
+      closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.65), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 1.05));
       root.classList.toggle('whiteout', white > 0.55);
     }
 
@@ -556,6 +411,7 @@ async function startMotion() {
       spot.el.style.setProperty('--y', `${spot.y.toFixed(1)}px`);
       spot.el.style.setProperty('--o', spot.o.toFixed(3));
     });
+
 
     reveals.forEach((r) => {
       const box = r.el.getBoundingClientRect();
@@ -577,18 +433,12 @@ async function startMotion() {
       lean,
       level: Math.min(1, bass * 1.1),
       high: Math.min(1, shrill * 2),
-      turn,
       pan,
       zoom,
       fly: play * 16 + time * 0.05,
       walk,
       focus,
-      body,
-      bustScale,
-      dust: SURFACE_DOTS,
-      fade: ramp(closing, CLOSE_WHITE[0] - 0.04, CLOSE_WHITE[1]),
-      feet: desertFeet,
-      strands: desertShown,
+      ground: 1 - ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9), // in the close the desert photo is the ground
     });
   };
   raf = requestAnimationFrame(frame);
@@ -596,4 +446,13 @@ async function startMotion() {
 
 score.init(document.querySelector('[data-sound-toggle]'), isCalm);
 
-document.fonts.ready.then(() => { if (!isCalm()) startMotion(); });
+// Content and the model poster remain visible if enhancement fails or WebGL is unavailable.
+document.fonts.ready.then(() => {
+  if (isCalm()) { markReady(); return; }
+  startMotion().catch((err) => {
+    console.warn('Motion unavailable; showing the complete static site.', err);
+    root.classList.remove('scene-on');
+    root.classList.add('no-scene');
+    markReady();
+  });
+});

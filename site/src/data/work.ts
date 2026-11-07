@@ -12,13 +12,17 @@ import alumnus from '../assets/linkedin/isdi-alumnus-1.jpg';
 import jivamoda from '../assets/photos/jivamoda.jpg';
 import expobazaar from '../assets/photos/startup-delhi-fair-namecard.jpg';
 import expobazaarLogo from '../assets/logos/expobazaar.png';
+import documentAssistant from '../assets/work/cases/document-assistant.svg';
+import voiceReceptionist from '../assets/work/cases/voice-receptionist.svg';
+import invoiceProcessing from '../assets/work/cases/invoice-processing.svg';
+import researchAssistant from '../assets/work/cases/research-assistant.svg';
 
 export interface Release {
   slug: string;
   title: string;
   group: string;
-  kind: string;
-  year: string;
+  kind?: string;
+  year?: string;
   summary: string;
   cover: ImageMetadata;
   coverAlt: string;
@@ -31,11 +35,34 @@ export interface Release {
   logo?: ImageMetadata;
   /** The website pages stay, but these don't get a slide of their own. */
   noSlide?: boolean;
+  /** One of the four cases that lead Selected Work, each with its isometric figure as the cover. */
+  featured?: boolean;
 }
 
 const GP = 'Global Philanthropic';
+const SELECTED = 'Selected work';
 
 export const RELEASES: Release[] = [
+  {
+    slug: 'document-assistant', title: 'AI document assistant', group: SELECTED, featured: true,
+    summary: 'I built a shared place for consultants to collect project knowledge and find earlier work. A case study from ten years earlier helped win a new contract.',
+    cover: documentAssistant, coverAlt: 'Notes, research, and reports enter a shared filing cabinet. The cabinet makes earlier work available to consultants.',
+  },
+  {
+    slug: 'voice-receptionist', title: 'AI voice receptionist', group: SELECTED, featured: true,
+    summary: 'I built a shared voice receptionist for a restaurant group. Callers could ask about catering and book on the same call, and the owner reported more catering bookings.',
+    cover: voiceReceptionist, coverAlt: "An incoming call enters a telephone switchboard and branches to the location's front desk or to the catering owner.",
+  },
+  {
+    slug: 'invoice-processing', title: 'AI invoice processing', group: SELECTED, featured: true,
+    summary: 'I built an assistant that organised scattered invoices, flagged those that needed review, and prepared emails for an admin to approve.',
+    cover: invoiceProcessing, coverAlt: 'Invoice documents pass through a scanner to an admin review desk. The email remains a draft until the admin approves it.',
+  },
+  {
+    slug: 'research-assistant', title: 'AI research assistant', group: SELECTED, featured: true,
+    summary: "I built an assistant that gathered sources on request and answered from the collected material. When I tested it with a made-up claim, it told me the sources didn't support it.",
+    cover: researchAssistant, coverAlt: 'Source documents enter an evidence cabinet. A research desk answers with citations when the collected material supports the answer or reports missing evidence.',
+  },
   {
     slug: 'philanthropel', title: 'Philanthropel', group: 'Philanthropel', kind: 'What I build now', year: '2026',
     summary: "AI made with the third sector, not just for it. I'm building the company with Srishti Bakshi. It's where we wield intelligence for good.",

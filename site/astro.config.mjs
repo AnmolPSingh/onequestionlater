@@ -3,5 +3,5 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   site: `https://${DOMAIN}`,
-  build: { inlineStylesheets: 'auto' },
+  build: { inlineStylesheets: 'always' }, // one less request blocking the first paint
 });

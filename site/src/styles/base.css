@@ -20,13 +20,13 @@ a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--onair); outline-offset: 3px; }
-h1, h2, h3 { font-weight: 500; letter-spacing: 0; line-height: 1.08; margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0; line-height: 1.08; margin: 0; }
 p { margin: 0; }
 
 .label {
   font-family: var(--mono);
   font-size: var(--label);
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -86,7 +86,7 @@ html.whiteout .site-header { color: var(--ink); background: none; }
 .wordmark { text-decoration: none; white-space: nowrap; }
 /* A hidden thought, not a menu: no box, the words surface one by one out of the dark under the name. */
 .identity { position: relative; justify-self: start; }
-.thought { position: absolute; left: 0; top: 100%; width: min(34rem, calc(100vw - var(--gutter) * 2)); padding-top: 1.1rem; font-family: var(--sans); font-size: clamp(1.25rem, 1rem + 1.1vw, 1.9rem); font-weight: 500; line-height: 1.14; letter-spacing: -0.015em; text-transform: none; visibility: hidden; transition: visibility 0s 0.35s; }
+.thought { position: absolute; left: 0; top: 100%; width: min(34rem, calc(100vw - var(--gutter) * 2)); padding-top: 1.1rem; font-size: clamp(1.25rem, 1rem + 1.1vw, 1.9rem); font-family: var(--display); font-weight: 400; line-height: 1.14; letter-spacing: -0.015em; text-transform: none; visibility: hidden; transition: visibility 0s 0.35s; }
 .thought-line { display: block; }
 .thought-word, .thought-link { opacity: 0; filter: blur(7px); transform: translateY(0.3em); transition: opacity 0.3s, filter 0.3s, transform 0.3s; }
 .thought-word { display: inline-block; white-space: pre; text-shadow: 0 0 18px var(--ink), 0 0 6px var(--ink); }
@@ -134,6 +134,7 @@ html.calm .bars i { animation: none; height: 8px; }
   padding: 0 5vw;
 }
 .name, .role { position: relative; z-index: 2; margin: 0; font-size: clamp(1.05rem, 1.5625vw, 1.6rem); font-weight: 400; line-height: 1.2; letter-spacing: 0; white-space: nowrap; }
+.name { font-family: var(--display); font-weight: 400; font-size: clamp(1.3rem, 2vw, 2rem); letter-spacing: -0.01em; }
 .role { text-align: right; }
 /* Sized from the viewport so the head is the same share of the screen everywhere, with the shoulders running off the bottom. */
 .portrait { position: absolute; left: 50%; bottom: 0; margin: 0; width: min(213vw, 123svh); aspect-ratio: 1600 / 1206; transform: translateX(-50%); }
@@ -148,27 +149,11 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .statement-pin { display: grid; align-content: center; gap: 1.75rem; min-height: 100svh; padding: 18svh var(--gutter); max-width: 62rem; }
 html.scene-on .statement { height: 180svh; }
 html.scene-on .statement-pin { position: sticky; top: 0; height: 100svh; padding: 0 5vw; max-width: 52vw; }
-.statement-big { font-size: clamp(1.6rem, min(1rem + 2.6vw, 5.4svh), 3.6rem); font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; text-wrap: pretty; }
+.statement-big { font-size: clamp(1.6rem, min(1rem + 2.6vw, 5.4svh), 3.6rem); font-family: var(--display); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; text-wrap: pretty; }
 /* Dim words, lit where the pointer is. Large type, so the resting colour still clears 3:1. */
 html.scene-on [data-spot] { color: rgb(243 238 228 / 0.42); background: radial-gradient(320px circle at var(--x, -999px) var(--y, -999px), rgb(255 255 255 / calc(var(--o, 0) * 1)), rgb(255 255 255 / calc(var(--o, 0) * 0.6)) 22%, rgb(255 255 255 / calc(var(--o, 0) * 0.28)) 44%, transparent 72%); -webkit-background-clip: text; background-clip: text; }
-.statement-small { max-width: 34rem; color: var(--paper); font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem); line-height: 1.25; text-wrap: balance; text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
-
-.pattern { display: grid; gap: 1.6rem; justify-items: start; width: min(100%, 34rem); font-size: min(1.05rem, 2.3svh); }
-/* The rule, read once, then the thread it left: what it found on the way, wandering, with no top and no end. */
-.rule { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; line-height: 1.3; }
-.rule li + li::before { content: '\2192' / ''; margin-right: 0.5rem; color: var(--onair); }
-.found { position: relative; width: 100%; height: min(11.5rem, 24svh); }
-.thread { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; }
-.thread-line { stroke: var(--onair); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 0; }
-.thread-chord { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 0; }
-.found-list { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
-.found-list li { position: absolute; left: var(--x); top: var(--y); padding: 0 0.35rem; transform: translate(-0.35rem, -50%); line-height: 1; background: var(--ink); border-radius: 2px; }
-html.scene-on .rule, html.scene-on .statement-small { opacity: 0; transition: opacity 0.6s; }
-html.scene-on .found-list li { opacity: 0; transition: opacity 0.4s; transition-delay: calc(var(--i) * 0.22s + 0.2s); }
-html.scene-on .found .thread-line { stroke-dashoffset: 1; transition: stroke-dashoffset 2.6s cubic-bezier(0.4, 0, 0.3, 1); }
-html.scene-on .pattern.on .rule, html.scene-on .pattern.on .found-list li { opacity: 1; }
-html.scene-on .pattern.on .found .thread-line { stroke-dashoffset: 0; }
-html.scene-on .pattern.on + .statement-small { opacity: 1; transition-delay: 2.3s; }
+.approach-h { max-width: 30rem; font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem); line-height: 1.15; letter-spacing: -0.01em; color: var(--onair); text-wrap: balance; }
+.approach { max-width: 34rem; font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem); line-height: 1.4; text-wrap: pretty; text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
 
 /* ---------- Session: a list to read, or with motion on, a flight through the years ---------- */
 .session {
@@ -238,7 +223,6 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 @media (max-width: 899px) {
   .hero { align-items: start; padding-top: calc(var(--header-h) + 1.25rem); }
   html.scene-on .statement-pin { align-content: start; padding: calc(var(--header-h) + 2rem) var(--gutter) 0; max-width: none; }
-  .pattern { font-size: 0.9rem; text-shadow: 0 0 8px var(--ink), 0 0 2px var(--ink); }
   .session { --slot: 10.5rem; --lead: 12vw; --focus-x: 50%; --focus-y: 30%; --fly-w: 84vw; --fly-h: 36svh; --pitch: 2.5rem; --clip-h: 2.9rem; }
   html.scene-on [data-spot] { color: rgb(243 238 228 / 0.55); }
   html.scene-on .moment.paired .moment-visual { width: min(46vw, calc(var(--fly-h) * var(--ratio))); }
@@ -254,125 +238,62 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 @media (max-width: 899px) and (max-height: 700px) {
   html.scene-on .statement-pin { gap: 0.6rem; padding-top: calc(var(--header-h) + 0.75rem); }
   .statement-big { font-size: 1.25rem; }
-  .pattern { font-size: 0.8rem; gap: 1rem; }
-  .statement-small { font-size: 0.95rem; }
+  .approach-h { font-size: 1rem; }
+  .approach { font-size: 0.95rem; }
 }
 
-/* ---------- Curiosity: the radio ---------- */
-.curious { min-height: 80svh; display: grid; align-content: center; gap: 1.5rem; padding: 10svh var(--gutter); max-width: 58rem; }
-.curious-big { margin: 0; font-size: clamp(1.9rem, 1.2rem + 2.8vw, 4rem); font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; }
-
-/* ---------- World ---------- */
-.world { position: relative; height: 150svh; }
-.world-pin { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; padding: 0 var(--gutter); overflow: hidden; }
-.world-text { position: relative; z-index: 2; display: grid; gap: 1rem; max-width: 27rem; }
-.world-sub { color: var(--paper); text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
-.world-h {  font-size: var(--h-section); line-height: 1.1; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
-.orbit { position: absolute; left: 50%; top: 50%; width: min(96svh, 96vw); height: min(96svh, 96vw); margin: calc(min(96svh, 96vw) / -2) 0 0 calc(min(96svh, 96vw) / -2); fill: var(--dim); font-family: var(--mono); font-size: 13px; letter-spacing: 0.34em; text-transform: uppercase; }
-html:not(.calm) .orbit { animation: orbit 60s linear infinite; }
-html:not(.scene-on) .world { height: auto; }
-html:not(.scene-on) .world-pin { position: static; height: auto; padding-block: 5rem; }
-html:not(.scene-on) .orbit { display: none; }
-@keyframes orbit { to { transform: rotate(360deg); } }
-
-/* ---------- Work: one full-screen slide per project, turning over as you scroll ---------- */
-.work { position: relative; }
-.work-label { position: absolute; left: 5vw; top: calc(var(--header-h) + 1rem); z-index: 40; color: var(--onair); }
-.slides { list-style: none; margin: 0; padding: 0; }
-.slide { position: relative; display: grid; align-content: end; gap: 2rem; padding: 7rem var(--gutter) 4rem; background: var(--raised); overflow: hidden; }
-.slide-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.slide::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to right, rgb(13 12 11 / 0.94) 22%, rgb(13 12 11 / 0.62) 52%, rgb(13 12 11 / 0.08)); }
-/* Behind a diagram the picture is only colour and light, so nothing competes with it. */
-.slide.soft .slide-bg { filter: blur(26px) saturate(1.25); transform: scale(1.15); opacity: 0.8; }
-.slide.soft::before { background: linear-gradient(to right, rgb(13 12 11 / 0.8) 25%, rgb(13 12 11 / 0.42)); }
-.slide-body, .flow, .slide-logo { position: relative; z-index: 2; }
-.slide-body { display: grid; gap: 0.7rem; max-width: 40rem; will-change: transform; }
-.slide-kicker { color: var(--dim); }
-.slide-title { font-size: clamp(2.5rem, 1.4rem + 4.6vw, 6rem); font-weight: 500; line-height: 1; letter-spacing: -0.03em; }
-.slide-title a { text-decoration: none; }
-.slide-title a:hover { color: var(--onair); }
-.slide-kind { color: var(--dim); }
-.slide-summary { font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem); line-height: 1.35; text-wrap: pretty; }
-.slide-links { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
-.slide-links a { color: var(--onair); }
-.slide-logo { width: 7rem; height: 7rem; border-radius: 1rem; }
-.flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.6rem; counter-reset: step; }
-.flow li { position: relative; counter-increment: step; padding: 0.85rem 1.1rem 0.85rem 3.4rem; border: 1px solid var(--hair); border-radius: 10px; background: rgb(13 12 11 / 0.72); font-size: clamp(1.02rem, 0.95rem + 0.4vw, 1.3rem); line-height: 1.25; }
-.flow li::before { content: counter(step, decimal-leading-zero); position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: var(--label); color: var(--dim); }
-.flow li::after { content: ''; position: absolute; left: 1.55rem; top: 100%; width: 1px; height: 1.6rem; background: repeating-linear-gradient(var(--onair) 0 5px, transparent 5px 10px); }
-.flow li.last { border-color: var(--onair); }
-.flow li.last::after { display: none; }
-.sites { position: relative; z-index: 2; list-style: none; margin: 0; padding: 0; display: grid; gap: 0.8rem; }
-.sites a { display: grid; grid-template-columns: 11rem minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; column-gap: 1rem; padding: 0.55rem; border: 1px solid var(--hair); border-radius: 10px; background: rgb(13 12 11 / 0.72); text-decoration: none; }
-.sites a:hover { border-color: var(--onair); }
-.sites img { grid-row: 1 / 3; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 6px; }
-.site-name { align-self: end; font-size: clamp(1.02rem, 0.95rem + 0.4vw, 1.3rem); line-height: 1.2; }
-.site-line { color: var(--dim); font-size: 0.95rem; line-height: 1.3; }
-.ticks, .lens, .lens-defs { display: none; }
-
-html.scene-on .work { height: calc(var(--slides) * 105svh + 300svh); }
+/* ---------- Work: the four cases to choose from, then everything else as an index ---------- */
+.work { position: relative; z-index: 2; display: grid; gap: clamp(2rem, 1rem + 3vw, 4rem); padding: 18svh 5vw 22svh; }
 .work-anchor { position: absolute; top: 0; }
-html.scene-on .work-anchor { top: calc(100svh + 2rem); } /* lands on the settled slide, not the empty run-up */
-html.scene-on .work-end { position: absolute; top: calc(100% - 100svh); }
-html.scene-on .work-pin { position: sticky; top: 0; height: 100svh; }
-html.scene-on .work-stage { position: relative; height: 100%; overflow: hidden; background: var(--raised); visibility: hidden; }
-html.scene-on .work-stage.grained { -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
-html.scene-on .work-stage:not(.grained) { -webkit-mask-image: none !important; mask-image: none !important; }
-html.scene-on .slides { position: absolute; inset: 0; }
-html.scene-on .slide { position: absolute; inset: 0; clip-path: inset(100% 0 0 0); padding: 0 5vw; grid-template-columns: minmax(0, 36rem) minmax(0, 30rem); justify-content: space-between; align-content: center; align-items: center; column-gap: 4vw; }
-html.scene-on .slide:first-child { clip-path: none; }
-html.scene-on .slide.passed { visibility: hidden; }
-html.scene-on .slide-logo { position: absolute; right: 5vw; top: 50%; transform: translateY(-50%); width: 11rem; height: 11rem; }
-html.scene-on .ticks { position: absolute; left: 5vw; right: 5vw; bottom: 2.25rem; z-index: 40; display: flex; gap: 12px; }
-.ticks span { flex: 1; height: 1px; background: rgb(255 255 255 / 0.22); overflow: hidden; }
-.ticks i { display: block; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; }
-@media (hover: hover) and (pointer: fine) {
-  html.scene-on .lens { position: fixed; z-index: 55; display: grid; place-items: center; left: 0; top: 0; width: 240px; height: 240px; margin: -120px 0 0 -120px; border-radius: 50%; font-size: 12px; letter-spacing: 0.04em; color: #fff; -webkit-backdrop-filter: blur(3px) brightness(1.1); backdrop-filter: blur(3px) brightness(1.1); box-shadow: inset 0 1px 2px rgb(255 255 255 / 0.5), 0 0 12px rgb(0 0 0 / 0.2); transform: scale(0); opacity: 0; pointer-events: none; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s; }
-  html.scene-on .lens.on { transform: scale(1); opacity: 1; }
-  @supports (backdrop-filter: url(#lens-warp)) { html.scene-on .lens { backdrop-filter: url(#lens-warp) blur(1px) brightness(1.1); } }
-  html.scene-on .lens-defs { display: block; position: absolute; width: 0; height: 0; }
+.work-label { color: var(--onair); }
+.cases { list-style: none; margin: 0; padding: 0; display: grid; gap: 4.5rem clamp(2rem, 1rem + 4vw, 6rem); counter-reset: none; }
+.case { position: relative; display: grid; gap: 0.6rem; align-content: start; }
+.case-figure { width: 100%; height: auto; aspect-ratio: 820 / 435; margin-bottom: 1rem; border-radius: 6px; background: #0b0b0b; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.case-number { color: var(--dim); }
+.case-title { font-size: clamp(1.7rem, 1.2rem + 2vw, 3rem); line-height: 1.02; letter-spacing: -0.03em; }
+.case-title a { text-decoration: none; }
+.case-title a::after { content: ''; position: absolute; inset: 0; } /* the whole case opens it, and the title stays the link's name */
+.case-summary { max-width: 32rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); line-height: 1.45; text-wrap: pretty; }
+.case:hover .case-title a, .case:focus-within .case-title a { color: var(--onair); }
+.case:hover .case-figure { transform: translateY(-6px); }
+@media (min-width: 900px) {
+  .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .case:nth-child(even) { margin-top: 9rem; } /* offset so the four read as a spread, not a grid of tiles */
 }
-@media (max-width: 899px) {
-  html.scene-on .slide { grid-template-columns: minmax(0, 1fr); align-content: center; row-gap: 1.1rem; padding: calc(var(--header-h) + 2.5rem) var(--gutter) 3.5rem; }
-  .slide::before, .slide.soft::before { background: rgb(13 12 11 / 0.74); }
-  .flow { gap: 0.9rem; }
-  .flow li { padding-block: 0.5rem; font-size: 0.98rem; }
-  .flow li::after { height: 0.9rem; }
-  .sites { gap: 0.5rem; }
-  .sites a { grid-template-columns: 5.5rem minmax(0, 1fr); column-gap: 0.75rem; padding: 0.4rem; }
-  .site-name { font-size: 0.98rem; }
-  .site-line { font-size: 0.82rem; }
-  html.scene-on .slide-title { font-size: clamp(2.2rem, 11vw, 3.4rem); }
-  html.scene-on .slide-summary { font-size: 1.02rem; }
-  html.scene-on .slide .stats { gap: 0.6rem 1.5rem; margin-top: 0.4rem; }
-  html.scene-on .slide .stats dd { font-size: 1.4rem; }
-  html.scene-on .slide-logo { position: static; transform: none; width: 4.5rem; height: 4.5rem; }
-  html.scene-on .work-label { top: calc(var(--header-h) + 0.6rem); }
+.work-reach { max-width: 24ch; font-size: var(--h-section); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; text-wrap: balance; margin-block: 4rem 2rem; }
+.index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
+.index a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 2rem; align-items: baseline; padding: 1.1rem 0; border-bottom: 1px solid var(--hair); text-decoration: none; }
+.index-title { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem); font-weight: 700; letter-spacing: -0.01em; }
+.index-kind { grid-column: 1; color: var(--dim); }
+.index-year { grid-column: 2; grid-row: 1; color: var(--dim); }
+.index a:hover .index-title, .index a:focus-visible .index-title { color: var(--onair); }
+@media (min-width: 900px) {
+  .index a { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr) auto; }
+  .index-kind { grid-column: 2; grid-row: 1; }
+  .index-year { grid-column: 3; }
 }
+@media (prefers-reduced-motion: reduce) { .case-figure { transition: none; } }
 
 /* ---------- Close: the landscape in dots, a walk into the light, then the words on white ---------- */
-/* WebGL canvas is a proper visual layer inside the pinned footer, rather than a negative-z ghost. */
-.close-live { display: none; }
-html.scene-on .close-live { position: absolute; display: block; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0; pointer-events: none; }
 html.scene-on .close-pin .close-lead { z-index: 2; max-width: none; white-space: nowrap; }
 html.scene-on .close-lead span { display: block; }
 html.scene-on .close-pin .close-white { z-index: 3; }
 html.scene-on .close-pin .close-end { z-index: 4; }
 
 .ghost { display: none; }
-html.scene-on .ghost { display: block; position: fixed; z-index: 0; max-width: none; opacity: 0; visibility: hidden; pointer-events: none; transform-origin: 51.7% 42.5%; filter: grayscale(1) contrast(1.3) brightness(0.62); will-change: transform, opacity; }
+html.scene-on .ghost { display: block; position: fixed; z-index: 0; max-width: none; opacity: 0; visibility: hidden; pointer-events: none; will-change: transform, opacity; }
 .close-pin { display: grid; gap: 1.5rem; justify-items: center; padding: 4rem var(--gutter) 0; text-align: center; }
 .desert { margin: 0; width: min(100%, 60rem); }
 .desert img { width: 100%; }
 html.js:not(.calm):not(.no-scene) .desert { display: none; }
-.close-lead { max-width: 18ch; font-size: clamp(1.5rem, 1rem + 1.8vw, 2.8rem); font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
-html.scene-on .close-lead { position: absolute; left: 5vw; top: 50%; transform: translateY(-50%); z-index: 3; text-align: left; opacity: 0; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
+.close-lead { max-width: 18ch; font-size: clamp(1.5rem, 1rem + 1.8vw, 2.8rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
+html.scene-on .close-lead { position: absolute; left: 50vw; top: 46%; transform: translateY(-50%); z-index: 3; text-align: left; opacity: 0; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
 @media (max-width: 899px) {
-  html.scene-on .close-lead { left: var(--gutter); right: var(--gutter); top: 11svh; transform: none; max-width: none; text-align: left; } /* the open sky: at the foot of the frame it landed on my legs */
+  html.scene-on .close-lead { left: var(--gutter); right: var(--gutter); top: auto; bottom: 6svh; transform: none; max-width: none; text-align: center; }
 }
 .close-white { display: none; }
 .close-end { display: grid; gap: 2.5rem; justify-items: center; width: 100%; }
-.close-title { margin: 0; max-width: 16ch; text-wrap: balance; font-size: clamp(2.4rem, 1.4rem + 4vw, 6rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1.02; }
+.close-title { margin: 0; max-width: 16ch; text-wrap: balance; font-size: clamp(2.4rem, 1.4rem + 4vw, 6rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
 .close-details { width: 100%; }
 html.scene-on .close { position: relative; height: 560svh; }
 html.scene-on .close-pin { position: sticky; top: 0; height: 100svh; display: block; padding: 0; overflow: hidden; }
@@ -404,21 +325,37 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .plain-main h2 { margin: 2.75rem 0 0.9rem; font-size: 1.35rem; }
 /* Every project ends on what it left open, so the last thing on the page is a question. */
 .release h2:last-of-type { color: var(--onair); }
-.release h2:last-of-type + p { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-weight: 500; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
+.release h2:last-of-type + p { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-family: var(--display); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
 .plain-main h2.label { color: var(--onair); font-size: var(--label); letter-spacing: 0.1em; }
 .plain-main p { margin-bottom: 1rem; }
 .plain-main ul, .plain-main ol { padding-left: 1.2rem; margin: 0 0 1rem; }
 .plain-main li { margin-block: 0.5rem; }
 .plain-main a { color: var(--onair); }
 .plain-main img, .plain-main video { width: 100%; margin-block: 1.5rem; border-radius: 3px; }
+/* A project with more than one thing to show lays them on the dark like prints, not in a grid. */
+.cluster { display: grid; gap: 1rem; margin-block: 1.5rem; }
+.cluster img { margin: 0; }
+@media (min-width: 700px) {
+  .cluster { position: relative; display: block; height: clamp(22rem, 46vw, 30rem); margin-inline: -6rem; }
+  .cluster img { position: absolute; width: 58%; box-shadow: 0 18px 50px rgb(0 0 0 / 0.55); }
+  .cluster img:nth-child(1) { left: 0; top: 8%; z-index: 3; rotate: -1.5deg; }
+  .cluster img:nth-child(2) { right: 0; top: 0; width: 40%; z-index: 2; rotate: 2deg; }
+  .cluster img:nth-child(3) { right: 6%; bottom: 0; width: 38%; z-index: 4; rotate: -2.5deg; }
+  .cluster img:nth-child(n + 4) { left: 30%; bottom: 4%; width: 34%; z-index: 1; rotate: 1deg; }
+}
 .kicker { color: var(--dim); margin-bottom: 0.9rem; }
 .summary { font-size: 1.2rem; line-height: 1.45; }
 .stats { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; margin: 1.5rem 0 0.5rem; }
 .stats div { display: grid; gap: 0.1rem; }
 .stats dt { order: 2; font-family: var(--mono); font-size: var(--label); color: var(--dim); }
-.stats dd { order: 1; margin: 0; font-size: clamp(1.7rem, 1.3rem + 1.4vw, 2.5rem); font-weight: 500; letter-spacing: 0; color: var(--onair); line-height: 1.1; }
+.stats dd { order: 1; margin: 0; font-family: var(--mono); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); font-weight: 400; letter-spacing: 0; color: var(--onair); line-height: 1.1; }
 .release-links { list-style: none; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 2rem !important; }
 .back { margin-top: 3rem; color: var(--dim); }
 .lost { min-height: 100svh; display: grid; place-content: center; text-align: center; gap: 1.5rem; padding: var(--header-h) var(--gutter) 4rem; }
 .lost h1 { max-width: 18ch; font-size: var(--h-section); }
 .lost a { color: var(--onair); }
+
+/* Motion preferences apply to the complete experience, including decorative CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}

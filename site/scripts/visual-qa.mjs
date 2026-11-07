@@ -57,11 +57,10 @@ try {
     }));
     const states = [];
     for (const percent of [0, 25, 50, 75, 100]) {
-      await page.evaluate((y) => window.scrollTo(0, y), geom.start + geom.height * 3.2 * percent / 100);
+      await page.evaluate((y) => window.scrollTo(0, y), geom.start + geom.height * 2.9 * percent / 100);
       await page.waitForTimeout(850);
       states.push(await page.evaluate(() => ({
-        canvasWidth: document.querySelector('[data-close-live]')?.width ?? 0,
-        canvasOpacity: Number(getComputedStyle(document.querySelector('[data-close-live]')).opacity),
+        canvasWidth: document.querySelector('canvas.scene')?.width ?? 0,
         leadOpacity: Number(getComputedStyle(document.querySelector('[data-close-lead]')).opacity),
         whiteOpacity: Number(getComputedStyle(document.querySelector('[data-white]')).opacity),
       })));
@@ -71,9 +70,8 @@ try {
     await fs.writeFile(path.join(output, device.name + '.json'), JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
     // If WebGL is available, the new renderer must have sized its actual canvas.
-    if (states[2].canvasWidth === 0) throw new Error(device.name + ': living desert canvas was not initialized');
-    if (states[1].canvasOpacity < 0.8) throw new Error(device.name + ': desert did not appear during scroll');
-    if (states[2].leadOpacity < 0.4) throw new Error(device.name + ': footer lead disappeared in the middle of the desert scroll');
+    if (states[2].canvasWidth === 0) throw new Error(device.name + ': particle scene was not initialized');
+    if (states[1].leadOpacity < 0.4) throw new Error(device.name + ': footer lead missing while the desert holds');
     if (states[4].whiteOpacity < 0.6) throw new Error(device.name + ': transition to white failed');
     if (runtimeErrors.length) throw new Error(device.name + ': ' + runtimeErrors.join(' | '));
     await page.close();

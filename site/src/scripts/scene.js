@@ -28,34 +28,25 @@ vec4 onScreen(vec3 p) {
   return vec4(p.x * scale / uAspect, p.y * scale, -p.z * 0.2, 1.0);
 }`;
 
-// The desert camera deliberately pushes IN for two to three scroll lengths. The 2.5D
-// landscape retains its photographic depth and nearer particles expand toward the viewer.
-export const PULL_GLSL = `
-uniform vec2 uFocus;
-uniform float uWalk;
-const float PUSH = 0.65;
-const float FIGURE_NEAR = 0.83; // how far down the ground my feet are
-vec2 pull(vec2 q, float near) { return uFocus + (q - uFocus) * (1.0 + uWalk * PUSH * max(near, 0.2)); }`;
-
 const VERT = `
 precision highp float;
 attribute vec4 aFrom;
 attribute vec4 aTo;
 attribute float aSeed;
 attribute vec3 aNormal;
-uniform float uMorph, uSize, uLevel, uHigh, uGlobeX, uFly, uFade, uFeet, uDust;
+uniform vec2 uFocus;
+uniform float uMorph, uSize, uLevel, uHigh, uGlobeX, uFly, uWalk;
 varying vec3 vColor;
 varying float vAlpha;
 ${FIGURE_GLSL}
-${PULL_GLSL}
 
 const float EXPOSURE = 0.6; // light adds up where dots crowd, as it does on a real surface
 const vec3 PAPER = vec3(0.953, 0.933, 0.894);
 const vec3 ONAIR = vec3(1.0, 0.541, 0.165);
 const vec3 KEY = normalize(vec3(-0.62, 0.42, 0.66)); // the light on the figure, from high on the left
+const float FAR = 3.0; // how much further the horizon is than the nearest sand, for the walk
 
 float isHot(float w) { return (w >= 5.0 && w < 6.0) || (w >= 7.0 && w < 8.0) ? 1.0 : 0.0; }
-float isSurface(float w) { return w >= 8.0 && w < 9.0 ? uDust : 1.0; }
 float isFine(float w) { return (w >= 8.0 && w < 9.0) || w >= 10.0 ? 1.0 : 0.0; }
 bool isGlobe(float w) { return (w >= 2.0 && w < 3.0) || (w >= 5.0 && w < 6.0); }
 
@@ -63,33 +54,29 @@ float gLit; // how much light a point has, set by live()
 float gGrow; // how much nearer a dot has come, set by live()
 vec3 gFacing; // which way a dot on the relief faces, once turned
 
-// A living photograph. I hold my shape: a small bob and the trailing leg's swing say walking, and the
-// planted foot doesn't move. A quarter of the sand blows along the dunes; the rest holds the ripples.
-vec3 inDesert(vec3 p, bool figure) {
-  float t = uTime;
+// Sand slides under you and the horizon comes up. A dot passes the camera when the walk reaches it.
+vec3 walked(vec3 p, bool figure) {
+  float start = 1.0 + (1.0 - p.z) * FAR;
+  float left = start - uWalk;
+  float near = start / max(left, 0.05);
   float phase = aSeed * 6.2831;
-  float twinkle = 0.5 + 0.5 * sin(t * (0.8 + aSeed * 1.6) + phase * 7.0);
-  vec2 q = p.xy;
-  float near = p.z;
+  float t = uTime;
+  // Every dot twinkles on its own clock, so the scene is alive even when you stop scrolling.
+  float twinkle = 0.5 + 0.5 * sin(t * (1.1 + aSeed * 2.2) + phase * 7.0);
+  gLit = smoothstep(0.03, 0.4, left) * mix(0.3, 1.1, twinkle);
+  gGrow = min(sqrt(near), 5.0);
+  vec2 q = uFocus + (p.xy - uFocus) * near;
   if (figure) {
-    float stride = t * 3.4; // a step about every 1.8 seconds
-    q.x += p.z * sin(stride) * 0.016;
-    q.y += p.z * max(sin(stride), 0.0) * 0.01 + cos(stride * 2.0) * 0.0022 * smoothstep(uFeet, uFeet + 0.3, p.y);
-    q += vec2(sin(t * 1.9 + phase * 5.0), cos(t * 1.6 + phase * 3.0)) * 0.0016;
-    near = FIGURE_NEAR;
-    gLit = mix(0.82, 1.12, twinkle);
-  } else if (aSeed < 0.25 && p.z > 0.0) {
-    float run = fract(t * (0.05 + aSeed * 0.3) + aSeed * 9.0);
-    q.x += (run - 0.5) * 0.09 * (0.3 + near);
-    q.y += sin(t * 0.9 + phase * 3.0) * 0.004;
-    gLit = 1.4 * sin(run * 3.14159);
+    q += vec2(sin(t * 1.9 + phase * 5.0), cos(t * 1.6 + phase * 3.0)) * 0.008 * gGrow; // I hold my shape and shimmer
   } else {
-    q.x += sin(t * 0.13 + phase) * 0.004;
-    gLit = mix(0.55, 1.1, twinkle);
+    // Wind: each grain blows along the sand, fading in and out at the ends of its run, in slow gusts.
+    float run = fract(t * (0.07 + aSeed * 0.11) + aSeed * 9.0);
+    float gust = 0.65 + 0.35 * sin(t * 0.4 + p.y * 3.0);
+    q.x += (run - 0.5) * 0.2 * gust * gGrow;
+    q.y += sin(t * 0.9 + phase * 3.0) * 0.012 * gGrow;
+    gLit *= 1.7 * sin(run * 3.14159);
   }
-  gLit *= 1.0 - smoothstep(aSeed * 0.8, aSeed * 0.8 + 0.2, uFade); // thins out into the white, never to fog
-  gGrow = 1.0 + uWalk * 0.18;
-  return vec3(pull(q, near), 0.0);
+  return vec3(q, 0.0);
 }
 
 vec3 live(vec4 s) {
@@ -99,8 +86,24 @@ vec3 live(vec4 s) {
   gLit = 1.0;
   gGrow = 1.0;
   gFacing = vec3(0.0, 0.0, 1.0);
-  if (code > 9.5) {
-    return inDesert(p, code > 10.5);
+  if (code > 11.5) {
+    // Me, lit the way Elimar lights a scene: dots where light falls, a few larger flecks. Life comes from
+    // movement, not flicker: each dot wanders on its own, the shadows and edges fray more than the lit face,
+    // and a few lift off as dust and drift out into the dark before they come back.
+    float luma = fract(s.w + 0.0005) / 0.9;
+    float big = step(0.86, fract(aSeed * 7.13));
+    float glint = step(0.97, fract(aSeed * 13.0)) * pow(max(sin(uTime * (0.3 + aSeed * 0.4) + phase * 20.0), 0.0), 24.0); // swells and fades over a second or two
+    float twinkle = 0.85 + 0.15 * sin(uTime * (0.8 + aSeed * 1.7) + phase * 9.5);
+    p.xy += vec2(sin(uTime * (0.3 + aSeed * 0.5) + phase * 31.0), cos(uTime * (0.25 + aSeed * 0.4) + phase * 17.0)) * mix(0.009, 0.0025, luma);
+    float dust = step(0.93, fract(aSeed * 3.71));
+    float run = fract(uTime * (0.04 + aSeed * 0.05) + aSeed * 11.0);
+    float lift = run * run;
+    p.xy += dust * vec2(0.5 + sin(phase * 7.0) * 0.3 + sin(uTime * 0.3 + phase) * 0.05, 0.25 + cos(phase * 5.0) * 0.2) * lift;
+    gLit = twinkle * (1.0 + big * 0.6) * mix(1.0, smoothstep(0.0, 0.06, run) * (1.0 - smoothstep(0.5, 1.0, run)) * 1.2 / max(luma, 0.2), dust) + glint * 1.2;
+    gGrow = mix(1.0, 1.8, big) * (1.0 + glint * 0.6) * mix(1.0, 1.5, dust);
+    return placed(p, 0.55);
+  } else if (code > 9.5) {
+    return walked(p, code > 10.5);
   } else if (code > 8.5) {
     // Carried past the camera, fading in far off and out just before they'd hit it.
     p.z = mod(p.z + uFly, 5.4) - 3.0;
@@ -111,12 +114,6 @@ vec3 live(vec4 s) {
     float toLight = max(dot(gFacing, KEY), 0.0);
     float rim = pow(1.0 - max(gFacing.z, 0.0), 2.0);
     gLit = (0.3 + 1.2 * toLight * toLight + rim * 0.8) * smoothstep(-0.05, 0.2, gFacing.z); // dots on the far side of the head stay dark
-    // Surface points drift along a local tangent instead of floating off the head.
-    // Motion is independent of scroll and stays sub-pixel under normal framing.
-    vec3 tangent = normalize(cross(aNormal, vec3(0.0, 1.0, 0.015)) + vec3(0.0001));
-    p += tangent * sin(uTime * (0.52 + aSeed * 0.36) + phase * 7.0) * 1.25;
-    gLit *= 0.76 + 0.24 * sin(uTime * (0.43 + aSeed * 0.19) + phase * 8.0);
-    gLit *= 1.0 - 0.72 * smoothstep(0.5, 0.85, aNormal.z); // on the open skin they read as blemishes; they live on the hair and edges
     return placed(turned(p), 0.55);
   } else if (code < 0.5) {
     p.xy += vec2(cos(phase + uTime * 0.5), sin(phase * 1.7 + uTime * 0.42)) * (0.0012 + uLevel * 0.0015);
@@ -181,7 +178,6 @@ void main() {
   vAlpha = alphaLight * lit;
   if (isGlobe(aFrom.w) || isGlobe(aTo.w)) vAlpha *= mix(0.3, 1.0, smoothstep(-0.8, 0.4, p.z));
   vAlpha = (vAlpha + light * 1.1 + flare * 0.12) * EXPOSURE;
-  vAlpha *= mix(isSurface(aFrom.w), isSurface(aTo.w), k); // the sculpture's own dots, at their own level
 
   float hot = mix(isHot(aFrom.w), isHot(aTo.w), k);
   vColor = mix(PAPER, ONAIR, hot);
@@ -206,7 +202,36 @@ void main() {
   gl_FragColor = vec4(vColor, min(vAlpha * smoothstep(0.25, 0.01, d), 1.0));
 }`;
 
-const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk', 'uFade', 'uFeet', 'uDust'];
+// The living dark behind everything: slow smoke and fine grain, never flat, with a faint pool of
+// light behind the figure. uGround fades it out where a photo is the ground instead (the desert).
+const BACK_VERT = `
+attribute vec2 aPos;
+varying vec2 vUv;
+void main() { vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.999, 1.0); }`;
+const BACK_FRAG = `
+precision mediump float;
+varying vec2 vUv;
+uniform float uTime, uAspect, uGround;
+uniform vec2 uPan;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.03; a *= 0.5; } return v; }
+void main() {
+  vec2 q = vec2((vUv.x - 0.5) * 2.0 * uAspect, vUv.y * 2.0 - 1.0);
+  float t = uTime * 0.035;
+  float smoke = fbm(q * 1.1 + vec2(t, -t * 0.7) + fbm(q * 0.7 - t) * 1.6);
+  vec2 d = q - uPan - vec2(0.0, 0.2);
+  float pool = exp(-dot(d, d) * 0.9);
+  float grain = hash(gl_FragCoord.xy + fract(uTime * 7.0) * 91.0);
+  float v = 0.043 + smoke * 0.05 * (0.4 + pool) + pool * 0.03 + (grain - 0.5) * 0.024;
+  gl_FragColor = vec4(vec3(v) * vec3(1.0, 0.985, 0.97), uGround);
+}`;
+
+const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk'];
 
 function compile(gl, type, src) {
   const shader = gl.createShader(type);
@@ -270,10 +295,15 @@ export function createScene(count) {
   const seedAttribute = staticAttribute('aSeed', 1, seeds);
   const normalAttribute = staticAttribute('aNormal', 3, new Float32Array(count * 3));
 
+  const back = buildProgram(gl, BACK_VERT, BACK_FRAG);
+  const backU = Object.fromEntries(['uTime', 'uAspect', 'uGround', 'uPan'].map((name) => [name, gl.getUniformLocation(back, name)]));
+  const backPos = gl.getAttribLocation(back, 'aPos');
+  const backQuad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, backQuad);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+
   const buffers = new Map();
   let bound = [null, null];
-  let bust = null;
-  let dunes = null;
 
   const scene = {
     canvas,
@@ -290,8 +320,6 @@ export function createScene(count) {
       gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
       bound = [null, null];
     },
-    setBust(sculpture) { bust = sculpture; },
-    setDunes(layer) { dunes = layer; },
     resize() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(innerWidth * dpr);
@@ -300,19 +328,29 @@ export function createScene(count) {
       gl.uniform1f(u.uAspect, innerWidth / innerHeight);
       gl.uniform1f(u.uSize, (innerWidth < 640 ? 1.35 : 1.7) * dpr);
     },
-    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], body = 0, bustScale = 1, fade = 0, feet = 0, strands = 0, dust = 1 }) {
-      gl.depthMask(true);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      const sculpted = bust && body > 0.002;
-      if (sculpted) {
-        bust.draw({ body, scale: bustScale, time, turn, zoom, lean, pan, mouse });
+    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], ground = 1 }) {
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.disable(gl.DEPTH_TEST);
+      gl.depthMask(false);
+      if (ground > 0.002) {
+        gl.useProgram(back);
+        gl.disable(gl.BLEND);
+        gl.bindBuffer(gl.ARRAY_BUFFER, backQuad);
+        gl.enableVertexAttribArray(backPos);
+        gl.vertexAttribPointer(backPos, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform1f(backU.uTime, time);
+        gl.uniform1f(backU.uAspect, innerWidth / innerHeight);
+        gl.uniform1f(backU.uGround, ground);
+        gl.uniform2f(backU.uPan, pan[0], pan[1]);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disableVertexAttribArray(backPos); // a 3-vertex array left on would be read past its end by the points
+        gl.enable(gl.BLEND);
+        gl.enableVertexAttribArray(aFrom);
+        gl.enableVertexAttribArray(aTo);
         seedAttribute.bind();
         normalAttribute.bind();
         bound = [null, null];
-      } else {
-        gl.disable(gl.DEPTH_TEST);
       }
-      gl.depthMask(false);
       gl.useProgram(program);
       if (bound[0] !== from || bound[1] !== to) {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.get(from));
@@ -328,9 +366,6 @@ export function createScene(count) {
       gl.uniform2f(u.uPan, pan[0], pan[1]);
       gl.uniform2f(u.uFocus, focus[0], focus[1]);
       gl.uniform1f(u.uWalk, walk);
-      gl.uniform1f(u.uFade, fade);
-      gl.uniform1f(u.uFeet, feet);
-      gl.uniform1f(u.uDust, dust);
       gl.uniform1f(u.uTurn, turn);
       gl.uniform1f(u.uZoom, zoom);
       gl.uniform1f(u.uFly, fly);
@@ -338,12 +373,6 @@ export function createScene(count) {
       gl.uniform1f(u.uHigh, high);
       gl.uniform1f(u.uGlobeX, globeX);
       gl.drawArrays(gl.POINTS, 0, count);
-      if (dunes && strands > 0.002) {
-        dunes.draw({ time, show: strands, focus, walk });
-        seedAttribute.bind();
-        normalAttribute.bind();
-        bound = [null, null];
-      }
     },
     stop() {
       canvas.remove();
@@ -352,3 +381,4 @@ export function createScene(count) {
   };
   return scene;
 }
+

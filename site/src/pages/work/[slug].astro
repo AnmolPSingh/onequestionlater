@@ -14,14 +14,22 @@ const pages = import.meta.glob<{ Content: any }>('../../content/work/*.md');
 const { Content } = await pages[`../../content/work/${release.slug}.md`]();
 const index = RELEASES.indexOf(release);
 const next = RELEASES[(index + 1) % RELEASES.length];
+const extra = (release.sites ?? []).filter((site) => site.image !== release.cover); // the rest of what it made, laid beside the cover
 ---
 <Base title={`${release.title} | ${SITE_NAME}`} description={release.summary}>
   <main id="main" class="plain-main release">
-    <p class="kicker label">{release.group}, {release.year}</p>
+    <p class="kicker label">{[release.group, release.year].filter(Boolean).join(', ')}</p>
     <h1 data-disintegrate>{release.title}</h1>
-    <p class="kicker">{release.kind}</p>
+    {release.kind && <p class="kicker">{release.kind}</p>}
     <p class="summary"><Named text={release.summary} /></p>
-    <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
+    {extra.length ? (
+      <div class="cluster">
+        <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 30rem, 92vw" loading="eager" />
+        {extra.map((site) => <Image src={site.image} alt={site.alt} widths={[480, 900]} sizes="(min-width: 700px) 18rem, 92vw" loading="lazy" />)}
+      </div>
+    ) : (
+      <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
+    )}
     {release.stats && (
       <dl class="stats">
         {release.stats.map(([value, label]) => (
