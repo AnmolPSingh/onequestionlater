@@ -3,20 +3,23 @@
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
 // It needs JS, so without it the line isn't shown at all.
 const CALENDLY = 'https://calendly.com/anmol-philanthropel/let-s-talk';
-const suggestions = ['What does Anmol build?', 'I run a financial business. How could he help?', 'How do I book a call?'];
+// Three of these are shown at random, so a returning visitor meets different openings.
+const suggestions = ['Radio, music, film, then AI. How?', 'What does Anmol actually build?', 'Could he help my team?', 'Why "One Question Later"?', "What's Penname?", 'Surprise me.'];
 ---
 <div class="ask" data-ask hidden>
   <div class="ask-panel" data-ask-panel>
-    <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite"></div>
+    <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
+      <p class="ask-line ask-bot">Hi, I'm Anmol AI. I've read this site and Anmol's LinkedIn, so ask me anything about him. Fair warning: I might answer with a question.</p>
+    </div>
     <ul class="ask-suggest" data-ask-suggest>
       {suggestions.map((s) => <li><button type="button" data-ask-try>{s}</button></li>)}
     </ul>
-    <p class="ask-note label">Answers come from what's on this site. For anything more, <a href={CALENDLY}>book a call</a>.</p>
+    <p class="ask-note label">I only know this site and his LinkedIn. For the rest, <a href={CALENDLY}>book a call</a>.</p>
   </div>
-  <form class="ask-bar" data-ask-form aria-label="Ask about Anmol">
+  <form class="ask-bar" data-ask-form aria-label="Ask Anmol AI">
     <span class="ask-prompt" aria-hidden="true">&gt;</span>
-    <label class="visually-hidden" for="ask-input">Ask anything about Anmol</label>
-    <input id="ask-input" name="q" type="text" autocomplete="off" maxlength="500" placeholder="Ask anything about Anmol" data-ask-input />
+    <label class="visually-hidden" for="ask-input">Ask Anmol AI</label>
+    <input id="ask-input" name="q" type="text" autocomplete="off" maxlength="500" placeholder="Ask Anmol AI" data-ask-input />
     <input class="ask-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
     <button type="submit" class="ask-send" aria-label="Send">&rarr;</button>
     <button type="button" class="ask-close" data-ask-close aria-label="Close the conversation" hidden>&times;</button>
@@ -38,6 +41,8 @@ const suggestions = ['What does Anmol build?', 'I run a financial business. How 
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const history = [];
     let busy = false;
+    const tries = [...suggest.querySelectorAll('li')];
+    for (let i = tries.length; i > 3; i--) tries.splice(Math.floor(Math.random() * i), 1)[0].remove();
 
     const asked = () => { try { return Number(sessionStorage.getItem('ask-count')) || 0; } catch { return 0; } };
     const count = () => { try { sessionStorage.setItem('ask-count', String(asked() + 1)); } catch { /* private mode */ } };
@@ -92,7 +97,7 @@ const suggestions = ['What does Anmol build?', 'I run a financial business. How 
       line('you', q);
       input.value = '';
       if (asked() >= MAX_PER_SESSION) {
-        line('bot', "That's plenty for one sitting. Anmol would love to pick it up with you directly: https://calendly.com/anmol-philanthropel/let-s-talk");
+        line('bot', "That's a lot of questions, which Anmol would take as a compliment. Let's carry on in person: https://calendly.com/anmol-philanthropel/let-s-talk");
         return;
       }
       busy = true;
@@ -103,14 +108,14 @@ const suggestions = ['What does Anmol build?', 'I run a financial business. How 
       try {
         const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-10), website: trap.value }) });
         const data = await res.json().catch(() => ({}));
-        text = data.reply || (res.status === 429 ? 'A lot of people are asking right now. Try again in a minute, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk' : "I can't answer right now. You can reach Anmol at anmol@philanthropel.com or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
+        text = data.reply || (res.status === 429 ? 'Too many curious people at once. Give me a minute, or skip the queue and book a call: https://calendly.com/anmol-philanthropel/let-s-talk' : "I've lost the signal for a moment. You can reach Anmol at anmol@philanthropel.com, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
         if (data.reply) history.push({ role: 'assistant', content: data.reply });
         else history.pop();
         count();
       } catch (err) {
         console.warn('Ask: request failed', err);
         history.pop();
-        text = "I can't reach the server right now. You can reach Anmol at anmol@philanthropel.com.";
+        text = "Still no signal on my end. You can reach Anmol at anmol@philanthropel.com.";
       }
       reply.classList.remove('thinking');
       await type(reply, text);

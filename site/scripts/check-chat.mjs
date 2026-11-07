@@ -8,8 +8,8 @@ const ask = (body, origin = 'https://onequestionlater.com') => POST(new Request(
 assert.equal(tidy('Book here https://calendly.com/anmol-philanthropel/let-s-talk.'), 'Book here https://calendly.com/anmol-philanthropel/let-s-talk.');
 assert.equal(tidy('See https://evil.example/x and https://onequestionlater.com/work/penname'), 'See and https://onequestionlater.com/work/penname');
 assert.equal(tidy('[his work](https://onequestionlater.com/story)'), 'his work https://onequestionlater.com/story');
-assert.match(tidy("I'm built on Llama 3 by Meta."), /Anmol's assistant/);
-assert.match(tidy('I run on GPT-4.'), /Anmol's assistant/);
+assert.match(tidy("I'm built on Llama 3 by Meta."), /own wiring/);
+assert.match(tidy('I run on GPT-4.'), /own wiring/);
 assert.equal(tidy('He uses Claude sessions.'), 'He uses Claude sessions.');
 assert.equal(tidy('- **AI invoice processing** sorts invoices\n## Next'), '- AI invoice processing sorts invoices\nNext');
 assert.equal(tidy('One thing \u2014 another'), 'One thing, another');
