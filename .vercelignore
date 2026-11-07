@@ -1,0 +1,11 @@
+# Finder duplicates ("base 2.css", "[slug] 2.astro") would otherwise build as live pages like /index 2.
+* 2
+* 2.*
+# Review captures, source art and handoff material: none of it is read by the build.
+review
+visual-qa
+3d assests
+addon images
+md files
+site/assets-src
+site/dist

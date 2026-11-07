@@ -1,0 +1,37 @@
+name: Living Scenes — build and browser visual QA
+on:
+  push:
+    branches:
+      - feature/living-desert-particles-v2
+      - feature/living-scenes-tested-head-v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+      - name: Build Astro site
+        run: cd site && npm ci && npm run build
+      - name: Install Playwright
+        run: cd site && npm install --no-save playwright@1.57.0 && npx playwright install --with-deps chromium
+      - name: Test real browser render
+        run: xvfb-run -a node site/scripts/visual-qa.mjs
+      - name: Upload screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-scenes-visual-qa
+          path: |
+            visual-qa/
+            site/assets-src/bust/anmol_head_neck_shoulders.glb
+          if-no-files-found: warn

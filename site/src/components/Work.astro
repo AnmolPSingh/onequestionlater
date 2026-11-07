@@ -1,67 +1,36 @@
 ---
-// The projects as one full-screen slide each, all the information on it, flipping as you scroll.
-// Without motion they're simply stacked, one after another.
+// Selected work: the four cases side by side so a visitor picks which to open, then the rest as a quiet index.
+// It reads the same with or without motion; the particles only settle into dust behind it.
 import { Image } from 'astro:assets';
 import { RELEASES } from '../data/work';
-import Named from './Named.astro';
 
-const slides = RELEASES.filter((r) => !r.noSlide);
+const cases = RELEASES.filter((r) => r.featured);
+const rest = RELEASES.filter((r) => !r.featured && !r.noSlide);
 ---
-<section class="work" data-shape="ribbon" aria-labelledby="work-h" data-work style={`--slides:${slides.length}`}>
+<section class="work" data-shape="field" aria-labelledby="work-h">
   <span id="work" class="work-anchor"></span>
-  <div class="work-pin">
-    <div class="work-stage" data-stage>
-      <h2 id="work-h" class="work-label label">Now I build with AI</h2>
-      <ol class="slides">
-        {slides.map((r, i) => (
-          <li class:list={['slide', { soft: r.flow || r.logo || r.sites }]} data-slide data-href={`/work/${r.slug}`} style={`z-index:${i + 1}`}>
-            <Image class="slide-bg" src={r.cover} alt={r.coverAlt} widths={[900, 1600]} sizes="100vw" loading="lazy" decoding="async" />
-            <div class="slide-body">
-              <p class="label slide-kicker">{r.group}, {r.year}</p>
-              <h3 class="slide-title"><a href={`/work/${r.slug}`}>{r.title}</a></h3>
-              <p class="slide-kind">{r.kind}</p>
-              <p class="slide-summary"><Named text={r.summary} /></p>
-              {r.stats && (
-                <dl class="stats">
-                  {r.stats.map(([value, label]) => <div><dt>{label}</dt><dd>{value}</dd></div>)}
-                </dl>
-              )}
-              {r.links && (
-                <ul class="slide-links label">
-                  {r.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
-                </ul>
-              )}
-            </div>
-            {r.flow && (
-              <ol class="flow" aria-label={`How ${r.title} works`}>
-                {r.flow.map((step, n) => <li class:list={{ last: n === r.flow!.length - 1 }}>{step}</li>)}
-              </ol>
-            )}
-            {r.sites && (
-              <ul class="sites">
-                {r.sites.map((site) => (
-                  <li>
-                    <a href={site.href}>
-                      <Image src={site.image} alt={site.alt} widths={[320, 640]} sizes="16rem" loading="lazy" decoding="async" />
-                      <span class="site-name">{site.name}</span>
-                      <span class="site-line">{site.line}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {r.logo && <Image class="slide-logo" src={r.logo} alt={`${r.title} logo`} width={225} height={225} loading="lazy" />}
-          </li>
-        ))}
-      </ol>
-      <div class="ticks" aria-hidden="true">
-        {slides.map(() => <span><i data-tick></i></span>)}
-      </div>
-    </div>
-    <div class="lens" data-lens aria-hidden="true"><span>VIEW</span></div>
-    <svg class="lens-defs" aria-hidden="true" focusable="false">
-      <filter id="lens-warp"><feTurbulence type="turbulence" baseFrequency="0.005" numOctaves="2" seed="4" /><feDisplacementMap in="SourceGraphic" scale="60" xChannelSelector="R" yChannelSelector="G" /></filter>
-    </svg>
-  </div>
-  <div class="work-end" data-shape="desert"></div>
+  <h2 id="work-h" class="work-label label">Selected work</h2>
+  <ol class="cases">
+    {cases.map((r, i) => (
+      <li class="case">
+        <Image class="case-figure" src={r.cover} alt={r.coverAlt} loading="lazy" decoding="async" />
+        <p class="case-number label">{String(i + 1).padStart(2, '0')}</p>
+        <h3 class="case-title"><a href={`/work/${r.slug}`}>{r.title}</a></h3>
+        <p class="case-summary">{r.summary}</p>
+      </li>
+    ))}
+  </ol>
+  <p class="work-reach">Working with teams across the UK, Europe, Asia, Australia and the Americas.</p>
+  <h3 class="work-label label">More work</h3>
+  <ul class="index">
+    {rest.map((r) => (
+      <li>
+        <a href={`/work/${r.slug}`}>
+          <span class="index-title">{r.title}</span>
+          <span class="index-kind">{r.kind}</span>
+          <span class="index-year label">{r.year}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
 </section>

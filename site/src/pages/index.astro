@@ -4,13 +4,6 @@ import Session from '../components/Session.astro';
 import Work from '../components/Work.astro';
 import Loader from '../components/Loader.astro';
 import Footer from '../components/Footer.astro';
-import Thread from '../components/Thread.astro';
-
-const orbit = 'The UK, Europe, Asia, Australia and the Americas  ';
-const steps = ['I wanted to make something', "I didn't know how", 'I learned the tool', 'the tool opened another question', 'I followed it'];
-// Not a ladder: the thread wanders, doubles back and runs off the edge. Nothing here is the top.
-const found = ['Stories', 'Music', 'Radio', 'Film', 'Design', 'UX', 'XR', 'AI', 'Philanthropy'];
-const foundAt = [{ x: 3, y: 60 }, { x: 15, y: 18 }, { x: 28, y: 74 }, { x: 40, y: 30 }, { x: 22, y: 42 }, { x: 53, y: 84 }, { x: 62, y: 44 }, { x: 74, y: 14 }, { x: 74, y: 66 }];
 ---
 <Base noFooter>
   <Loader />
@@ -19,7 +12,7 @@ const foundAt = [{ x: 3, y: 60 }, { x: 15, y: 18 }, { x: 28, y: 74 }, { x: 40, y
     <section class="hero" data-shape="portrait" aria-labelledby="name">
       <h1 id="name" class="name">Anmol Pratap Singh</h1>
       <figure class="portrait" data-portrait>
-        <img src="/hero/portrait.webp" srcset="/hero/portrait-760.webp 760w, /hero/portrait-1100.webp 1100w, /hero/portrait.webp 1600w" sizes="min(213vw, 123vh)" loading="lazy" alt="A charcoal sculpture of Anmol's head and shoulders, with curly hair and a short beard." width="1600" height="1206" />
+        <img src="/hero/portrait.webp" srcset="/hero/portrait-760.webp 760w, /hero/portrait-1100.webp 1100w, /hero/portrait.webp 1600w" sizes="min(213vw, 123vh)" loading="lazy" alt="Anmol's head and shoulders, with curly hair and a short beard, drawn in points of light." width="1600" height="1206" />
       </figure>
       <p class="role">AI product builder</p>
       <span class="scroll-hint" aria-hidden="true"></span>
@@ -28,53 +21,21 @@ const foundAt = [{ x: 3, y: 60 }, { x: 15, y: 18 }, { x: 28, y: 74 }, { x: 40, y
     <section class="statement" data-shape="portrait">
       <div class="statement-pin">
         <p class="statement-big" data-spot>I build AI tools and automations for mission-driven organisations, the kind of work that usually needs a technical team but doesn't have to.</p>
-        <div class="pattern" data-pattern>
-          <ol class="rule">
-            {steps.map((step) => <li>{step}</li>)}
-          </ol>
-          <div class="found">
-            <Thread points={foundAt} end={{ x: 112, y: 30 }} />
-            <ol class="found-list">
-              {found.map((name, i) => <li style={`--x:${foundAt[i].x}%;--y:${foundAt[i].y}%;--i:${i}`}>{name}</li>)}
-            </ol>
-          </div>
-        </div>
-        <p class="statement-small">It looks like several careers. From the inside, it has always been one pattern.</p>
-      </div>
-    </section>
-
-    <section class="curious" data-shape="static" aria-labelledby="curious-h">
-      <p class="label eyebrow">Why curious</p>
-      <h2 id="curious-h" class="curious-big" data-spot>You don't find a voice on an old radio by knowing where it is.</h2>
-    </section>
-
-    <section class="curious curious-signal" data-shape="signal">
-      <p class="curious-big" data-spot>You find it by being curious enough to keep turning the dial.</p>
-    </section>
-
-    <Session />
-
-    <section class="world" data-shape="globe" aria-labelledby="world-h">
-      <div class="world-pin">
-        <div class="world-text">
-          <h2 id="world-h" class="world-h" data-words>Working with teams across the UK, Europe, Asia, Australia and the Americas.</h2>
-          <p class="world-sub" data-words>I keep moving to where I'm needed.</p>
-        </div>
-        <svg class="orbit" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
-          <defs><path id="orbit-path" d="M300 300 m-268 0 a268 268 0 1 1 536 0 a268 268 0 1 1 -536 0" /></defs>
-          <text><textPath href="#orbit-path">{orbit.repeat(2)}</textPath></text>
-        </svg>
+        <h2 class="approach-h">Bring another way of seeing, then make it work</h2>
+        <p class="approach">I start with the people doing the work. They bring knowledge of their field, its constraints, and the details that matter. I bring experience connecting people, information, decisions, and technology.</p>
       </div>
     </section>
 
     <Work />
+
+    <Session />
 
     <section class="close" data-shape="desert" aria-labelledby="close-h" data-close>
       <div class="close-pin">
         <figure class="desert">
           <img src="/hero/desert.webp" alt="Me walking across a desert dune, looking back over my shoulder, drawn in points of light." loading="lazy" width="1600" height="1000" />
         </figure>
-        <p class="close-lead" data-close-lead>Still no signal. Still not stopping.</p>
+        <p class="close-lead" data-close-lead><span>Still no signal.</span><span>Still not stopping.</span></p>
         <div class="close-white" data-white></div>
         <div class="close-end">
           <h2 id="close-h" class="close-title" data-close-title>Let's keep turning the dial.</h2>

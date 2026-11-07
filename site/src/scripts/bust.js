@@ -4,7 +4,6 @@ import { buildProgram, FIGURE_GLSL } from './scene.js';
 // follow its surface. The scene's dots land on the same surface and are hidden by it, so what you see
 // has a back to it. Kept apart from the particle scene: scene.js only asks it to draw.
 const PIVOT_ROW = 826; // scripts/bake-bust.py: photo rows, about which the head's px are stored
-const PHOTO_CENTRE = 711; // the column of the head's centre line in the photo
 
 const LIT_GLSL = `
 const vec3 KEY = normalize(vec3(-0.62, 0.42, 0.66));
@@ -15,7 +14,7 @@ float lit(vec3 n, vec3 p, vec2 pointer, out float pool) {
   pool = max(dot(n, normalize(toLight)), 0.0) / (1.0 + far * 2.4);
   float key = max(dot(n, KEY) * 0.6 + 0.4, 0.0);
   float rim = pow(1.0 - max(n.z, 0.0), 3.0);
-  return key * key * 0.62 + rim * 0.3 + min(pool * 1.5, 0.75); // capped, so the nose never bleaches
+  return key * key * 0.5 + rim * 0.16 + min(pool * 1.2, 0.42); // capped, so the nose never bleaches
 }`;
 
 // No cut edge: the chest thins out into nothing before the mesh ends.
@@ -25,10 +24,13 @@ const MESH_VERT = `
 precision highp float;
 attribute vec3 aPosition;
 attribute vec3 aFacing;
+attribute float aTone;
+varying float vMaterialTone;
 uniform float uScale;
 varying vec3 vFacing, vPlace, vSeed, vRaw;
 ${FIGURE_GLSL}
 void main() {
+  vMaterialTone = aTone;
   vSeed = aPosition;
   vRaw = aFacing;
   vFacing = turned(aFacing);
@@ -41,8 +43,8 @@ const MESH_FRAG = `
 precision highp float;
 uniform vec2 uMouse;
 uniform float uBody, uShade;
-uniform sampler2D uTone;
 varying vec3 vFacing, vPlace, vSeed, vRaw;
+varying float vMaterialTone;
 ${LIT_GLSL}
 ${LOW_EDGE_GLSL}
 float grain(vec3 p) { return fract(sin(dot(floor(p / 1.7), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
@@ -53,14 +55,13 @@ void main() {
   float light = lit(n, vPlace, uMouse, pool);
   vec3 toLight = normalize(vec3(uMouse, 1.0) - vPlace);
   float sheen = pow(max(dot(n, normalize(toLight + vec3(0.0, 0.0, 1.0))), 0.0), 24.0) * pool * 0.5;
-  // Toned stone: dark hair, beard, brows and eyes from the front, thrown straight back along the head.
-  float row = ${PIVOT_ROW.toFixed(1)} - vSeed.y;
-  float toned = texture2D(uTone, vec2((vSeed.x + ${PHOTO_CENTRE.toFixed(1)}) / 1333.0, row / 2000.0)).r;
-  float behind = mix(0.09, 0.42, smoothstep(760.0, 830.0, row));
-  float stone = mix(behind, toned, smoothstep(0.05, 0.45, vRaw.z));
-  vec3 graphite = vec3(0.34, 0.335, 0.345) * stone;
-  vec3 ink = vec3(0.051, 0.047, 0.043);
-  gl_FragColor = vec4(mix(ink, mix(ink, graphite * (0.72 + light * 1.25) + sheen, uShade), lowEdge(vSeed.y)), 1.0);
+  // Material values are authored per mesh part. No photograph, image-plane mapping,
+  // or image luminance contributes to the geometry or the model's skin shading.
+  float stone = vMaterialTone;
+  vec3 graphite = vec3(0.65, 0.66, 0.69) * stone;
+  vec3 ink = vec3(0.065, 0.068, 0.075);
+  float fill = 0.32 + light * 1.06;
+  gl_FragColor = vec4(mix(ink, mix(ink, graphite * fill + sheen * 0.32, uShade), lowEdge(vSeed.y)), 1.0);
 }`;
 
 const STRAND_VERT = `
@@ -90,7 +91,7 @@ void main() {
   vec3 line = normalize(turned(along));
   float glint = 1.0 - abs(dot(line, normalize(vec3(uMouse, 1.0) - p)));
   float taper = sin(t * 3.14159);
-  vAlpha = taper * aShape.w * (0.05 + light * 0.34 + pool * glint * glint * 0.8) * smoothstep(0.35, 1.0, uBody) * lowEdge(aStart.y);
+  vAlpha = taper * aShape.w * (0.09 + light * 0.36 + pool * glint * glint * 0.7) * smoothstep(0.35, 1.0, uBody) * lowEdge(aStart.y);
   gl_Position = onScreen(p);
 }`;
 
@@ -114,7 +115,7 @@ void main() {
   float along = fract(aMeta.x * 0.0021 - uTime * aMeta.w * 0.055 + aMeta.y);
   float passing = smoothstep(0.86, 0.985, along) * smoothstep(1.0, 0.985, along);
   float breath = 0.82 + 0.18 * sin(uTime * (0.3 + aMeta.y * 0.3) + aMeta.y * 40.0 + aMeta.x * 0.004);
-  vAlpha = aMeta.z * (0.16 + light * 0.5 + pool * 0.55 + passing * 0.95) * breath * smoothstep(0.35, 1.0, uBody) * lowEdge(aPosition.y);
+  vAlpha = aMeta.z * (0.28 + light * 0.78 + pool * 0.62 + passing * 0.82) * breath * smoothstep(0.35, 1.0, uBody) * lowEdge(aPosition.y);
   gl_Position = onScreen(p);
 }`;
 
@@ -131,21 +132,23 @@ const TILT = [0.1, 0.74, 0.66]; // the planes lean back, so lines run round the 
 // Per part of the head: which lines to keep, how bright, how fast the light runs. Quieter on the face.
 const ZONES = {
   hair: { every: 2, bright: 0.34, pace: 1.1 },
-  face: { every: 3, bright: 0.3, pace: 0.45 },
-  neck: { every: 3, bright: 0.3, pace: 0.6 },
-  body: { every: 5, bright: 0.28, pace: 0.5 },
+  face: { every: 2, bright: 0.15, pace: 0.45 },
+  neck: { every: 2, bright: 0.16, pace: 0.6 },
+  body: { every: 3, bright: 0.2, pace: 0.5 },
 };
 // Left clear, or lines would tangle in the eyes and nostrils. Centre and radii in px about the pivot.
 const CLEAR = [[-108, -71, 66, 28], [112, -78, 66, 28], [0, -200, 62, 22]];
 
-// bust.bin and strands.bin, as written by scripts/bake-bust.py.
+// Compact indexed mesh and surface anchors baked from the fresh reference GLB.
 export function readBust(meshBuffer, strandBuffer, strandLimit) {
   const [vertexCount, indexCount] = new Uint32Array(meshBuffer, 0, 2);
   const positions = new Int16Array(meshBuffer, 8, vertexCount * 3);
   const facing = new Int8Array(meshBuffer, 8 + vertexCount * 6, vertexCount * 3);
   const indices = new Uint16Array(meshBuffer, 8 + vertexCount * 9 + ((vertexCount * 3) % 2), indexCount);
   const strandCount = Math.min(strandLimit, new Uint32Array(strandBuffer, 0, 1)[0]);
-  return { positions, facing, indices, strands: new DataView(strandBuffer, 4), strandCount, contourShare: strandLimit < 20000 ? 0.6 : 1 };
+  const materialOffset = indices.byteOffset + indices.byteLength;
+  const tones = meshBuffer.byteLength >= materialOffset + vertexCount ? new Uint8Array(meshBuffer, materialOffset, vertexCount) : new Uint8Array(vertexCount).fill(210);
+  return { positions, facing, indices, tones, strands: new DataView(strandBuffer, 4), strandCount, contourShare: strandLimit < 20000 ? 0.6 : 1 };
 }
 
 // Three segments per strand, so it can bend. Unpacked here rather than shipped, which keeps the download small.
@@ -244,7 +247,7 @@ export function surfaceDot(data, i) {
   return { x: offset(0), y: offset(1), z: offset(2), nx: s.getInt8(o + 9) / 127, ny: s.getInt8(o + 10) / 127, nz: s.getInt8(o + 11) / 127, lum: s.getUint8(o + 14) / 255 };
 }
 
-const NAMES = ['uScale', 'uAspect', 'uTime', 'uBody', 'uTurn', 'uZoom', 'uLean', 'uPan', 'uMouse', 'uShade', 'uTone'];
+const NAMES = ['uScale', 'uAspect', 'uTime', 'uBody', 'uTurn', 'uZoom', 'uLean', 'uPan', 'uMouse', 'uShade'];
 
 // layers: which of the sculpture's parts to draw, so each can be judged on its own.
 export function createBust(gl, data, layers = { mesh: true, contours: true, strands: true }) {
@@ -265,6 +268,7 @@ export function createBust(gl, data, layers = { mesh: true, contours: true, stra
   const positions = buffer(gl.ARRAY_BUFFER, new Float32Array(data.positions));
   const facing = buffer(gl.ARRAY_BUFFER, Float32Array.from(data.facing, (v) => v / 127));
   const indices = buffer(gl.ELEMENT_ARRAY_BUFFER, data.indices);
+  const materialTones = buffer(gl.ARRAY_BUFFER, Float32Array.from(data.tones, (value) => value / 255));
   const strandData = strandVertices(data);
   const strands = buffer(gl.ARRAY_BUFFER, strandData);
   const strandVerts = strandData.length / STRAND_FLOATS;
@@ -279,19 +283,6 @@ export function createBust(gl, data, layers = { mesh: true, contours: true, stra
   if (window.requestIdleCallback) requestIdleCallback(buildContours, { timeout: 2000 });
   else setTimeout(buildContours, 300);
 
-  const tone = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tone);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 1, 1, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, new Uint8Array([100]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  const toneImage = new Image();
-  toneImage.onload = () => {
-    gl.bindTexture(gl.TEXTURE_2D, tone);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.UNSIGNED_BYTE, toneImage);
-  };
-  toneImage.src = '/hero/bust-tone.webp';
 
   const attribute = (program, name, size, stride = 0, offset = 0) => {
     const loc = gl.getAttribLocation(program, name);
@@ -303,7 +294,7 @@ export function createBust(gl, data, layers = { mesh: true, contours: true, stra
 
   const setCommon = (u, frame) => {
     gl.uniform1f(u.uScale, frame.scale);
-    gl.uniform1f(u.uAspect, innerWidth / innerHeight);
+    gl.uniform1f(u.uAspect, frame.aspect ?? innerWidth / innerHeight);
     gl.uniform1f(u.uTime, frame.time);
     gl.uniform1f(u.uBody, frame.body);
     gl.uniform1f(u.uTurn, frame.turn);
@@ -324,13 +315,12 @@ export function createBust(gl, data, layers = { mesh: true, contours: true, stra
       gl.useProgram(meshProgram);
       setCommon(meshU, frame);
       gl.uniform1f(meshU.uShade, layers.mesh ? 1 : 0);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, tone);
-      gl.uniform1i(meshU.uTone, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, positions);
       attribute(meshProgram, 'aPosition', 3);
       gl.bindBuffer(gl.ARRAY_BUFFER, facing);
       attribute(meshProgram, 'aFacing', 3);
+      gl.bindBuffer(gl.ARRAY_BUFFER, materialTones);
+      attribute(meshProgram, 'aTone', 1);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
       gl.drawElements(gl.TRIANGLES, data.indices.length, gl.UNSIGNED_SHORT, 0);
 

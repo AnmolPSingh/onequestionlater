@@ -1,21 +1,21 @@
 /* The philosophy page. With no motion it's simply the words, in order, on the dark. */
 .philosophy { position: relative; z-index: 1; }
 .ph-pin { display: grid; align-content: center; gap: 1.25rem; min-height: 80svh; padding: 12svh var(--gutter); max-width: 62rem; }
-.ph-big { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-weight: 500; line-height: 1.08; letter-spacing: -0.025em; text-wrap: balance; }
-.ph-huge { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-weight: 500; line-height: 1.02; letter-spacing: -0.03em; }
-.ph-giant { font-size: clamp(2.8rem, 0.6rem + 9.6vw, 11rem); font-weight: 500; line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
+.ph-big { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; text-wrap: balance; }
+.ph-huge { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-family: var(--display); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
+.ph-giant { font-size: clamp(2.8rem, 0.6rem + 9.6vw, 11rem); font-family: var(--display); font-weight: 700; line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
 .ph-quiet { max-width: 34rem; color: var(--dim); font-size: clamp(1.15rem, 1rem + 0.7vw, 1.6rem); line-height: 1.3; text-wrap: balance; }
 .ph-mark { font-size: var(--label); }
 .ph-big-mark { font-family: var(--mono); font-weight: 400; letter-spacing: 0.1em; font-size: clamp(1rem, 0.8rem + 1vw, 1.6rem); }
 .ph-line { display: block; }
 .ph-glow { font-style: normal; color: var(--onair); }
 .ph-straight { color: var(--onair); }
-.somehow { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-weight: 500; letter-spacing: -0.025em; color: var(--onair); }
+.somehow { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.025em; color: var(--onair); }
 .kept, .found-lines { list-style: none; margin: 0; padding: 0; }
 .kept { display: grid; gap: 0.35rem; font-size: clamp(1.1rem, 1rem + 0.7vw, 1.6rem); line-height: 1.25; }
 .ph-joins, .ph-changes { display: grid; gap: 1rem; }
-.ph-changes p, .ph-still { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-weight: 500; line-height: 1.02; letter-spacing: -0.03em; }
-.wheel { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-weight: 500; line-height: 1.08; letter-spacing: -0.025em; }
+.ph-changes p, .ph-still { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-family: var(--display); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
+.wheel { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; }
 .wheel .again { display: none; }
 .ph-on { font-size: clamp(3rem, 2rem + 6vw, 7rem); line-height: 1; text-decoration: none; color: var(--onair); width: fit-content; }
 .ph-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -70,7 +70,7 @@ html.scene-on .stage-again { display: block; }
 html.scene-on .echo { display: block; color: var(--dim); font-size: clamp(0.85rem, 0.8rem + 0.3vw, 1.05rem); }
 html.scene-on .echo.lit { color: var(--paper); }
 html.scene-on .ph-joins { position: absolute; left: 5vw; right: 5vw; bottom: 8svh; display: block; }
-html.scene-on .ph-joins p { position: absolute; left: 0; bottom: 0; max-width: 30em; font-size: clamp(1.25rem, 1rem + 1.2vw, 2.1rem); font-weight: 500; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; text-shadow: 0 0 16px var(--ink), 0 0 5px var(--ink); }
+html.scene-on .ph-joins p { position: absolute; left: 0; bottom: 0; max-width: 30em; font-size: clamp(1.25rem, 1rem + 1.2vw, 2.1rem); font-family: var(--display); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; text-shadow: 0 0 16px var(--ink), 0 0 5px var(--ink); }
 html.scene-on .ph-doors { align-self: center; display: grid; gap: 0.2em; text-shadow: 0 0 16px var(--ink), 0 0 5px var(--ink); }
 
 /* 07: everything moves but one sentence. */

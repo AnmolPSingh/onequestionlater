@@ -121,7 +121,6 @@ async function start() {
       () => scene.setShape('tunnel', shapes.tunnel(PARTICLES, aspect)),
       () => scene.setShape('static', shapes.radioStatic(PARTICLES, aspect)),
       () => scene.setShape('signal', shapes.signal(PARTICLES, aspect)),
-      () => scene.setShape('ribbon', shapes.ribbon(PARTICLES)),
       () => scene.setShape('mark', shapes.words(PARTICLES, ['?'], aspect, 0.56)),
       () => shapes.keptWords(PARTICLES, keywords, aspect, narrow).forEach((shape, i) => scene.setShape(`kept${i}`, shape)),
       () => {

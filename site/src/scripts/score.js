@@ -29,6 +29,9 @@ export function createScore() {
   let analyser = null;
   let bins = null;
   let on = false;
+  let music = null; // the track, ducked under the static while the dial is searching
+  let hiss = null;
+  let tuned = 0;
 
   const boot = () => {
     ctx = new AudioContext();
@@ -37,11 +40,34 @@ export function createScore() {
     analyser = ctx.createAnalyser();
     analyser.fftSize = 256;
     bins = new Uint8Array(analyser.frequencyBinCount);
+    music = ctx.createGain();
     ctx.createMediaElementSource(audio).connect(analyser);
-    analyser.connect(gain).connect(ctx.destination);
+    analyser.connect(music).connect(gain).connect(ctx.destination);
+    // Radio static, made here rather than downloaded: two seconds of noise, looped and band-passed to sound like a dial.
+    const noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const samples = noise.getChannelData(0);
+    for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+    const source = ctx.createBufferSource();
+    source.buffer = noise;
+    source.loop = true;
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 2600;
+    band.Q.value = 0.6;
+    hiss = ctx.createGain();
+    hiss.gain.value = 0;
+    source.connect(band).connect(hiss).connect(gain);
+    source.start();
   };
 
   return {
+    // 0..1: how lost the dial is. The track drops away under static, and comes back as the voice arrives.
+    tune(amount) {
+      if (!ctx || Math.abs(amount - tuned) < 0.01) return;
+      tuned = amount;
+      music.gain.setTargetAtTime(1 - amount * 0.85, ctx.currentTime, 0.12);
+      hiss.gain.setTargetAtTime(amount * 0.22, ctx.currentTime, 0.12);
+    },
     // 0..1 loudness of the bass and the highs. Both are 0 while silent.
     levels() {
       if (!on || !analyser) return { low: 0, high: 0 };

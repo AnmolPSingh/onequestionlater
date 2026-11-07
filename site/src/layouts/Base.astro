@@ -1,7 +1,7 @@
 ---
-import '@fontsource/inter-tight/400.css';
-import '@fontsource/inter-tight/500.css';
-import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/700.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
 import Header from '../components/Header.astro';
@@ -52,7 +52,16 @@ const shareDescription = Astro.props.description ?? `I follow questions. Occasio
           if (calm) d.classList.add('calm');
           var seen = null;
           try { seen = sessionStorage.getItem('loaded'); } catch (e) {}
-          if (!calm && !seen && location.pathname === '/') d.classList.add('loading');
+          if (!calm && !seen && location.pathname === '/') {
+            d.classList.add('loading');
+            setTimeout(function () {
+              if (!d.classList.contains('loading')) return;
+              d.classList.remove('loading', 'opening');
+              d.classList.add('no-scene');
+              var loader = document.querySelector('[data-loader]');
+              if (loader) loader.remove();
+            }, 7000);
+          }
         })();
       </script>
     )}

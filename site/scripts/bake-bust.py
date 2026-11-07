@@ -1,5 +1,5 @@
 """Turn the bust GLB into what the browser loads. Run after bust-blender.py:
-  python bake-bust.py <head.glb> <still.png> <tone.png>
+  python bake-bust.py <head.glb> <still.png> <tone.png> <hair.png>
 
 Needs trimesh, fast-simplification and numpy. Writes public/hero/bust.bin (the sculpture) and
 strands.bin (the living skin), plus the stills. All positions are photo px about the head's pivot.
@@ -23,8 +23,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SCALE = 1000  # the GLB is in metres of 1 photo px = 1 mm
+PHOTO_CENTRE = 711  # px across the photo of the head's centre line
 PIVOT_ROW = 826  # px down the photo; shapes.js keeps the head's turn here
-WEB_FACES = 42000
 STRANDS = 30000
 HAIRLINE = 790  # rows above this are hair, unless they're forehead
 INK = (13, 12, 11)
@@ -39,13 +39,13 @@ def potential_gradient(p, frequency, rng):
     return np.sum(k[None] * np.cos(p @ k.T + phase)[:, :, None], axis=1)
 
 
-def main(glb, still, tone):
+def main(glb, still, tone, hair_mask):
     rng = np.random.default_rng(SEED)
     mesh = trimesh.load(glb, force='mesh')
     verts = mesh.vertices * SCALE
     assert verts[:, 2].max() > -verts[:, 2].min() * 0.5, 'face should look toward +z'
     print('watertight', mesh.is_watertight, 'faces', len(mesh.faces))
-    light = mesh.simplify_quadric_decimation(face_count=WEB_FACES)
+    light = mesh  # bust-blender.py already decimated it, favouring the face
     v = light.vertices * SCALE
     v = v + [0, PIVOT_ROW, 0]  # y is minus the photo's row, so this puts the pivot at 0
     n = light.vertex_normals
@@ -65,8 +65,9 @@ def main(glb, still, tone):
     rows = PIVOT_ROW - centres[:, 1]
     face_normals = light.face_normals
     rough = np.linalg.norm(light.vertex_normals[light.faces].std(axis=1), axis=1)
-    forehead = (rows > 640) & (face_normals[:, 2] > 0.55) & (centres[:, 2] > 150)
-    hair = (rows < HAIRLINE) & ~forehead
+    in_photo_hair = np.asarray(Image.open(hair_mask))[np.clip(rows, 0, 1999).astype(int), np.clip(centres[:, 0] + PHOTO_CENTRE, 0, 1332).astype(int)] > 0
+    forehead = (face_normals[:, 2] > 0.3) & (centres[:, 2] > 60) & ~in_photo_hair
+    hair = (rows < HAIRLINE + 110) & ~forehead & (in_photo_hair | (centres[:, 2] < 60)) & ((rows < HAIRLINE) | (np.linalg.norm(centres[:, [0, 2]], axis=1) > 0))
     beard = (rows > 1110) & (rows < 1262) & (face_normals[:, 2] > 0.1) & (centres[:, 2] > 135)
     body = rows > 1290
     weight = np.ones(len(rows)) * 0.5
@@ -122,4 +123,4 @@ def main(glb, still, tone):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], sys.argv[3])
+    main(*sys.argv[1:])
