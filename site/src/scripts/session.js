@@ -5,7 +5,7 @@ import { startCursor } from './cursor.js';
 import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
 
-// The About page: my life as a long arrangement. While the session is pinned, scroll is the camera
+// The story page: my life as a long arrangement. While the session is pinned, scroll is the camera
 // flying forward: each moment appears far away, comes to you and passes, and the tracks run underneath,
 // ending in "What comes next" in particles. The HTML is already the finished page, so reduced motion
 // just never starts any of it.
