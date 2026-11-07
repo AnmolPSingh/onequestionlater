@@ -288,26 +288,30 @@ html:not(.scene-on) .orbit { display: none; }
 @keyframes orbit { to { transform: rotate(360deg); } }
 .index-wrap { display: grid; gap: clamp(2rem, 1rem + 3vw, 4rem); }
 .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
-.index a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 2rem; align-items: baseline; padding: 1.1rem 0; border-bottom: 1px solid var(--hair); text-decoration: none; }
-.index-title { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem); font-weight: 700; letter-spacing: -0.01em; }
+.index a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.3rem 2rem; align-items: center; padding: 1.4rem 0; border-bottom: 1px solid var(--hair); text-decoration: none; transition: color 0.3s; }
+.index-title { font-size: clamp(1.5rem, 1.05rem + 1.9vw, 3rem); font-weight: 700; line-height: 1.05; letter-spacing: -0.025em; }
 .index-kind { grid-column: 1; color: var(--dim); }
 .index-year { grid-column: 2; grid-row: 1; color: var(--dim); }
-.index a:hover .index-title, .index a:focus-visible .index-title { color: var(--onair); text-shadow: var(--onair-glow); }
-/* Each row shows its project beside the list on hover, so the index stays a list but never a blind one. */
+.index-arrow { display: none; }
+.index a:focus-visible .index-title { color: var(--onair); text-shadow: var(--onair-glow); }
+/* The hovered row steps back to grey while its picture floats over the list (Work.astro moves it with the pointer). */
 .index li { position: relative; }
 .index-peek { display: none; }
-@media (hover: hover) and (min-width: 1100px) {
-  .index { max-width: 56rem; }
-  .index-peek { display: block; position: absolute; left: calc(100% + 3rem); top: 50%; width: min(24rem, calc(90vw - 56rem - 3rem)); opacity: 0; transform: translateY(-46%) scale(0.97); transition: opacity 0.3s, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; z-index: 3; }
-  .index-peek img, .index-peek svg { display: block; width: 100%; height: auto; border-radius: 4px; }
-  .index li:hover .index-peek, .index li:focus-within .index-peek { opacity: 1; transform: translateY(-50%); }
-}
-@media (prefers-reduced-motion: reduce) { .index-peek { transition: none; } }
 @media (min-width: 900px) {
-  .index a { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr) auto; }
+  .index a { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr) auto auto; }
   .index-kind { grid-column: 2; grid-row: 1; }
   .index-year { grid-column: 3; }
+  .index-arrow { display: block; grid-column: 4; grid-row: 1; font-size: 1.3rem; color: var(--dim); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 }
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .index li:hover a { color: var(--dim); }
+  .index li:hover .index-arrow { color: var(--paper); transform: translateX(0.3em); }
+  .index-peek { display: block; position: fixed; left: var(--mx, -999px); top: var(--my, -999px); z-index: 5; width: min(34rem, 40vw); opacity: 0; transform: translate(-28%, -56%) rotate(var(--tilt, 0deg)) scale(0.92); transition: opacity 0.25s, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
+  .index-peek img, .index-peek svg { display: block; width: 100%; height: auto; border-radius: 2px; box-shadow: 0 24px 60px rgb(0 0 0 / 0.55); }
+  .index-peek .iso-figure { background: var(--ink); border: 1px solid var(--hair); border-radius: 2px; }
+  .index li:hover .index-peek { opacity: 1; transform: translate(-28%, -56%) rotate(var(--tilt, 0deg)) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .index-peek { transition: opacity 0.2s; } }
 @media (prefers-reduced-motion: reduce) { .case-figure { transition: none; } }
 
 /* ---------- Close: the landscape in dots, a walk into the light, then the words on white ---------- */
