@@ -1,0 +1,21 @@
+---
+// The close, shared by the home page and the story page: the dot desert and its line, the walk into the
+// light, then white with the contact details. src/scripts/close.js drives it; the page also needs the
+// ghost photo (data-ghost) outside its main.
+import Footer from './Footer.astro';
+---
+<section class="close" data-shape="desert" aria-labelledby="close-h" data-close>
+  <div class="close-pin">
+    <figure class="desert">
+      <img src="/hero/desert.webp" alt="Me walking across a desert dune, looking back over my shoulder, drawn in points of light." loading="lazy" width="1600" height="1000" />
+    </figure>
+    <p class="close-lead" data-close-lead><span>Still no signal.</span><span>Still not stopping.</span></p>
+    <div class="close-white" data-white></div>
+    <div class="close-end">
+      <h2 id="close-h" class="close-title" data-close-title>Let's keep turning the dial.</h2>
+      <div id="contact" class="close-details" data-close-details>
+        <Footer />
+      </div>
+    </div>
+  </div>
+</section>

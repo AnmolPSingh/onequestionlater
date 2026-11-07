@@ -4,11 +4,12 @@ import * as shapes from './shapes.js';
 import { startCursor } from './cursor.js';
 import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
+import { createClose } from './close.js';
 
 // The story page: my life as a long arrangement. While the session is pinned, scroll is the camera
 // flying forward: each moment appears far away, comes to you and passes, and the tracks run underneath,
-// ending in "What comes next" in particles. The HTML is already the finished page, so reduced motion
-// just never starts any of it.
+// ending in "What comes next" in particles, and then the same close as the home page. The HTML is
+// already the finished page, so reduced motion just never starts any of it.
 const PARTICLES = innerWidth < 640 ? 26000 : 58000;
 const PAIR_GAP = 0.018; // of the screen's width, between two pictures that share a scene
 const RUN_UP = 0.6; // stops of track before the first scene
@@ -92,6 +93,7 @@ async function start() {
   const firstClip = session.querySelector('.clip');
   const stops = buildStops();
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
+  const close = createClose(scene, lenis, PARTICLES);
 
   document.body.prepend(scene.canvas);
   const quiet = quietBehindText(scene.canvas);
@@ -114,8 +116,11 @@ async function start() {
     slotWidth = firstClip.offsetWidth / (parseFloat(firstClip.style.getPropertyValue('--b')) - parseFloat(firstClip.style.getPropertyValue('--a')));
     scene.setShape('tunnel', shapes.tunnel(PARTICLES, aspect));
     scene.setShape('next', shapes.words(PARTICLES, wide ? ['What comes next'] : ['What comes', 'next'], aspect));
+    close.layout();
+    close.build();
   };
   layout();
+  requestAnimationFrame(() => close.toContact(location.hash));
 
   let lastWidth = innerWidth;
   let timer = 0;
@@ -175,13 +180,19 @@ async function start() {
       nextLine.style.opacity = ramp(y, nextTop - vh * 0.25, nextTop) * (1 - ramp(y, nextTop + vh * 0.2, nextTop + vh * 0.5));
     }
 
+    // Tunnel, then the words, then the desert as the close comes up.
+    const { walk, focus, ground } = close.tick(now, y, cursor);
+    const toDesert = scene.has('desert') ? clamp((y - (close.top - vh)) / vh) : 0;
     scene.draw({
-      from: 'tunnel',
-      to: 'next',
-      morph: clamp((y - (nextTop - vh)) / vh),
+      from: toDesert > 0 ? 'next' : 'tunnel',
+      to: toDesert > 0 ? 'desert' : 'next',
+      morph: toDesert > 0 ? toDesert : clamp((y - (nextTop - vh)) / vh),
       time,
       mouse: light,
       fly: play * 16 + time * 0.05,
+      walk,
+      focus,
+      ground,
     });
   };
   requestAnimationFrame(frame);

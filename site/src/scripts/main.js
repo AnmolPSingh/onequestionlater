@@ -6,29 +6,21 @@ import { startCursor } from './cursor.js';
 import { playLoader } from './loader.js';
 import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
-import { createWhale } from './whale.js';
+import { createClose } from './close.js';
 
 // The conductor: one loop reads the scroll position and drives the figure, the particle morphs
 // and the walk into the light. The HTML is
 // already the finished page, so reduced motion just never starts any of it.
 const PARTICLES = innerWidth < 640 ? 26000 : 58000; // a phone builds every shape on a slower CPU, so it gets fewer dots
 const GLOBE_SHIFT = 0.2; // of the screen's half-width, so the globe sits clear of its sentence; .orbit in base.css moves with it
-const DESERT_AHEAD = 6; // screens before the close at which its 350 KB of dots start to download
 const FORM_SECONDS = 2.8;
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN_SCROLL = 1.05; // screens of scroll it takes me to turn from facing you to the three-quarter slant, toward the words
 const HERO_ASIDE_SCROLL = 0.45;
-const WALK_END = 3.97; // just short of the horizon; keep under 1 + FAR in scene.js
-const CLOSE_HOLD = 0.3; // screens the landscape holds before the walk, long enough to read the line beside me
-const CLOSE_WALK = 1.4; // screens the walk into the light takes: with the hold, about two scrolls from the line to white
-const CLOSE_END = CLOSE_HOLD + CLOSE_WALK + 0.6; // screens into the close where the contact details are fully in
-const CLOSE_IDLE_MS = 20000; // if nobody scrolls on from the line, the walk carries on by itself
-const CLOSE_AUTO_SECONDS = 5;
 const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = (t) => t * t * (3 - 2 * t);
-const ramp = (v, a, b) => clamp((v - a) / (b - a));
 const whenIdle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
 
 const score = createScore();
@@ -77,14 +69,9 @@ async function startMotion() {
 
   const sections = [...document.querySelectorAll('[data-shape]')];
   const portraitEl = document.querySelector('[data-portrait]');
-  const closeEl = document.querySelector('[data-close]');
-  const closeTitle = document.querySelector('[data-close-title]');
-  const closeLead = document.querySelector('[data-close-lead]');
-  const closeDetails = document.querySelector('[data-close-details]');
-  const whiteLayer = document.querySelector('[data-white]');
-  const ghost = document.querySelector('[data-ghost]');
   const spots = [...document.querySelectorAll('[data-spot]')].map((el) => ({ el, x: 0, y: 0, o: 0 }));
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
+  const close = createClose(scene, lenis, PARTICLES);
 
   document.body.prepend(scene.canvas);
   const quiet = quietBehindText(scene.canvas);
@@ -97,13 +84,8 @@ async function startMotion() {
   };
 
   let tops = [];
-  let closeTop = 0;
   let heroPan = [0, 0];
   let heroEnd = { x: 0, y: 0, zoom: 1 };
-  let focus = [0, 0];
-  let desertPoints = null;
-  let desertAsked = false;
-  let placeDesert = () => {};
   let layoutRun = 0;
 
   const layout = () => {
@@ -114,7 +96,7 @@ async function startMotion() {
     // Measured with the page at rest, so scroll offsets are stable.
     const y = scrollY;
     tops = sections.map((s) => s.getBoundingClientRect().top + y);
-    closeTop = closeEl.getBoundingClientRect().top + y;
+    close.layout();
 
     const fig = portraitEl.getBoundingClientRect();
     const [bx, by] = toUnits(fig.left, fig.top + y);
@@ -125,26 +107,13 @@ async function startMotion() {
     scene.setShape('cloud', shapes.cloud(PARTICLES));
     scene.setShape('portrait', shapes.portrait(PARTICLES, figure, 0, { w: bw, h: bh }));
 
-    // The landscape covers the screen. On a narrow one it slides over so I'm in the middle of it.
-    const h = Math.max(2, (2 * aspect) / shapes.DESERT.ratio);
-    const w = h * shapes.DESERT.ratio;
-    const frame = { w, h, x: wide ? 0 : Math.min((0.5 - shapes.DESERT.axis) * w, w / 2 - aspect) };
-    focus = [clamp((shapes.DESERT.focus[0] - 0.5) * w + frame.x, -aspect * 0.8, aspect * 0.8), (0.5 - shapes.DESERT.focus[1]) * h];
-    const pxPerUnit = innerHeight / 2;
-    ghost.style.width = `${w * pxPerUnit}px`;
-    ghost.style.height = `${h * pxPerUnit}px`;
-    ghost.style.left = `${innerWidth / 2 + (frame.x - w / 2) * pxPerUnit}px`;
-    ghost.style.top = `${innerHeight / 2 - (h / 2) * pxPerUnit}px`;
-    ghost.style.transformOrigin = `${(focus[0] - frame.x + w / 2) * pxPerUnit}px ${(h / 2 - focus[1]) * pxPerUnit}px`;
-    const buildDesert = () => { if (desertPoints) scene.setShape('desert', shapes.desert(PARTICLES, desertPoints, frame)); };
-    placeDesert = buildDesert;
 
     // The rest are built one per idle moment, so loading never blocks the page.
     const pending = [
       () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
       () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
       () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
-      buildDesert, // only once its dots have arrived; they are fetched as the close comes near
+      close.build, // only once its dots have arrived; they are fetched as the close comes near
     ];
     const run = ++layoutRun;
     const next = () => {
@@ -155,27 +124,8 @@ async function startMotion() {
     whenIdle(next);
   };
   layout();
+  requestAnimationFrame(() => close.toContact(location.hash));
 
-  // The displayed contact block lives inside a pinned scene. Its DOM position is
-  // the scene's beginning, but its readable state is near the end of the scroll.
-  const navigateToSection = (hash) => {
-    if (hash === '#contact') {
-      lenis.scrollTo(closeTop + innerHeight * CLOSE_END, { immediate: true });
-      return true;
-    }
-    return false;
-  };
-  document.querySelectorAll('a[href="/#contact"]').forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const hash = new URL(link.href).hash;
-      history.pushState(null, '', hash);
-      navigateToSection(hash);
-    });
-  });
-  addEventListener('popstate', () => navigateToSection(location.hash));
-  requestAnimationFrame(() => navigateToSection(location.hash));
 
 
   let lastWidth = innerWidth;
@@ -197,10 +147,6 @@ async function startMotion() {
   let shrill = 0;
   const t0 = performance.now();
   let raf = 0;
-  let lastY = scrollY;
-  let stillSince = t0;
-  let autoWalked = false;
-  const whale = createWhale(whiteLayer, [closeTitle, closeDetails]);
   markReady();
 
   const frame = (now) => {
@@ -267,38 +213,8 @@ async function startMotion() {
 
 
 
-    // The close: the particles settle into the landscape, then scrolling walks you into the light.
-    const walking = clamp((y - closeTop - vh * CLOSE_HOLD) / (vh * CLOSE_WALK));
-    const walk = walking ** 1.7 * WALK_END;
-    const white = ease(ramp(walking, 0.68, 0.97));
-    if (!desertAsked && y > closeTop - vh * DESERT_AHEAD) {
-      desertAsked = true;
-      fetch('/hero/desert.bin')
-        .then((res) => { if (!res.ok) throw new Error(`desert.bin returned ${res.status}`); return res.arrayBuffer(); })
-        .then((buffer) => { desertPoints = new Uint16Array(buffer); placeDesert(); })
-        .catch((err) => console.warn('Desert scene unavailable; the page ends on the words.', err));
-    }
-    const nearClose = y > closeTop - vh * 1.9;
-    ghost.style.visibility = nearClose ? 'visible' : 'hidden';
-    if (nearClose) {
-      const arrive = ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9);
-      ghost.style.opacity = (arrive * (0.3 + walking * 0.6)).toFixed(3);
-      ghost.style.transform = `scale(${(4 / (4 - walk)).toFixed(4)})`;
-      whiteLayer.style.opacity = white.toFixed(3);
-      closeLead.style.opacity = (ramp(y, closeTop - vh * 0.15, closeTop + vh * 0.12) * (1 - ramp(walking, 0.03, 0.16))).toFixed(3);
-      closeTitle.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK * 0.96), closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.2));
-      closeDetails.style.opacity = ramp(y, closeTop + vh * (CLOSE_HOLD + CLOSE_WALK + 0.3), closeTop + vh * CLOSE_END);
-      root.classList.toggle('whiteout', white > 0.55);
-      if (white > 0.01) whale.draw(now, cursor.on ? [cursor.x, cursor.y] : null);
-    }
 
-    // Once the line is up, twenty still seconds and the walk into the light goes on without you.
-    if (Math.abs(y - lastY) > 0.5) { lastY = y; stillSince = now; }
-    if (y < closeTop - vh) autoWalked = false;
-    if (!autoWalked && y > closeTop - vh * 0.05 && walking < 1 && now - stillSince > CLOSE_IDLE_MS) {
-      autoWalked = true;
-      lenis.scrollTo(closeTop + vh * CLOSE_END, { duration: CLOSE_AUTO_SECONDS, easing: ease });
-    }
+    const { walk, focus, ground } = close.tick(now, y, cursor);
 
     // Words stay dim until the light finds them. With no pointer, the scroll carries the light across.
     spots.forEach((spot) => {
@@ -341,7 +257,7 @@ async function startMotion() {
       globeX: innerWidth >= 900 ? aspect * GLOBE_SHIFT : 0,
       walk,
       focus,
-      ground: 1 - ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9), // in the close the desert photo is the ground
+      ground,
     });
   };
   raf = requestAnimationFrame(frame);
