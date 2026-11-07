@@ -2,19 +2,17 @@
 // "Ask about Anmol", in the hero: one terminal line that opens into a short conversation. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
 // It needs JS, so without it the line isn't shown at all.
-const CALENDLY = 'https://calendly.com/anmol-philanthropel/let-s-talk';
 // Three of these are shown at random, so a returning visitor meets different openings.
-const suggestions = ['Radio, music, film, then AI. How?', 'What does Anmol actually build?', 'Could he help my team?', 'Why "One Question Later"?', "What's Penname?", 'Surprise me.'];
+const suggestions = ['Radio, music, film, then AI. How?', 'What do you actually build?', 'Could you help my team?', 'Why "One Question Later"?', "What's Penname?", 'Surprise me.'];
 ---
 <div class="ask" data-ask hidden>
   <div class="ask-panel" data-ask-panel>
     <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
-      <p class="ask-line ask-bot">Hi, I'm Anmol AI. I've read this site and Anmol's LinkedIn, so ask me anything about him. Fair warning: I might answer with a question.</p>
+      <p class="ask-line ask-bot">Hey, I'm Anmol AI. What's on your mind?</p>
     </div>
     <ul class="ask-suggest" data-ask-suggest>
       {suggestions.map((s) => <li><button type="button" data-ask-try>{s}</button></li>)}
     </ul>
-    <p class="ask-note label">I only know this site and his LinkedIn. For the rest, <a href={CALENDLY}>book a call</a>.</p>
   </div>
   <form class="ask-bar" data-ask-form aria-label="Ask Anmol AI">
     <span class="ask-prompt" aria-hidden="true">&gt;</span>
@@ -97,7 +95,7 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What does Anmol actua
       line('you', q);
       input.value = '';
       if (asked() >= MAX_PER_SESSION) {
-        line('bot', "That's a lot of questions, which Anmol would take as a compliment. Let's carry on in person: https://calendly.com/anmol-philanthropel/let-s-talk");
+        line('bot', "That's a lot of questions, which I'll take as a compliment. Let's carry on in person: https://calendly.com/anmol-philanthropel/let-s-talk");
         return;
       }
       busy = true;
@@ -108,14 +106,14 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What does Anmol actua
       try {
         const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-10), website: trap.value }) });
         const data = await res.json().catch(() => ({}));
-        text = data.reply || (res.status === 429 ? 'Too many curious people at once. Give me a minute, or skip the queue and book a call: https://calendly.com/anmol-philanthropel/let-s-talk' : "I've lost the signal for a moment. You can reach Anmol at anmol@philanthropel.com, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
+        text = data.reply || (res.status === 429 ? 'Too many curious people at once. Give me a minute, or skip the queue and book a call with me: https://calendly.com/anmol-philanthropel/let-s-talk' : "I've lost the signal for a moment. Reach me at anmol@philanthropel.com, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
         if (data.reply) history.push({ role: 'assistant', content: data.reply });
         else history.pop();
         count();
       } catch (err) {
         console.warn('Ask: request failed', err);
         history.pop();
-        text = "Still no signal on my end. You can reach Anmol at anmol@philanthropel.com.";
+        text = "Still no signal on my end. You can reach me at anmol@philanthropel.com.";
       }
       reply.classList.remove('thinking');
       await type(reply, text);
