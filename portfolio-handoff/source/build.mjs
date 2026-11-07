@@ -143,7 +143,25 @@ function svg(item,still=false){
  const parts=item.routes.map(([,p],i)=>route(i,p,i===0)).join('');
  return A.figureSvg({width:W,height:H,label:item.alt,standalone:'dark',body:'<style>'+skin+(still?'.packet{display:none!important}.signal{stroke:#a56d44}.signal-dots{fill:#eab180}':'')+'</style>'+plate()+parts+item.art()});
 }
-for(const item of cases)writeFileSync(out+'/'+item.key+'.svg',applyStudyPalette(svg(item,true)));
+// The systems behind the other projects, drawn with the same objects. Each route follows the project's `flow` in site/src/data/work.ts.
+const donors=()=>[[14,12],[36,12],[14,48],[36,48],[14,84],[36,84]].map(([x,y])=>paper(x,y,15,15,0,3)).join('');
+// An agent: a low lit node, so several can sit side by side without hiding each other.
+const agent=(x,y)=>C(x,y,11,0,7,'mid')+C(x,y,7,7,3,'hi')+D(x,y,10.1,'lit',1.4);
+const systems=[
+ {key:'philanthropel',alt:"An organisation's own records pass to a switchboard of agents built with the team, and arrive at a desk the organisation runs itself.",
+ routes:[['Their data',[[56,38],[90,38],[90,59],[118,59]]],['',[[56,80],[90,80],[90,59],[118,59]]],['Agents built with them',[[171,59],[222,59]]]],
+ art:()=>tray(16,22,40,32)+tray(16,64,40,32)+switchboard(118,40)+terminal(222,45,41,30)},
+ {key:'penname',alt:'A confidential document passes through a scanner that gives each private detail a stand-in, the safe copy goes to an AI desk, and the reply returns as a document with the real details back.',
+ routes:[['Confidential document',[[52,60],[78,60]]],['Share the safe copy',[[126,58],[160,58]]],['Real details go back',[[201,60],[236,60]]]],
+ art:()=>tray(16,44,36,32)+scanner(78,38)+terminal(160,45,41,30)+tray(236,44,36,32)},
+ {key:'digital-feasibility-study',alt:'Many donor records feed three agents, which combine into one feasibility report.',
+ routes:[['Many donors',[[52,20],[100,20],[100,59],[128,59]]],['',[[52,59],[128,59]]],['',[[52,98],[100,98],[100,59],[128,59]]],['Three agents',[[128,59],[150,59],[150,30],[160,30]]],['',[[128,59],[150,59],[150,88],[160,88]]],['',[[171,30],[200,30],[200,59],[226,59]]],['',[[171,59],[226,59]]],['',[[171,88],[200,88],[200,59],[226,59]]]],
+ art:()=>donors()+agent(160,30)+agent(160,59)+agent(160,88)+tray(226,42,42,34)},
+ {key:'proposal-system',alt:'A client brief goes through a scanner for brief analysis, splits to two drafting agents, and comes out as one client-ready proposal.',
+ routes:[['Client brief',[[48,59],[70,59]]],['Brief analysis',[[118,58],[140,58],[140,34],[160,34]]],['',[[118,60],[140,60],[140,84],[160,84]]],['Drafting agents',[[171,34],[205,34],[205,59],[234,59]]],['',[[171,84],[205,84],[205,59],[234,59]]]],
+ art:()=>tray(14,44,34,30)+scanner(70,38)+agent(160,34)+agent(160,84)+envelope(234,42)},
+];
+for(const item of [...cases,...systems])writeFileSync(out+'/'+item.key+'.svg',applyStudyPalette(svg(item,true)));
 const font=readFileSync(new URL('./SpaceGrotesk.ttf', import.meta.url)).toString('base64');
 const esc=s=>s.replace(/[&<>"]/g,v=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[v]));
 const html=cases.map((item,i)=>{

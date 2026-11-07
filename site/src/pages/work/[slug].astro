@@ -30,6 +30,7 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
     ) : (
       <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
     )}
+    {release.system && <Image class="system" src={release.system.image} alt={release.system.alt} loading="lazy" decoding="async" />}
     {release.stats && (
       <dl class="stats">
         {release.stats.map(([value, label]) => (
