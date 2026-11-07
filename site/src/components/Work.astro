@@ -1,7 +1,7 @@
 ---
 // Selected work: the four cases side by side so a visitor picks which to open, then the rest as a quiet index.
 // It reads the same with or without motion; the particles only settle into dust behind it.
-import { Image } from 'astro:assets';
+import IsoFigure from './IsoFigure.astro';
 import { RELEASES } from '../data/work';
 
 const cases = RELEASES.filter((r) => r.featured);
@@ -13,7 +13,7 @@ const rest = RELEASES.filter((r) => !r.featured && !r.noSlide);
   <ol class="cases">
     {cases.map((r, i) => (
       <li class="case">
-        <Image class="case-figure" src={r.cover} alt={r.coverAlt} loading="lazy" decoding="async" />
+        <IsoFigure class="case-figure" name={r.figure!} />
         <p class="case-number label">{String(i + 1).padStart(2, '0')}</p>
         <h3 class="case-title"><a href={`/work/${r.slug}`}>{r.title}</a></h3>
         <p class="case-summary">{r.summary}</p>

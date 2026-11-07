@@ -3,7 +3,8 @@
   --ink: #0d0c0b;
   --raised: #171411;
   --paper: #f3eee4;
-  --onair: #ff8a2a;
+  --onair: #f4f8ff; /* neon white: the single accent since 7 Nov 2026, replacing the orange */
+  --onair-glow: 0 0 10px rgb(214 230 255 / 0.55), 0 0 2px rgb(214 230 255 / 0.4);
   --dim: rgba(243, 238, 228, 0.64);
   --hair: rgba(243, 238, 228, 0.13);
   --error: #ff9d8a;

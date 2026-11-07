@@ -42,7 +42,7 @@ ${FIGURE_GLSL}
 
 const float EXPOSURE = 0.6; // light adds up where dots crowd, as it does on a real surface
 const vec3 PAPER = vec3(0.953, 0.933, 0.894);
-const vec3 ONAIR = vec3(1.0, 0.541, 0.165);
+const vec3 ONAIR = vec3(0.957, 0.973, 1.0); // neon white, matching --onair
 const vec3 KEY = normalize(vec3(-0.62, 0.42, 0.66)); // the light on the figure, from high on the left
 const float FAR = 3.0; // how much further the horizon is than the nearest sand, for the walk
 

@@ -20,6 +20,8 @@
 
 **Direction, 7 Nov 2026 (overrides the type, section order, radio and globe above; the brief is `portfolio-handoff/`):** the home page runs portrait, approach, Selected Work, journey (Session), close. The approach screen keeps the big line and replaces the steps-and-fields diagram with "Bring another way of seeing, then make it work" and its first paragraph. Selected Work shows four cases side by side (document assistant, voice receptionist, invoice processing, research assistant), each with its Anatomy isometric figure and its own `/work/<slug>` page, then the rest of the work as an index. The radio chapter, the globe stop and the project slides are gone; the globe's sentence sits inside Selected Work. Type is Space Grotesk throughout: 700 for statements and titles, 400 for reading, 500 for labels and dates. The head cloud (the "found" particle burst) is removed, not parked: don't bring it back.
 
+**Direction, 7 Nov 2026, later:** orange is retired everywhere. `--onair` is neon white (`#f4f8ff`) with a soft glow (`--onair-glow`), and it turns to ink on the white close. The isometric figures are line art on the page's dark, labelled with each project's approved step names and animated one step at a time, in the manner of illos.dev's isometric library (`portfolio-handoff/source/build.mjs`, inlined by `src/components/IsoFigure.astro`). The eight system projects also carry an architecture diagram made with the diagram-design skill and skinned with the site's tokens (`site/scripts/make-architecture.py`). It uses only facts already on the page; anything the handoff marked "confirm first" stays out until Anmol approves it.
+
 **Direction, 2 Nov 2026, earlier (the close still holds; the hero part is replaced by the revamp):** Anmol rolled both back to the original particle design. The hero was the dot portrait (`site/scripts/make-portrait.py`). The close is the earlier Elimar-style dot desert from `assets-src/desert.jpg` (`scripts/make-desert.py`, `walked()` in `scene.js`): the figure holds still and shimmers, "Still no signal. Still not stopping." sits mid-screen beside it, then each scroll walks the camera into the light, the dots pass it, and the page turns white. Not `dunes.js` or its pull-back, and the figure's legs never move. The fitted bust (`bust.js`) and the living desert (`living-desert.js`) are parked, not imported.
 
 ## Stack
@@ -44,7 +46,7 @@
 1. **All story text is real HTML text**, never baked into images or canvas. It must read fully with JS off.
 2. **Respect `prefers-reduced-motion`**: those visitors get every graphic in its final state, silent. The Calm mode toggle was removed on 31 Oct 2026 at Anmol's request.
 3. **Mobile first.** Test at 360px wide. No horizontal scroll. Pinned sections must work with touch scrolling.
-4. **Keyboard:** skip link, visible focus ring in `--onair`, timeline clips reachable by Tab, form fully operable.
+4. **Keyboard:** skip link, visible focus ring in `--onair` (neon white since 7 Nov 2026), timeline clips reachable by Tab, form fully operable.
 5. **Accessibility:** WCAG 2.1 AA contrast, real labels on every form field, error messages tied to fields with `aria-describedby`, alt text on every photo.
 6. **Performance:** Lighthouse 90+ on mobile. Lazy load media below the fold. Total JS under about 150 KB gzipped.
 7. **Email address** appears as text with a copy button, not a bare `mailto:` scraped by bots. Light obfuscation is fine.

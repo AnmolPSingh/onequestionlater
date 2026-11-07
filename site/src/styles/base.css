@@ -63,7 +63,8 @@ html.on-sculpture .cursor-orb { opacity: 0; }
 html.on-sculpture.orb-on { cursor: auto; }
 html.whiteout .cursor-orb { background: var(--ink); box-shadow: none; }
 main, .site-footer { position: relative; z-index: 2; }
-main { overflow-x: clip; } /* heading dust spreads past the page edge; clip keeps sticky working */
+main { overflow-x: clip; } /* clip keeps sticky working */
+.release { overflow-x: visible; } /* project figures run wider than the column; body still clips at the screen edge */
 .word { display: inline-block; }
 .dust-host { position: relative; color: transparent; }
 .dust-text { position: absolute; left: -150px; top: -150px; pointer-events: none; }
@@ -82,15 +83,22 @@ main { overflow-x: clip; } /* heading dust spreads past the page edge; clip keep
   background: linear-gradient(rgb(13 12 11 / 0.85), transparent);
   transition: color 0.3s;
 }
+html.whiteout { --onair: var(--ink); --onair-glow: none; } /* on the white close the accent turns to ink, never white on white */
 html.whiteout .site-header { color: var(--ink); background: none; }
 .wordmark { text-decoration: none; white-space: nowrap; }
 /* A hidden thought, not a menu: no box, the words surface one by one out of the dark under the name. */
 .identity { position: relative; justify-self: start; }
-.thought { position: absolute; left: 0; top: 100%; width: min(34rem, calc(100vw - var(--gutter) * 2)); padding-top: 1.1rem; font-size: clamp(1.25rem, 1rem + 1.1vw, 1.9rem); font-family: var(--display); font-weight: 400; line-height: 1.14; letter-spacing: -0.015em; text-transform: none; visibility: hidden; transition: visibility 0s 0.35s; }
+.thought { position: absolute; left: 0; top: 100%; width: min(48rem, calc(100vw - var(--gutter) * 2)); padding-top: 1.1rem; font-size: clamp(1.25rem, 1rem + 1.1vw, 1.9rem); font-family: var(--display); font-weight: 400; line-height: 1.14; letter-spacing: -0.015em; text-transform: none; visibility: hidden; transition: visibility 0s 0.35s; }
+/* The page dims behind the open thought, so its words never sit on the text underneath. */
+.wordmark { position: relative; z-index: 2; }
+.thought { z-index: 1; isolation: isolate; }
+.thought::before { content: ''; position: fixed; inset: 0; z-index: -1; background: rgb(13 12 11 / 0.9); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.identity:is(:hover, :focus-within, .open) .thought::before { opacity: 1; transition-duration: 0.45s; }
+html.whiteout .thought::before { background: rgb(243 238 228 / 0.92); }
 .thought-line { display: block; }
 .thought-word, .thought-link { opacity: 0; filter: blur(7px); transform: translateY(0.3em); transition: opacity 0.3s, filter 0.3s, transform 0.3s; }
 .thought-word { display: inline-block; white-space: pre; text-shadow: 0 0 18px var(--ink), 0 0 6px var(--ink); }
-.thought-link { display: inline-block; margin-top: 0.9rem; font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); letter-spacing: 0; color: var(--onair); text-decoration: none; text-shadow: 0 0 14px var(--ink); }
+.thought-link { display: inline-block; margin-top: 0.9rem; font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); letter-spacing: 0; color: var(--onair); text-shadow: var(--onair-glow); text-decoration: none; text-shadow: 0 0 14px var(--ink); }
 .thought-link span { display: inline-block; transition: transform 0.25s; }
 .thought-link:hover span { transform: translateX(0.3em); }
 .identity:is(:hover, :focus-within, .open) .thought { visibility: visible; transition-delay: 0s; }
@@ -100,7 +108,7 @@ html.whiteout .thought-link { color: var(--ink); }
 html.calm :is(.thought-word, .thought-link) { filter: none; transform: none; transition: opacity 0.2s; transition-delay: 0s !important; }
 .links, .toggles { display: flex; align-items: center; gap: clamp(0.9rem, 2vw, 1.75rem); }
 .links a { text-decoration: none; white-space: nowrap; }
-.links a:hover, .wordmark:hover, .toggles button:hover { color: var(--onair); }
+.links a:hover, .wordmark:hover, .toggles button:hover { color: var(--onair); text-shadow: var(--onair-glow); }
 .toggles button { display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; font: inherit; letter-spacing: inherit; text-transform: inherit; }
 .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; }
 .bars i { width: 2px; height: 4px; background: currentColor; }
@@ -152,7 +160,7 @@ html.scene-on .statement-pin { position: sticky; top: 0; height: 100svh; padding
 .statement-big { font-size: clamp(1.6rem, min(1rem + 2.6vw, 5.4svh), 3.6rem); font-family: var(--display); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; text-wrap: pretty; }
 /* Dim words, lit where the pointer is. Large type, so the resting colour still clears 3:1. */
 html.scene-on [data-spot] { color: rgb(243 238 228 / 0.42); background: radial-gradient(320px circle at var(--x, -999px) var(--y, -999px), rgb(255 255 255 / calc(var(--o, 0) * 1)), rgb(255 255 255 / calc(var(--o, 0) * 0.6)) 22%, rgb(255 255 255 / calc(var(--o, 0) * 0.28)) 44%, transparent 72%); -webkit-background-clip: text; background-clip: text; }
-.approach-h { max-width: 30rem; font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem); line-height: 1.15; letter-spacing: -0.01em; color: var(--onair); text-wrap: balance; }
+.approach-h { max-width: 30rem; font-size: clamp(1.15rem, 0.95rem + 0.9vw, 1.6rem); line-height: 1.15; letter-spacing: -0.01em; color: var(--onair); text-shadow: var(--onair-glow); text-wrap: balance; }
 .approach { max-width: 34rem; font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem); line-height: 1.4; text-wrap: pretty; text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
 
 /* ---------- Session: a list to read, or with motion on, a flight through the years ---------- */
@@ -170,7 +178,7 @@ html.scene-on [data-spot] { color: rgb(243 238 228 / 0.42); background: radial-g
   --fly-w: 42vw;
   --fly-h: 54svh;
 }
-.eyebrow { color: var(--onair); margin-bottom: 0.5rem; }
+.eyebrow { color: var(--onair); text-shadow: var(--onair-glow); margin-bottom: 0.5rem; }
 .section-h { font-size: var(--h-section); margin-bottom: 0.6rem; }
 
 .moments { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; gap: 3rem; }
@@ -198,7 +206,7 @@ html.scene-on .moment.paired .moment-visual { width: min(26vw, calc(var(--fly-h)
 html.scene-on .moment.paired .moment-visual.also { width: min(23vw, calc(var(--fly-h) * 0.8 * var(--ratio))); }
 html.scene-on .moment-visual img { height: 100%; object-fit: cover; }
 html.scene-on .moment-text { position: absolute; left: 5vw; bottom: calc(var(--strip-h) + 2.5rem); z-index: 50; width: min(28rem, 34vw); opacity: 0; will-change: opacity; }
-html.scene-on .moment-text .label { color: var(--onair); }
+html.scene-on .moment-text .label { color: var(--onair); text-shadow: var(--onair-glow); }
 .moment-text p:last-child { text-wrap: pretty; }
 
 html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none; }
@@ -245,16 +253,21 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 /* ---------- Work: the four cases to choose from, then everything else as an index ---------- */
 .work { position: relative; z-index: 2; display: grid; gap: clamp(2rem, 1rem + 3vw, 4rem); padding: 18svh 5vw 22svh; }
 .work-anchor { position: absolute; top: 0; }
-.work-label { color: var(--onair); }
+.work-label { color: var(--onair); text-shadow: var(--onair-glow); }
 .cases { list-style: none; margin: 0; padding: 0; display: grid; gap: 4.5rem clamp(2rem, 1rem + 4vw, 6rem); counter-reset: none; }
 .case { position: relative; display: grid; gap: 0.6rem; align-content: start; }
-.case-figure { width: 100%; height: auto; aspect-ratio: 820 / 435; margin-bottom: 1rem; border-radius: 6px; background: #0b0b0b; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.iso-figure svg { display: block; width: 100%; height: auto; }
+.case-figure { margin-bottom: 1rem; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.release .iso-figure { margin-block: 2rem; }
+.architecture-figure { overflow-x: auto; } /* the diagram keeps its readable width; a phone scrolls it, not the page */
+@media (min-width: 900px) { .release .iso-figure { width: min(64rem, 90vw); margin-left: 50%; translate: -50% 0; } } /* wider than the reading column, so the labels stay legible */
+@media (min-width: 900px) { .release .architecture-figure { width: min(72rem, 94vw); } }
 .case-number { color: var(--dim); }
 .case-title { font-size: clamp(1.7rem, 1.2rem + 2vw, 3rem); line-height: 1.02; letter-spacing: -0.03em; }
 .case-title a { text-decoration: none; }
 .case-title a::after { content: ''; position: absolute; inset: 0; } /* the whole case opens it, and the title stays the link's name */
 .case-summary { max-width: 32rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem); line-height: 1.45; text-wrap: pretty; }
-.case:hover .case-title a, .case:focus-within .case-title a { color: var(--onair); }
+.case:hover .case-title a, .case:focus-within .case-title a { color: var(--onair); text-shadow: var(--onair-glow); }
 .case:hover .case-figure { transform: translateY(-6px); }
 @media (min-width: 900px) {
   .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -266,7 +279,7 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .index-title { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem); font-weight: 700; letter-spacing: -0.01em; }
 .index-kind { grid-column: 1; color: var(--dim); }
 .index-year { grid-column: 2; grid-row: 1; color: var(--dim); }
-.index a:hover .index-title, .index a:focus-visible .index-title { color: var(--onair); }
+.index a:hover .index-title, .index a:focus-visible .index-title { color: var(--onair); text-shadow: var(--onair-glow); }
 @media (min-width: 900px) {
   .index a { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr) auto; }
   .index-kind { grid-column: 2; grid-row: 1; }
@@ -315,8 +328,8 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.25rem 3rem; padding: 2rem var(--gutter) 2.5rem; border-top: 1px solid var(--hair); background: var(--ink); }
 .site-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; align-items: center; }
 .site-footer a { text-decoration: none; }
-.site-footer a:hover { color: var(--onair); }
-.site-footer button { color: var(--onair); border: 1px solid var(--hair); border-radius: 999px; padding: 0.25rem 0.75rem; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.site-footer a:hover { color: var(--onair); text-shadow: var(--onair-glow); }
+.site-footer button { color: var(--onair); text-shadow: var(--onair-glow); border: 1px solid var(--hair); border-radius: 999px; padding: 0.25rem 0.75rem; font: inherit; letter-spacing: inherit; text-transform: inherit; }
 .small-print { color: var(--dim); text-transform: none; letter-spacing: 0.02em; }
 
 /* ---------- Release and plain pages ---------- */
@@ -324,13 +337,13 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .plain-main h1 { margin-bottom: 0.6rem; font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4.25rem); letter-spacing: 0; }
 .plain-main h2 { margin: 2.75rem 0 0.9rem; font-size: 1.35rem; }
 /* Every project ends on what it left open, so the last thing on the page is a question. */
-.release h2:last-of-type { color: var(--onair); }
+.release h2:last-of-type { color: var(--onair); text-shadow: var(--onair-glow); }
 .release h2:last-of-type + p { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-family: var(--display); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
-.plain-main h2.label { color: var(--onair); font-size: var(--label); letter-spacing: 0.1em; }
+.plain-main h2.label { color: var(--onair); text-shadow: var(--onair-glow); font-size: var(--label); letter-spacing: 0.1em; }
 .plain-main p { margin-bottom: 1rem; }
 .plain-main ul, .plain-main ol { padding-left: 1.2rem; margin: 0 0 1rem; }
 .plain-main li { margin-block: 0.5rem; }
-.plain-main a { color: var(--onair); }
+.plain-main a { color: var(--onair); text-shadow: var(--onair-glow); }
 .plain-main img, .plain-main video { width: 100%; margin-block: 1.5rem; border-radius: 3px; }
 /* A project with more than one thing to show lays them on the dark like prints, not in a grid. */
 .cluster { display: grid; gap: 1rem; margin-block: 1.5rem; }
@@ -348,12 +361,12 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .stats { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; margin: 1.5rem 0 0.5rem; }
 .stats div { display: grid; gap: 0.1rem; }
 .stats dt { order: 2; font-family: var(--mono); font-size: var(--label); color: var(--dim); }
-.stats dd { order: 1; margin: 0; font-family: var(--mono); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); font-weight: 400; letter-spacing: 0; color: var(--onair); line-height: 1.1; }
+.stats dd { order: 1; margin: 0; font-family: var(--mono); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); font-weight: 400; letter-spacing: 0; color: var(--onair); text-shadow: var(--onair-glow); line-height: 1.1; }
 .release-links { list-style: none; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 2rem !important; }
 .back { margin-top: 3rem; color: var(--dim); }
 .lost { min-height: 100svh; display: grid; place-content: center; text-align: center; gap: 1.5rem; padding: var(--header-h) var(--gutter) 4rem; }
 .lost h1 { max-width: 18ch; font-size: var(--h-section); }
-.lost a { color: var(--onair); }
+.lost a { color: var(--onair); text-shadow: var(--onair-glow); }
 
 /* Motion preferences apply to the complete experience, including decorative CSS. */
 @media (prefers-reduced-motion: reduce) {
