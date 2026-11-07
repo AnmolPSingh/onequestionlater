@@ -5,7 +5,7 @@ import philanthropel from '../assets/work/philanthropel-site.png';
 import talking from '../assets/work/talking-philanthropy-site.png';
 import intelligence from '../assets/work/philanthropic-intelligence-site.png';
 import gpSite from '../assets/work/gp-site.png';
-import systems from '../assets/work/gp-systems.jpg';
+import systems from '../assets/work/systems-network-poster.png';
 import alumnus from '../assets/linkedin/isdi-alumnus-1.jpg';
 import jivamoda from '../assets/photos/jivamoda.jpg';
 import expobazaar from '../assets/photos/startup-delhi-fair-namecard.jpg';
@@ -34,6 +34,12 @@ export interface Release {
   featured?: boolean;
   /** The animated isometric figure of the system, by file name in src/assets/work/ (portfolio-handoff/source/build.mjs draws them). */
   figure?: string;
+  /** Has an architecture diagram (site/scripts/make-architecture.py) without an isometric figure. */
+  diagram?: boolean;
+  /** A YouTube video id, shown at the top of the page in place of the cover; the cover then sits with the diagram. */
+  video?: { id: string; title: string };
+  /** A short silent loop in public/ (path without extension; .webm and .mp4 both exist), played where the cover would be. The cover is its poster. */
+  loop?: string;
 }
 
 const GP = 'Global Philanthropic';
@@ -126,7 +132,8 @@ export const RELEASES: Release[] = [
   {
     slug: 'gp-systems', title: 'Systems thinking', group: GP, kind: 'How I work, across everything I can and can\'t show', year: '2024 to now',
     summary: "Most of what I've deployed stays private, so here's what I can show you: how I think. One kind of automation makes a task faster. The other asks why the task exists.",
-    cover: systems, coverAlt: 'Diagram: a tangle of boxes and lines simplifies into three clean connected steps.',
+    cover: systems, coverAlt: 'A network of squares joined by thin lines that keep reconnecting as it moves.',
+    loop: '/media/systems-network',
     stats: [['~35%', 'less manual work']],
     flow: ['The numbers: where most fixes stop', 'The information: who sees what, and when', 'The rules: what the work rewards', 'The goal: what it is all for'],
   },
@@ -147,6 +154,8 @@ export const RELEASES: Release[] = [
     cover: expobazaar, coverAlt: 'A table name card reading Anmol Pratap Singh on Delhi Fair 2023 brochures.',
     stats: [['25%', 'more supplier engagement'], ['3', 'B2B platforms'], ['200+', 'global buyers']],
     logo: expobazaarLogo,
+    diagram: true,
+    video: { id: 'V_dsjTCUiG0', title: 'ExpoBazaar brand video' },
     links: [{ label: 'expobazaar.com', href: 'https://expobazaar.com' }],
   },
 ];

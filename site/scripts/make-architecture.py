@@ -86,6 +86,14 @@ DIAGRAMS = {
                ('report', 2, 1, 'OUT', 'Feasibility report', 'one per engagement', True)],
         edges=[('donors', 'a1', '', False), ('donors', 'a2', '', False), ('donors', 'a3', '', False),
                ('a1', 'report', '', False), ('a2', 'report', '', False), ('a3', 'report', '', False)]),
+    'expobazaar': dict(
+        title='ExpoBazaar', desc='I trained artisans from across India and designed the three B2B platforms they sell through to more than 200 global buyers.',
+        nodes=[('me', 0, 0, 'HUMAN', 'Me', 'sole designer', True),
+               ('artisans', 0, 1, 'IN', 'Artisans', 'across India', False),
+               ('platforms', 1, 1, 'APP', 'Three B2B platforms', 'role-specific dashboards', True),
+               ('buyers', 2, 1, 'OUT', '200+ global buyers', 'Europe · USA · Australia', False)],
+        edges=[('me', 'artisans', 'TRAINING', False), ('me', 'platforms', 'DESIGN', False),
+               ('artisans', 'platforms', '', False), ('platforms', 'buyers', '', False)]),
     'proposal-system': dict(
         title='Proposal system', desc='A client brief goes through brief analysis and drafting agents and comes out as a client-ready proposal in about seven minutes.',
         nodes=[('brief', 0, 0, 'IN', 'Client brief', 'from the client', False),
