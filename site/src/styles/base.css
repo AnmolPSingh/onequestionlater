@@ -154,6 +154,39 @@ html:not(.calm) .scroll-hint { animation: hint 2.2s ease-in-out infinite; }
 html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross the face */
 @keyframes hint { 0%, 100% { transform: scaleY(0.25); opacity: 0.4; } 50% { transform: scaleY(1); opacity: 1; } }
 
+/* ---------- Ask about Anmol: one terminal line in the hero that opens into a conversation ---------- */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ask { position: absolute; left: 50%; bottom: 8svh; z-index: 5; width: min(38rem, calc(100vw - 2 * var(--gutter))); transform: translateX(-50%); }
+.ask[hidden] { display: none; }
+.ask-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.75rem 0.65rem 1.1rem; border: 1px solid var(--hair); border-radius: 999px; background: rgb(13 12 11 / 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color 0.25s; }
+.ask-bar:focus-within { border-color: var(--onair); box-shadow: var(--onair-glow); }
+.ask-prompt { color: var(--onair); text-shadow: var(--onair-glow); font-weight: 500; }
+.ask-bar input[type='text'] { flex: 1; min-width: 0; padding: 0.2rem 0; border: 0; background: none; color: var(--paper); font: inherit; font-size: 1rem; caret-color: var(--onair); outline: none; } /* 16px, so iPhones don't zoom in on it */
+.ask-bar input::placeholder { color: var(--dim); }
+.ask-send, .ask-close { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: var(--dim); font-size: 1.1rem; transition: color 0.2s, background 0.2s; }
+.ask-send:hover, .ask-close:hover { color: var(--paper); background: var(--hair); }
+.ask-bar.busy .ask-send { opacity: 0.35; pointer-events: none; }
+.ask-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.ask-panel { display: none; position: absolute; left: 0; right: 0; bottom: calc(100% + 0.6rem); padding: 1rem 1.15rem 0.9rem; border: 1px solid var(--hair); border-radius: 1rem; background: rgb(13 12 11 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.ask.open .ask-panel { display: block; }
+.ask-log { display: grid; gap: 0.75rem; max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
+.ask-log:empty { display: none; }
+.ask-line { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: break-word; }
+.ask-you { color: var(--dim); }
+.ask-you::before { content: '> '; color: var(--onair); }
+.ask-bot a { color: var(--paper); text-decoration: underline; text-underline-offset: 0.2em; }
+.ask-bot a:hover { color: var(--onair); }
+.ask-line.thinking::after { content: ''; display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.15em; background: var(--onair); box-shadow: var(--onair-glow); }
+html:not(.calm) .ask-line.thinking::after { animation: caret 1s steps(2, start) infinite; }
+@keyframes caret { to { visibility: hidden; } }
+.ask-suggest { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+.ask-suggest[hidden] { display: none; }
+.ask-suggest button { padding: 0.4rem 0.85rem; border: 1px solid var(--hair); border-radius: 999px; color: var(--dim); font-size: 0.875rem; transition: color 0.2s, border-color 0.2s; }
+.ask-suggest button:hover { color: var(--paper); border-color: var(--paper); }
+.ask-note { margin-top: 0.85rem; color: var(--dim); text-transform: none; letter-spacing: 0; }
+.ask-note a { color: var(--paper); }
+@media (max-width: 639px) { .ask { bottom: 5svh; } .ask-log { max-height: 38svh; } }
+
 /* ---------- Statement: held on screen while the figure turns and moves to the right ---------- */
 .statement-pin { display: grid; align-content: center; gap: 1.75rem; min-height: 100svh; padding: 18svh var(--gutter); max-width: 62rem; }
 html.scene-on .statement { height: 180svh; }

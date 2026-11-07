@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Work from '../components/Work.astro';
 import Loader from '../components/Loader.astro';
 import Close from '../components/Close.astro';
+import Ask from '../components/Ask.astro';
 ---
 <Base noFooter>
   <Loader />
@@ -14,6 +15,7 @@ import Close from '../components/Close.astro';
         <img src="/hero/portrait.webp" srcset="/hero/portrait-760.webp 760w, /hero/portrait-1100.webp 1100w, /hero/portrait.webp 1600w" sizes="min(213vw, 123vh)" loading="lazy" alt="Anmol's head and shoulders, with curly hair and a short beard, drawn in points of light." width="1600" height="1206" />
       </figure>
       <p class="role">AI product builder</p>
+      <Ask />
       <span class="scroll-hint" aria-hidden="true"></span>
     </section>
 
