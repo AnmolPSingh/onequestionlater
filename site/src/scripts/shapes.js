@@ -206,7 +206,7 @@ const onSphere = (lat, lon, r = GLOBE_RADIUS) => {
   return [r * Math.cos(a) * Math.sin(b), r * Math.sin(a), r * Math.cos(a) * Math.cos(b)];
 };
 
-// Continents in dots; India, the UK, Australia and the USA in orange, joined by arcs.
+// Continents in dots; India, the UK, Australia and the USA lit, joined by arcs.
 export function globe(n, land) {
   const out = new Float32Array(n * 4);
   const cities = [DELHI, MUMBAI, LONDON, EDINBURGH, SYDNEY, MELBOURNE, NEW_YORK, SAN_FRANCISCO];
@@ -251,7 +251,7 @@ export function radioStatic(n, aspect) {
   return out;
 }
 
-// The voice through the static: every particle on one clean orange wave.
+// The voice through the static: every particle on one clean lit wave.
 export function signal(n, aspect) {
   const out = new Float32Array(n * 4);
   for (let i = 0; i < n; i++) {

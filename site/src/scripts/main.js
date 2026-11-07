@@ -5,11 +5,13 @@ import { createScore } from './score.js';
 import { startCursor } from './cursor.js';
 import { playLoader } from './loader.js';
 import { isCalm } from './calm.js';
+import { quietBehindText } from './quiet.js';
 
 // The conductor: one loop reads the scroll position and drives the figure, the particle morphs,
 // the flight through the years and the walk into the light. The HTML is
 // already the finished page, so reduced motion just never starts any of it.
 const PARTICLES = innerWidth < 640 ? 26000 : 58000; // a phone builds every shape on a slower CPU, so it gets fewer dots
+const GLOBE_SHIFT = 0.2; // of the screen's half-width, so the globe sits clear of its sentence; .orbit in base.css moves with it
 const DESERT_AHEAD = 6; // screens before the close at which its 350 KB of dots start to download
 const FORM_SECONDS = 2.8;
 const PHOTO_HOLD = 0.7; // seconds the loader's last photo lies as dots before they leave for the portrait
@@ -119,10 +121,15 @@ async function startMotion() {
   if (!scene) { root.classList.add('no-scene'); markReady(); return; }
 
   let figure;
+  let land;
   try {
-    const res = await fetch('/hero/views.bin');
-    if (!res.ok) throw new Error(`/hero/views.bin returned ${res.status}`);
-    figure = shapes.readViews(await res.arrayBuffer());
+    const [p, l] = await Promise.all(['/hero/views.bin', '/hero/land.bin'].map(async (url) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${url} returned ${res.status}`);
+      return res.arrayBuffer();
+    }));
+    figure = shapes.readViews(p);
+    land = new Uint8Array(l);
   } catch (err) {
     console.warn('Particle data unavailable; showing the static page.', err);
     scene.stop();
@@ -150,6 +157,7 @@ async function startMotion() {
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
 
   document.body.prepend(scene.canvas);
+  const quiet = quietBehindText(scene.canvas);
   root.classList.add('scene-on');
   await new Promise(requestAnimationFrame); // let the pinned heights apply before measuring
 
@@ -213,6 +221,7 @@ async function startMotion() {
     const pending = [
       () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
       () => scene.setShape('tunnel', shapes.tunnel(PARTICLES, aspect)),
+      () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
       () => scene.setShape('next', shapes.words(PARTICLES, wide ? ['What comes next'] : ['What comes', 'next'], aspect)),
       () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
       buildDesert, // only once its dots have arrived; they are fetched as the close comes near
@@ -285,6 +294,7 @@ async function startMotion() {
   const frame = (now) => {
     raf = requestAnimationFrame(frame);
     lenis.raf(now);
+    quiet();
     const time = (now - t0) / 1000;
     const y = scrollY;
     const vw = innerWidth;
@@ -435,6 +445,7 @@ async function startMotion() {
       high: Math.min(1, shrill * 2),
       pan,
       zoom,
+      globeX: innerWidth >= 900 ? aspect * GLOBE_SHIFT : 0,
       fly: play * 16 + time * 0.05,
       walk,
       focus,

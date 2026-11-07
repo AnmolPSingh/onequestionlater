@@ -1,0 +1,11 @@
+---
+// An animated isometric figure, inlined so its labels use the site's type and its motion follows
+// prefers-reduced-motion. The SVG carries its own role="img" and aria-label.
+const figures = import.meta.glob<string>('../assets/work/*/*.svg', { query: '?raw', import: 'default', eager: true });
+
+interface Props { name: string; class?: string }
+const { name, class: className } = Astro.props;
+const svg = Object.entries(figures).find(([path]) => path.endsWith(`/${name}.svg`))?.[1];
+if (!svg) throw new Error(`No figure named ${name} in src/assets/work/`);
+---
+<div class:list={['iso-figure', className]} set:html={svg} />

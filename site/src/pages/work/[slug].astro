@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Named from '../../components/Named.astro';
+import IsoFigure from '../../components/IsoFigure.astro';
 import { SITE_NAME } from '../../config';
 import { RELEASES, type Release } from '../../data/work';
 
@@ -17,20 +18,21 @@ const next = RELEASES[(index + 1) % RELEASES.length];
 const extra = (release.sites ?? []).filter((site) => site.image !== release.cover); // the rest of what it made, laid beside the cover
 ---
 <Base title={`${release.title} | ${SITE_NAME}`} description={release.summary}>
-  <main id="main" class="plain-main release">
+  <main id="main" class="plain-main release" data-read>
     <p class="kicker label">{[release.group, release.year].filter(Boolean).join(', ')}</p>
     <h1>{release.title}</h1>
     {release.kind && <p class="kicker">{release.kind}</p>}
     <p class="summary"><Named text={release.summary} /></p>
-    {extra.length ? (
+    {release.cover && (extra.length ? (
       <div class="cluster">
-        <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 30rem, 92vw" loading="eager" />
+        <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 30rem, 92vw" loading="eager" />
         {extra.map((site) => <Image src={site.image} alt={site.alt} widths={[480, 900]} sizes="(min-width: 700px) 18rem, 92vw" loading="lazy" />)}
       </div>
     ) : (
-      <Image src={release.cover} alt={release.coverAlt} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
-    )}
-    {release.system && <Image class="system" src={release.system.image} alt={release.system.alt} loading="lazy" decoding="async" />}
+      <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
+    ))}
+    {release.figure && <IsoFigure class="system" name={release.figure} />}
+    {release.figure && <IsoFigure class="architecture-figure" name={`${release.slug}-architecture`} />}
     {release.stats && (
       <dl class="stats">
         {release.stats.map(([value, label]) => (

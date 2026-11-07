@@ -3,6 +3,7 @@ import { createScene } from './scene.js';
 import * as shapes from './shapes.js';
 import { isCalm } from './calm.js';
 import { startCursor } from './cursor.js';
+import { quietBehindText } from './quiet.js';
 
 // Release pages: the same particle cloud, quieter. As you read toward the next question, the dust gathers into a question mark.
 const PARTICLES = innerWidth < 640 ? 9000 : 14000;
@@ -16,6 +17,7 @@ function start() {
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
   scene.canvas.classList.add('scene-quiet');
   document.body.prepend(scene.canvas);
+  const quiet = quietBehindText(scene.canvas, { full: 0.4 });
   root.classList.add('scene-on');
 
   const layout = () => {
@@ -42,6 +44,7 @@ function start() {
   const frame = (now) => {
     raf = requestAnimationFrame(frame);
     lenis.raf(now);
+    quiet();
     const time = (now - t0) / 1000;
     const range = root.scrollHeight - innerHeight;
     cursor.tick();

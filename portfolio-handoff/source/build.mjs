@@ -161,9 +161,51 @@ const systems=[
  routes:[['Client brief',[[48,59],[70,59]]],['Brief analysis',[[118,58],[140,58],[140,34],[160,34]]],['',[[118,60],[140,60],[140,84],[160,84]]],['Drafting agents',[[171,34],[205,34],[205,59],[234,59]]],['',[[171,84],[205,84],[205,59],[234,59]]]],
  art:()=>tray(14,44,34,30)+scanner(70,38)+agent(160,34)+agent(160,84)+envelope(234,42)},
 ];
-for(const item of [...cases,...systems])writeFileSync(out+'/'+item.key+'.svg',applyStudyPalette(svg(item,true)));
-const font=readFileSync(new URL('./SpaceGrotesk.ttf', import.meta.url)).toString('base64');
+// The site's figures, 7 Nov 2026: line art on the page's own dark, like the illos.dev isometric library, and animated.
+// Every face is filled with the page colour so hidden lines drop out; only pale outlines show. The work moves one step at
+// a time: a neon-white packet runs each route and the route glows while it's active. A named route starts a step and the
+// unnamed ones after it run with it (DFS's three agents light together); `steps` overrides that where routes are listed
+// out of order. Labels are the step names, already approved copy. Reduced motion shows every route lit and still.
+const INK='#0d0c0b', NEON='#f4f8ff';
+const lineSkin=`
+.iso-svg{--anatomy-paper:${INK};--anatomy-face:${INK};--anatomy-top:${INK};--anatomy-shade-0:${INK};--anatomy-shade-1:${INK};--anatomy-shade-2:${INK};--anatomy-shade-3:${INK};--anatomy-lit-top:${INK};--anatomy-lit-shade:${INK};--anatomy-hi:#e3e7ee;--anatomy-mid:#9ba2ad;--anatomy-lo:#666d78;--anatomy-faint:#4b515b;--anatomy-dot:${NEON};--anatomy-lit:${NEON};--anatomy-halo-opacity:0;--anatomy-weight:.9px}
+.rail{fill:none;stroke:#3a3f47;stroke-width:1;stroke-dasharray:2 3;stroke-linecap:round}
+.glow{fill:none;stroke:${NEON};stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px ${NEON})}
+.pkt{fill:${NEON};filter:drop-shadow(0 0 4px ${NEON}) drop-shadow(0 0 9px rgba(214,230,255,.7))}
+.tag{font:500 12px "Space Grotesk",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;fill:#c9ced8;paint-order:stroke;stroke:${INK};stroke-width:4px;stroke-linejoin:round}
+.lead{fill:none;stroke:#7a818c;stroke-width:.8}
+.lead-dot{fill:#c9ced8}
+@media(prefers-reduced-motion:reduce){.pkt{display:none}.glow{opacity:.85!important}.glow animate{display:none}}
+`;
+const groupsOf=(item)=>{
+ const steps=item.steps??item.routes.reduce((acc,[name],i)=>[...acc,i===0||name?(acc.at(-1)??-1)+1:acc.at(-1)],[]);
+ return steps;
+};
+function animatedSvg(item){
+ const steps=groupsOf(item), count=Math.max(...steps)+1;
+ const SLOT=1.15, REST=1.1, T=count*SLOT+REST, f=v=>(v/T).toFixed(4);
+ const rails=[],glows=[],pkts=[],tags=[],labelled=new Set();
+ item.routes.forEach(([name,p],i)=>{
+  const q=p.map(([x,y])=>pt([x,y,.9])), d=A.pathOf(q);
+  const s=steps[i]*SLOT+.05, e=s+SLOT*.82, out=Math.min(T-.01,e+SLOT*.6);
+  rails.push('<path class="rail" d="'+d+'"/>');
+  glows.push('<path class="glow" d="'+d+'" opacity=".12"><animate attributeName="opacity" dur="'+T+'s" repeatCount="indefinite" values=".12;.12;1;1;.12;.12" keyTimes="0;'+f(s)+';'+f(s+.12)+';'+f(e)+';'+f(out)+';1"/></path>');
+  pkts.push('<circle class="pkt" r="2.7" opacity="0"><animateMotion dur="'+T+'s" repeatCount="indefinite" path="'+d+'" keyPoints="0;0;1;1" keyTimes="0;'+f(s)+';'+f(e)+';1" calcMode="linear"/><animate attributeName="opacity" dur="'+T+'s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;'+f(s)+';'+f(s+.08)+';'+f(e-.08)+';'+f(e)+';1"/></circle>');
+  if(name&&!labelled.has(steps[i])){
+   labelled.add(steps[i]);
+   const m=q[Math.floor(q.length/2)], [a,b]=q[Math.floor(q.length/2)-1]??q[0];
+   const [x,y]=[(m[0]+a)/2,(m[1]+b)/2], up=item.above?.includes(i), drop=up?-(78+(steps[i]%2)*18):46+(steps[i]%2)*22;
+   tags.push('<circle class="lead-dot" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.6"/><path class="lead" d="M'+x.toFixed(1)+' '+y.toFixed(1)+'V'+(y+drop).toFixed(1)+'"/><text class="tag" x="'+x.toFixed(1)+'" y="'+(y+drop+(up?-6:13)).toFixed(1)+'" text-anchor="middle">'+esc(name)+'</text>');
+  }
+ });
+ return A.figureSvg({width:W,height:H,label:item.alt,standalone:'dark',body:'<style>'+lineSkin+'</style>'+plate()+rails.join('')+glows.join('')+item.art()+pkts.join('')+tags.join('')});
+}
+cases[0].steps=[0,1,0,0]; // document assistant: notes, research and reports all go in first, then earlier work comes out
+// Routes that run toward the back of the plate get their label above the drawing, clear of the one below.
+cases[1].above=[1]; cases[3].above=[2]; systems[3].above=[3];
 const esc=s=>s.replace(/[&<>"]/g,v=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[v]));
+for(const item of [...cases,...systems])writeFileSync(out+'/'+item.key+'.svg',animatedSvg(item).replace(/(--anatomy-[\w-]+):([^;}]+)(?=[;}])/g,(entry,name)=>{const own=lineSkin.match(new RegExp(name+':([^;}]+)'));return own?name+':'+own[1]:entry;}));
+const font=readFileSync(new URL('./SpaceGrotesk.ttf', import.meta.url)).toString('base64');
 const html=cases.map((item,i)=>{
  const controls=item.routes.map(([name,,caption],j)=>`<button type="button" aria-pressed="${j===0}" data-index="${j}" data-caption="${esc(caption)}">${esc(name)}</button>`).join('');
  const architecture=item.terms.map((t,j)=>`<li><span>${String(j+1).padStart(2,'0')}</span>${esc(t)}</li>`).join('');
