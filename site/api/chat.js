@@ -7,11 +7,11 @@
 // GROQ_API_KEY, GROQ_MODEL (optional), UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_*).
 import { KNOWLEDGE, ALLOWED_LINKS } from './_knowledge.js';
 
-const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'; // Groq's Llama models are enterprise-only since late 2026
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MAX_TURNS = 10; // earlier messages are dropped, so a long chat costs no more than a short one
 const MAX_QUESTION = 500; // characters
-const MAX_ANSWER_TOKENS = 380;
+const MAX_ANSWER_TOKENS = 900; // includes the model's brief thinking, which never reaches the visitor
 const PER_MINUTE = 6; // per visitor
 const PER_DAY = 40; // per visitor
 const SITE_PER_DAY = 900; // for everyone together: the free quota can never be spent in one day
@@ -129,7 +129,7 @@ export async function POST(request) {
     const res = await fetch(GROQ_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, temperature: 0.3, max_tokens: MAX_ANSWER_TOKENS, messages: [{ role: 'system', content: SYSTEM }, ...turns] }),
+      body: JSON.stringify({ model: MODEL, temperature: 0.3, max_completion_tokens: MAX_ANSWER_TOKENS, reasoning_effort: 'low', include_reasoning: false, messages: [{ role: 'system', content: SYSTEM }, ...turns] }),
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) {
