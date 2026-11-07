@@ -5,7 +5,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "astro dev",
     "build": "astro build && bash scripts/check-build.sh",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "vercel": "vercel --global-config \"$HOME/.config/vercel-onequestionlater\""
   },
   "type": "module",
   "private": "true",
