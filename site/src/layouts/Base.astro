@@ -55,7 +55,7 @@ const shareDescription = Astro.props.description ?? `I follow questions. Occasio
           if (!calm && !seen && location.pathname === '/') {
             d.classList.add('loading');
             setTimeout(function () {
-              if (!d.classList.contains('loading')) return;
+              if (!d.classList.contains('loading') || d.classList.contains('gate')) return;
               d.classList.remove('loading', 'opening');
               d.classList.add('no-scene');
               var loader = document.querySelector('[data-loader]');

@@ -75,7 +75,8 @@ export function createScore() {
       return { low: average(bins, LOW_BINS), high: average(bins, HIGH_BINS) };
     },
 
-    init(toggle, isCalm) {
+    // gated: the first visit's loader asks, and its answer arrives through enter().
+    init(toggle, isCalm, gated) {
       const label = toggle.querySelector('[data-sound-label]');
       const show = (value, text) => {
         on = value;
@@ -129,7 +130,14 @@ export function createScore() {
         else audio.play().catch(() => show(false, 'Sound off'));
       });
 
-      if (remembered() || isCalm()) return;
+      this.enter = (withSound) => {
+        disarm();
+        remember(!withSound);
+        if (withSound) start().then((started) => { if (!started) show(false, 'Sound off'); });
+        else show(false, 'Sound off');
+      };
+
+      if (gated || remembered() || isCalm()) return;
       const invite = matchMedia('(hover: none)').matches ? 'Tap for sound' : 'Click for sound';
       show(false, innerWidth < 420 ? 'Sound off' : invite); // a phone's header has no room for the longer label
       start().then((started) => { if (!started) GESTURES.forEach((name) => addEventListener(name, onGesture)); });

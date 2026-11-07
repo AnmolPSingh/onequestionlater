@@ -14,7 +14,6 @@ const PARTICLES = innerWidth < 640 ? 26000 : 58000; // a phone builds every shap
 const GLOBE_SHIFT = 0.2; // of the screen's half-width, so the globe sits clear of its sentence; .orbit in base.css moves with it
 const DESERT_AHEAD = 6; // screens before the close at which its 350 KB of dots start to download
 const FORM_SECONDS = 2.8;
-const PHOTO_HOLD = 0.7; // seconds the loader's last photo lies as dots before they leave for the portrait
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN_SCROLL = 1.05; // screens of scroll it takes me to turn from facing you to the three-quarter slant, toward the words
 const HERO_ASIDE_SCROLL = 0.45;
@@ -33,10 +32,10 @@ const whenIdle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, {
 
 const score = createScore();
 let formStart = null; // when the portrait starts to form, which is when the loader hands over
-let loaderPhoto = null; // the loader's last frame, until its dots are made
 let markReady;
 const sceneReady = new Promise((resolve) => { markReady = resolve; });
-playLoader(sceneReady).then((photo) => { loaderPhoto = photo; formStart = performance.now(); });
+const gated = root.classList.contains('loading');
+playLoader(sceneReady, (withSound) => score.enter(withSound)).then(() => { formStart = performance.now(); });
 const session = document.querySelector('[data-session]');
 const clipLinks = new Map([...session.querySelectorAll('[data-clip]')].map((a) => [a.dataset.clip, a]));
 
@@ -323,19 +322,12 @@ async function startMotion() {
     let fromName = sections[from].dataset.shape;
     let toName = sections[to].dataset.shape;
     if (from === to || fromName === toName) { toName = fromName; morph = 1; } // the figure doesn't morph, it turns
-    if (loaderPhoto) {
-      const { rect } = loaderPhoto;
-      scene.setShape('photo', shapes.photo(PARTICLES, loaderPhoto, [toUnits(rect.left, rect.top), toUnits(rect.right, rect.bottom)]));
-      loaderPhoto = null;
-    }
     const formed = formStart === null ? 0 : (now - formStart) / 1000 / FORM_SECONDS;
     if (formed < 1 && y < 10) {
-      // After the loader, the photo's own dots fly into the portrait; on a return visit it blows in.
-      const fromPhoto = scene.has('photo');
-      fromName = fromPhoto ? 'photo' : 'cloud';
+      // The cloud gathers into the portrait once the visitor has chosen how to enter.
+      fromName = 'cloud';
       toName = 'portrait';
-      const hold = PHOTO_HOLD / FORM_SECONDS;
-      morph = fromPhoto ? ease(clamp((formed - hold) / (1 - hold))) : 1 - (1 - clamp(formed)) ** 3;
+      morph = 1 - (1 - clamp(formed)) ** 3;
     }
     // I turn by flowing from the front view into the three-quarter slant, toward the words; once turned, I stay turned.
     const turning = ease(clamp(y / (vh * HERO_TURN_SCROLL)));
@@ -455,7 +447,7 @@ async function startMotion() {
   raf = requestAnimationFrame(frame);
 }
 
-score.init(document.querySelector('[data-sound-toggle]'), isCalm);
+score.init(document.querySelector('[data-sound-toggle]'), isCalm, gated);
 
 // Content and the model poster remain visible if enhancement fails or WebGL is unavailable.
 document.fonts.ready.then(() => {

@@ -1,19 +1,10 @@
 ---
-// The first thing on screen: my life wiping past in a small frame, the last frame breaking into the
-// particles of the portrait. Shown once a visit, never with reduced motion or JS off.
-import { getImage } from 'astro:assets';
-import wizkids from '../assets/photos/life-wizkids.jpg';
-import decks from '../assets/photos/music-dj-festival.jpg';
-import corridor from '../assets/photos/life-air-corridor.jpg';
-import film from '../assets/photos/film-dd-bbc.jpg';
-import sketches from '../assets/photos/isdi-sketch-wall.jpg';
-import talking from '../assets/photos/life-talking-london.jpg';
-import lecture from '../assets/photos/life-lecture.jpg';
-
-const frames = await Promise.all([wizkids, decks, corridor, film, sketches, talking, lecture].map((photo) => getImage({ src: photo, width: 480, format: 'webp', quality: 60 })));
+// The first thing on screen: a choice to come in with sound or without. Either one starts the
+// particles gathering into the portrait. Shown once a visit, never with reduced motion or JS off.
 ---
-<div class="loader" data-loader aria-hidden="true">
-  <div class="loader-box">
-    {frames.map((frame) => <img src={frame.src} alt="" fetchpriority="high" data-loader-frame />)}
+<div class="loader" data-loader>
+  <div class="loader-choice" role="group" aria-label="How to enter">
+    <button type="button" class="label" data-enter="sound">Enter with sound</button>
+    <button type="button" class="label" data-enter="silent">Enter without sound</button>
   </div>
 </div>
