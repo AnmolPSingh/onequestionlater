@@ -1,116 +1,35 @@
-/* The philosophy page. With no motion it's simply the words, in order, on the dark. */
+/* The philosophy page: nine chapters, one screen each, giant type over the particle field.
+   With no motion (or no JS) every word simply sits there, in order. */
 .philosophy { position: relative; z-index: 1; }
-.ph-pin { display: grid; align-content: center; gap: 1.25rem; min-height: 80svh; padding: 12svh var(--gutter); max-width: 62rem; }
-.ph-big { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; text-wrap: balance; }
-.ph-huge { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-family: var(--display); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
-.ph-giant { font-size: clamp(2.8rem, 0.6rem + 9.6vw, 11rem); font-family: var(--display); font-weight: 700; line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
-.ph-quiet { max-width: 34rem; color: var(--dim); font-size: clamp(1.15rem, 1rem + 0.7vw, 1.6rem); line-height: 1.3; text-wrap: balance; }
-.ph-mark { font-size: var(--label); }
-.ph-big-mark { font-family: var(--mono); font-weight: 400; letter-spacing: 0.1em; font-size: clamp(1rem, 0.8rem + 1vw, 1.6rem); }
-.ph-line { display: block; }
-.ph-glow { font-style: normal; color: var(--onair); }
-.ph-straight { color: var(--onair); }
-.somehow { font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.025em; color: var(--onair); }
-.kept, .found-lines { list-style: none; margin: 0; padding: 0; }
-.kept { display: grid; gap: 0.35rem; font-size: clamp(1.1rem, 1rem + 0.7vw, 1.6rem); line-height: 1.25; }
-.ph-joins, .ph-changes { display: grid; gap: 1rem; }
-.ph-changes p, .ph-still { font-size: clamp(2.2rem, 1.2rem + 4.8vw, 6.4rem); font-family: var(--display); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
-.wheel { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); font-family: var(--display); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; }
-.wheel .again { display: none; }
-.ph-on { font-size: clamp(3rem, 2rem + 6vw, 7rem); line-height: 1; text-decoration: none; color: var(--onair); width: fit-content; }
-.ph-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.ph-on:hover span { transform: translateX(0.28em); }
-.stage { position: relative; }
-.only-narrow { display: none; }
-.node { position: relative; }
-.echo { display: none; }
-.stage-again { display: none; }
-.ph-follow .stage .thread { display: none; }
-.ph-outside { max-width: 16em; }
+.ch { display: grid; align-content: center; gap: clamp(0.6rem, 0.4rem + 0.8vw, 1.2rem); min-height: 100svh; padding: calc(var(--header-h) + 8svh) 5vw 10svh; max-width: 82rem; }
+.ch-label { color: var(--dim); margin-bottom: 1rem; }
+.ch-giant { font-size: clamp(2.6rem, 0.9rem + 7.4vw, 9rem); font-weight: 700; line-height: 0.96; letter-spacing: -0.045em; text-transform: uppercase; text-wrap: balance; }
+.ch-big { max-width: 22em; font-size: clamp(1.6rem, 1.05rem + 2.6vw, 3.6rem); font-weight: 700; line-height: 1.06; letter-spacing: -0.025em; text-wrap: balance; }
+.ch-quiet { max-width: 30em; color: var(--dim); font-size: clamp(1.1rem, 1rem + 0.6vw, 1.5rem); line-height: 1.3; text-wrap: balance; }
+.ch-gap { margin-top: 3rem; }
+.lit { color: var(--onair); text-shadow: var(--onair-glow); }
 
-/* ---------- With motion: pinned, and the scroll conducts ---------- */
-html.scene-on .ph { height: calc(var(--screens) * 100svh); }
-html.scene-on .ph-pin { position: sticky; top: 0; height: 100svh; min-height: 0; max-width: none; padding: 0 5vw; overflow: clip; }
-html.scene-on [data-in] { opacity: var(--t, 0); visibility: visible; }
-html.scene-on .rise { transform: translateY(calc((1 - var(--t, 0)) * 0.7em)); }
-html.scene-on .slow { filter: blur(calc((1 - var(--t, 0)) * 9px)); }
+/* The path: every stop on one screen, read left to right, top to bottom. */
+.ch-path { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.15em 0.5em; font-size: clamp(1.7rem, 1rem + 3.4vw, 4.6rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; }
+.ch-path li:not(:last-child)::after { content: '\2192' / ''; margin-left: 0.5em; color: var(--dim); font-weight: 400; }
 
-/* 01: the thesis, alone. */
-html.scene-on .ph-open .ph-pin { align-content: center; gap: 0.2rem; }
-html.scene-on .ph-open .ph-mark { position: absolute; left: 5vw; top: calc(var(--header-h) + 18svh); }
-html.scene-on .ph-turn { color: var(--paper); }
-
-/* 02: quiet, then the thought that matters, slowly. */
-html.scene-on .ph-begin .ph-pin { align-content: center; gap: 2.5rem; }
-
-/* 03: discoveries, where they fall. */
-html.scene-on .stage { position: absolute; inset: calc(var(--header-h) + 3svh) 5vw 5svh; }
-html.scene-on .ph-follow .stage .thread { display: block; }
-html.scene-on .node { position: absolute; left: var(--x); top: var(--y); transform: translate(0.8rem, -50%); white-space: nowrap; font-size: clamp(1.05rem, 0.95rem + 0.6vw, 1.5rem); line-height: 1.1; padding: 0.1rem 0.3rem; background: rgb(13 12 11 / 0.7); }
-html.scene-on .node::before { content: ''; position: absolute; left: -0.95rem; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: var(--onair); }
-html.scene-on .somehow { transform: translate(0.8rem, -50%) rotate(calc((1 - var(--t, 0)) * -5deg - 1.6deg)) scale(calc(0.86 + var(--t, 0) * 0.14)); transform-origin: left center; font-size: clamp(1.8rem, 1.1rem + 3.2vw, 4.4rem); letter-spacing: -0.025em; }
-html.scene-on .thread.quiet .thread-line { stroke: var(--hair); }
-html.scene-on .thread-chord { stroke: var(--onair); stroke-width: 1.5; stroke-dashoffset: calc(1 - var(--c, 0)); }
-
-/* 04: what looked broken, then one clean line. */
-html.scene-on .ph-real .ph-pin { align-content: center; gap: 1.6rem; }
-.ph-broken span { display: inline-block; white-space: pre; }
-html.scene-on .ph-broken span { transform: translate(calc(var(--k, 0) * var(--s) * 0.02em), calc(var(--k, 0) * var(--r) * 0.042em)) rotate(calc(var(--k, 0) * var(--r) * 1.7deg)); }
-
-/* 05: each discipline stays on, dimmer, as the next arrives. */
-html.scene-on .ph-keep .ph-pin { align-content: end; gap: 1rem; padding-bottom: 8svh; max-width: 44vw; }
-html.scene-on .kept li { opacity: calc(var(--t, 0) * var(--dimmed, 1)); }
-html.scene-on .ph-later { position: absolute; left: 5vw; top: calc(var(--header-h) + 8svh); }
-
-/* 06: the middle of the page. */
-html.scene-on .ph-sum .ph-pin > * { grid-area: 1 / 1; }
-html.scene-on .ph-sum .ph-pin { justify-items: start; }
-html.scene-on .ph-giant { transform: scale(calc(0.92 + var(--t, 0) * 0.08)); transform-origin: left center; }
-html.scene-on .stage-again { display: block; }
-html.scene-on .echo { display: block; color: var(--dim); font-size: clamp(0.85rem, 0.8rem + 0.3vw, 1.05rem); }
-html.scene-on .echo.lit { color: var(--paper); }
-html.scene-on .ph-joins { position: absolute; left: 5vw; right: 5vw; bottom: 8svh; display: block; }
-html.scene-on .ph-joins p { position: absolute; left: 0; bottom: 0; max-width: 30em; font-size: clamp(1.25rem, 1rem + 1.2vw, 2.1rem); font-family: var(--display); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; text-shadow: 0 0 16px var(--ink), 0 0 5px var(--ink); }
-html.scene-on .ph-doors { align-self: center; display: grid; gap: 0.2em; text-shadow: 0 0 16px var(--ink), 0 0 5px var(--ink); }
-
-/* 07: everything moves but one sentence. */
-html.scene-on .ph-constant .ph-pin > * { grid-area: 1 / 1; }
-html.scene-on .ph-changes { display: block; position: absolute; left: 5vw; top: 50%; transform: translateY(-50%); }
-html.scene-on .ph-changes p { position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: left center; translate: 0 -50%; }
-html.scene-on .gone-left { transform: translateX(calc((1 - var(--t, 0)) * -18vw)); }
-html.scene-on .gone-up { transform: translateY(calc((1 - var(--t, 0)) * 2em)); filter: blur(calc((1 - var(--t, 0)) * 12px)); }
-html.scene-on .gone-wide { letter-spacing: calc((1 - var(--t, 0)) * 0.5em - 0.03em); }
-html.scene-on .ph-still { opacity: var(--t, 0); }
-
-/* 08: lines on a dial; the end comes back round to the start. */
-html.scene-on .ph-loop .ph-pin { align-content: center; }
-html.scene-on .wheel { display: block; position: relative; height: 1px; }
-html.scene-on .wheel li { position: absolute; left: 0; top: 0; translate: 0 -50%; transform-origin: -70vw 50%; transform: rotate(calc((var(--i) - var(--turn, 0)) * 13deg)); opacity: var(--near, 0); white-space: nowrap; }
-html.scene-on .wheel .again { display: block; color: var(--dim); }
-
-/* 09 and 10 */
-html.scene-on .ph-arrive .ph-pin > * { grid-area: 1 / 1; }
-html.scene-on .ph-arrive .ph-pin { justify-items: start; }
-html.scene-on .ph-low { align-self: start; margin-top: calc(var(--header-h) + 7svh); max-width: 16em; text-shadow: 0 0 18px var(--ink), 0 0 6px var(--ink); }
-html.scene-on .ph-big-mark { align-self: start; margin-top: calc(var(--header-h) + 2svh); }
-html.scene-on .ph-usually { align-self: end; padding-bottom: 26svh; }
-html.scene-on .ph-another { align-self: end; padding-bottom: 8svh; text-shadow: 0 0 22px var(--ink), 0 0 8px var(--ink); }
-html.scene-on .ph-end .ph-pin { align-content: center; gap: 1rem; }
-html.scene-on .ph-on { transform: translateX(calc((1 - var(--t, 0)) * -1.2em)); }
-html.leaving .ph-pin { transition: opacity 0.6s; opacity: 0; }
-
-@media (max-width: 899px) {
-  .only-wide { display: none !important; }
-  .only-narrow { display: block; }
-  html.scene-on .ph-follow .stage .only-wide { display: none; }
-  html.scene-on .node { left: var(--nx); top: var(--ny); font-size: 0.98rem; }
-  html.scene-on .somehow { font-size: clamp(1.5rem, 7.4vw, 2.6rem); white-space: normal; max-width: 12em; }
-  html.scene-on .echo { font-size: 0.8rem; }
-  html.scene-on .ph-keep .ph-pin { max-width: none; padding-bottom: 5svh; }
-  html.scene-on .ph-later { top: calc(var(--header-h) + 2svh); font-size: 1.5rem; }
-  html.scene-on .kept { font-size: 1.02rem; }
-  html.scene-on .ph-changes p { font-size: clamp(1.9rem, 9vw, 3.4rem); }
-  html.scene-on .wheel { font-size: clamp(1.45rem, 6.2vw, 2.4rem); }
-  html.scene-on .wheel li { white-space: normal; width: calc(100vw - 10vw); transform-origin: -120vw 50%; }
-  html.scene-on .ph-joins { bottom: 5svh; }
+/* What each one left behind, and how they now join up: compact, so the chapter fits one screen. */
+.ch-list, .ch-grid, .ch-changes, .ch-loop { list-style: none; margin: 0; padding: 0; }
+.ch-list { display: grid; gap: 0.35rem; margin-top: 1rem; font-size: clamp(1.1rem, 0.95rem + 0.8vw, 1.7rem); line-height: 1.25; }
+.ch-grid { display: grid; gap: 1rem 2.5rem; margin-block: 1.5rem; color: var(--dim); font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem); line-height: 1.35; }
+.ch-changes { display: grid; font-size: clamp(1.6rem, 1.05rem + 2.6vw, 3.6rem); font-weight: 700; line-height: 1.06; letter-spacing: -0.025em; color: var(--dim); }
+.ch-loop { display: grid; gap: 0.2rem; counter-reset: loop; font-size: clamp(1.5rem, 1rem + 2.4vw, 3.4rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; }
+.ch-loop li { counter-increment: loop; }
+.ch-loop li::before { content: counter(loop, decimal-leading-zero); display: inline-block; width: 2.6em; vertical-align: 0.35em; color: var(--dim); font-size: 0.32em; font-weight: 500; letter-spacing: 0.1em; }
+.ch-on { width: fit-content; margin-top: 1.5rem; font-size: clamp(3rem, 2rem + 5vw, 6.5rem); line-height: 1; text-decoration: none; color: var(--onair); text-shadow: var(--onair-glow); }
+.ch-on span { display: inline-block; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.ch-on:hover span { transform: translateX(0.28em); }
+@media (min-width: 900px) {
+  .ch-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
+  .ch-grid { grid-template-columns: repeat(2, minmax(0, 30rem)); }
 }
+
+/* With motion: a chapter's lines arrive one after another as it comes into view, then stay. */
+html.reveal-on .ch [style*='--i'] { opacity: 0; filter: blur(4px); transform: translateY(0.4em); transition: opacity 0.55s, filter 0.55s, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--i) * 80ms); }
+html.reveal-on .ch.in [style*='--i'] { opacity: 1; filter: none; transform: none; }
+html.reveal-on .ch-path li, html.reveal-on .ch-list li, html.reveal-on .ch-loop li { transition-duration: 0.45s; transition-delay: calc(var(--i) * 50ms + 80ms); }

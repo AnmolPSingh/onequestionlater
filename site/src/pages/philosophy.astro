@@ -1,129 +1,80 @@
 ---
+// The philosophy in nine screens. Each chapter reads all at once, in giant type over one particle field that
+// reforms between chapters. Every word is Anmol's, unchanged; with no motion it's simply the words in order.
 import Base from '../layouts/Base.astro';
-import Thread from '../components/Thread.astro';
 import { SITE_NAME } from '../config';
-import { FOUND, RECONNECT, LEFT_BEHIND, KEYWORDS, LOOP } from '../data/philosophy';
+import { FOUND, LEFT_BEHIND, JOINS, LOOP } from '../data/philosophy';
 import '../styles/philosophy.css';
-
-const wide = FOUND.map((f) => f.wide);
-const narrow = FOUND.map((f) => f.narrow);
-const span = (i: number, word: string) => `--r:${((i * 7) % 11) - 5};--s:${((i * 5) % 9) - 4};`;
-const tail = { wide: { x: -6, y: 104 }, narrow: { x: -8, y: 100 } };
 ---
 <Base title={`The philosophy | ${SITE_NAME}`} description="I follow questions. That's the only plan. Until they open unexpected doors." noFooter>
-  <main id="main" class="philosophy" data-philosophy>
+  <main id="main" class="philosophy">
 
-    <section class="ph ph-open" style="--screens:2.3" data-ph data-shapes="field@0,seam@0.58,tunnel@0.93">
-      <div class="ph-pin">
-        <h1 class="ph-mark label" data-in="0" data-span="0.04" data-out="0.88">ONE QUESTION LATER</h1>
-        <p class="ph-big rise" data-in="0.07" data-out="0.88">I follow questions.</p>
-        <p class="ph-big rise" data-in="0.28" data-out="0.88">That's the only plan.</p>
-        <p class="ph-big rise ph-turn" data-in="0.5" data-out="0.88">Until they open unexpected doors.</p>
-      </div>
+    <section class="ch ch-open" data-shape="field">
+      <h1 class="ch-label label" style="--i:0">ONE QUESTION LATER</h1>
+      <p class="ch-giant" style="--i:1">I follow questions.</p>
+      <p class="ch-big" style="--i:2">That's the only plan.</p>
+      <p class="ch-big" style="--i:3">Until they open unexpected doors.</p>
     </section>
 
-    <section class="ph ph-begin" style="--screens:1.7" data-ph data-shapes="tunnel@0,field@0.25">
-      <div class="ph-pin">
-        <p class="ph-quiet" data-in="0.08" data-span="0.14">I never really decided what I wanted to become.</p>
-        <p class="ph-huge">
-          <span class="ph-line rise slow" data-in="0.34" data-span="0.16">I just kept finding things</span>
-          <span class="ph-line rise slow" data-in="0.54" data-span="0.16">I wanted to <em class="ph-glow">understand.</em></span>
-        </p>
-      </div>
+    <section class="ch" data-shape="tunnel">
+      <p class="ch-quiet" style="--i:0">I never really decided what I wanted to become.</p>
+      <p class="ch-giant" style="--i:1">I just kept finding things I wanted to <span class="lit">understand.</span></p>
     </section>
 
-    <section class="ph ph-follow" style="--screens:3.2" data-ph>
-      <div class="ph-pin">
-        <div class="stage" data-stage-found>
-          <Thread points={wide} end={tail.wide} class="only-wide" />
-          <Thread points={narrow} end={tail.narrow} class="only-narrow" />
-          <ol class="found-lines">
-            {FOUND.map((f, i) => (
-              <li class:list={['node', { somehow: i === FOUND.length - 1 }]} style={`--x:${f.wide.x}%;--y:${f.wide.y}%;--nx:${f.narrow.x}%;--ny:${f.narrow.y}%`} data-in={f.at} data-span="0.05" data-node>{f.line}</li>
-            ))}
-          </ol>
-        </div>
-      </div>
+    <section class="ch" data-shape="seam">
+      <ol class="ch-path">
+        {FOUND.map((line, i) => <li class:list={{ lit: i === FOUND.length - 1 }} style={`--i:${i}`}>{line}</li>)}
+      </ol>
     </section>
 
-    <section class="ph ph-real" style="--screens:2" data-ph data-shapes="static@0,signal@0.62">
-      <div class="ph-pin">
-        <p class="ph-big ph-outside" data-in="0.06" data-span="0.1">From the outside, it can look like I <span class="ph-broken" data-break>{[...'changed direction'].map((c, i) => <span style={span(i, c)}>{c}</span>)}</span> a lot.</p>
-        <p class="ph-big rise" data-in="0.4" data-span="0.08">I don't think I did.</p>
-        <p class="ph-big rise" data-in="0.62" data-span="0.1">I just kept <span class="ph-straight">following the next question.</span></p>
-      </div>
+    <section class="ch" data-shape="field">
+      <p class="ch-big" style="--i:0">From the outside, it can look like I changed direction a lot.</p>
+      <p class="ch-big" style="--i:1">I don't think I did.</p>
+      <p class="ch-big" style="--i:2">I just kept <span class="lit">following the next question.</span></p>
     </section>
 
-    <section class="ph ph-keep" style="--screens:3.4" data-ph data-shapes={`field@0,${KEYWORDS.map((_, i) => `kept${i}@${(0.1 + i * 0.115).toFixed(3)}`).join(',')}`} data-keywords={KEYWORDS.join('|')}>
-      <div class="ph-pin">
-        <h2 class="ph-big ph-later rise" data-in="0.01" data-span="0.05">One question later...</h2>
-        <ol class="kept">
-          {LEFT_BEHIND.map((line, i) => <li data-in={(0.1 + i * 0.115).toFixed(3)} data-span="0.05" data-next={(0.1 + (i + 1) * 0.115).toFixed(3)}>{line}</li>)}
-        </ol>
-      </div>
+    <section class="ch" data-shape="seams">
+      <h2 class="ch-giant" style="--i:0">One question later...</h2>
+      <ol class="ch-list">
+        {LEFT_BEHIND.map((line, i) => <li style={`--i:${i + 1}`}>{line}</li>)}
+      </ol>
     </section>
 
-    <section class="ph ph-sum" style="--screens:4" data-ph data-shapes="kept6@0,field@0.08,seams@0.82">
-      <div class="ph-pin">
-        <p class="ph-quiet ph-mid" data-in="0.02" data-span="0.05" data-out="0.14">But none of these replaced what came before.</p>
-        <h2 class="ph-giant" data-in="0.15" data-span="0.07" data-out="0.32">They accumulated.</h2>
-        <div class="stage stage-again" data-in="0.3" data-span="0.05" data-out="0.8" aria-hidden="true">
-          <Thread points={wide} end={tail.wide} chords={RECONNECT} class="only-wide quiet" />
-          <Thread points={narrow} end={tail.narrow} chords={RECONNECT} class="only-narrow quiet" />
-          <ul class="found-lines">
-            {FOUND.map((f) => <li class="node echo" style={`--x:${f.wide.x}%;--y:${f.wide.y}%;--nx:${f.narrow.x}%;--ny:${f.narrow.y}%`}>{f.word}</li>)}
-          </ul>
-        </div>
-        <div class="ph-joins">
-          <p data-in="0.34" data-span="0.03" data-out="0.43" data-chord-at="0">A lesson from journalism can show up in an AI project.</p>
-          <p data-in="0.45" data-span="0.03" data-out="0.54" data-chord-at="1">Something I learned making music can change how I think about interaction.</p>
-          <p data-in="0.56" data-span="0.03" data-out="0.65" data-chord-at="2">Design can shape how I approach philanthropy.</p>
-          <p data-in="0.67" data-span="0.03" data-out="0.77" data-chord-at="3">Technology can make an old idea suddenly possible.</p>
-        </div>
-        <div class="ph-doors">
-          <p class="ph-big rise" data-in="0.83" data-span="0.05">The doors don't close behind me.</p>
-          <p class="ph-big rise" data-in="0.9" data-span="0.05">They lead to other doors.</p>
-        </div>
-      </div>
+    <section class="ch" data-shape="field">
+      <p class="ch-quiet" style="--i:0">But none of these replaced what came before.</p>
+      <h2 class="ch-giant" style="--i:1">They accumulated.</h2>
+      <ul class="ch-grid">
+        {JOINS.map((line, i) => <li style={`--i:${i + 2}`}>{line}</li>)}
+      </ul>
+      <p class="ch-big" style="--i:6">The doors don't close behind me.</p>
+      <p class="ch-big" style="--i:7">They lead to other doors.</p>
     </section>
 
-    <section class="ph ph-constant" style="--screens:2.6" data-ph data-shapes="seams@0,field@0.26,tunnel@0.4,static@0.54,signal@0.78">
-      <div class="ph-pin">
-        <p class="ph-quiet ph-mid" data-in="0.02" data-span="0.05" data-out="0.22">Maybe that's why I've never been particularly comfortable defining myself by one discipline.</p>
-        <div class="ph-changes">
-          <p class="gone-left" data-in="0.26" data-span="0.03" data-out="0.36">The title changes.</p>
-          <p class="gone-up" data-in="0.4" data-span="0.03" data-out="0.5">The tools change.</p>
-          <p class="gone-wide" data-in="0.54" data-span="0.03" data-out="0.64">The questions change.</p>
-        </div>
-        <p class="ph-still" data-in="0.68" data-span="0.02">The behaviour doesn't.</p>
-      </div>
+    <section class="ch" data-shape="tunnel">
+      <p class="ch-quiet" style="--i:0">Maybe that's why I've never been particularly comfortable defining myself by one discipline.</p>
+      <ul class="ch-changes">
+        <li style="--i:1">The title changes.</li>
+        <li style="--i:2">The tools change.</li>
+        <li style="--i:3">The questions change.</li>
+      </ul>
+      <p class="ch-giant lit" style="--i:4">The behaviour doesn't.</p>
     </section>
 
-    <section class="ph ph-loop" style="--screens:3" data-ph data-shapes="signal@0,field@0.12,seam@0.84" data-wheel>
-      <div class="ph-pin">
-        <ol class="wheel">
-          {LOOP.map((line, i) => <li style={`--i:${i}`} data-spoke>{line}</li>)}
-          <li style={`--i:${LOOP.length}`} data-spoke aria-hidden="true" class="again">{LOOP[0]}</li>
-        </ol>
-      </div>
+    <section class="ch" data-shape="seam">
+      <ol class="ch-loop">
+        {LOOP.map((line, i) => <li class:list={{ lit: i === LOOP.length - 1 }} style={`--i:${i}`}>{line}</li>)}
+      </ol>
     </section>
 
-    <section class="ph ph-arrive" style="--screens:3" data-ph data-shapes="seam@0,desert@0.1,mark@0.72">
-      <div class="ph-pin">
-        <h2 class="ph-mark ph-big-mark" data-in="0.04" data-span="0.05" data-out="0.32">ONE QUESTION LATER...</h2>
-        <p class="ph-big rise ph-low" data-in="0.2" data-span="0.05" data-out="0.42">I'm somewhere I hadn't planned to be.</p>
-        <p class="ph-big rise ph-low" data-in="0.44" data-span="0.05" data-out="0.62">With something I didn't know how to make before.</p>
-        <p class="ph-quiet ph-usually" data-in="0.66" data-span="0.04">And usually...</p>
-        <p class="ph-giant ph-another" data-in="0.76" data-span="0.07">another question.</p>
-      </div>
-    </section>
-
-    <section class="ph ph-end" style="--screens:1.6" data-ph data-shapes="mark@0,field@0.3">
-      <div class="ph-pin">
-        <p class="ph-big rise" data-in="0.12" data-span="0.1">There isn't supposed to be a final chapter.</p>
-        <p class="ph-big rise" data-in="0.34" data-span="0.1">There is only the next question.</p>
-        <a class="ph-on" href="/#work" aria-label="Carry on, into the work" data-in="0.56" data-span="0.08" data-onward><span aria-hidden="true">&rarr;</span></a>
-      </div>
+    <section class="ch ch-end" data-shape="mark">
+      <h2 class="ch-label label" style="--i:0">ONE QUESTION LATER...</h2>
+      <p class="ch-big" style="--i:1">I'm somewhere I hadn't planned to be.</p>
+      <p class="ch-big" style="--i:2">With something I didn't know how to make before.</p>
+      <p class="ch-quiet" style="--i:3">And usually...</p>
+      <p class="ch-giant lit" style="--i:4">another question.</p>
+      <p class="ch-big ch-gap" style="--i:5">There isn't supposed to be a final chapter.</p>
+      <p class="ch-big" style="--i:6">There is only the next question.</p>
+      <a class="ch-on" href="/#work" aria-label="Carry on, into the work" style="--i:7"><span aria-hidden="true">&rarr;</span></a>
     </section>
   </main>
 </Base>
