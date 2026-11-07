@@ -338,9 +338,10 @@ html.scene-on .close-lead { position: absolute; left: 50vw; top: 46%; transform:
 .close-end { display: grid; gap: 2.5rem; justify-items: center; width: 100%; }
 .close-title { margin: 0; max-width: 16ch; text-wrap: balance; font-size: clamp(2.4rem, 1.4rem + 4vw, 6rem); font-family: var(--display); font-weight: 700; letter-spacing: -0.03em; line-height: 1.02; }
 .close-details { width: 100%; }
-html.scene-on .close { position: relative; height: 560svh; }
+html.scene-on .close { position: relative; height: 360svh; } /* 1 + CLOSE_END in main.js, with a little room to rest on the details */
 html.scene-on .close-pin { position: sticky; top: 0; height: 100svh; display: block; padding: 0; overflow: hidden; }
 html.scene-on .close-white { display: block; position: absolute; inset: 0; background: #fff; opacity: 0; }
+.whale { position: absolute; inset: 0; width: 100%; height: 100%; }
 html.scene-on .close-end { position: absolute; inset: 0; align-content: center; color: var(--ink); }
 html.scene-on .close-title { opacity: 0; }
 html.scene-on .close-details { opacity: 0; }
