@@ -18,7 +18,7 @@
 
   --h-section: clamp(1.9rem, 1.5rem + 2vw, 3.25rem);
   --body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --label: clamp(0.72rem, 0.7rem + 0.12vw, 0.8125rem);
+  --label: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem); /* 12px at the smallest: the floor for small caps labels */
   --gutter: clamp(1rem, 0.5rem + 2.6vw, 2.5rem);
   --measure: 36rem;
   --header-h: 3rem;
