@@ -145,6 +145,7 @@ html.calm .bars i { animation: none; height: 8px; }
 .name, .role { position: relative; z-index: 2; margin: 0; font-size: clamp(1.05rem, 1.5625vw, 1.6rem); font-weight: 400; line-height: 1.2; letter-spacing: 0; white-space: nowrap; }
 .name { font-family: var(--display); font-weight: 400; font-size: clamp(1.3rem, 2vw, 2rem); letter-spacing: -0.01em; }
 .role { text-align: right; }
+@media (max-width: 639px) { .hero { grid-template-columns: minmax(0, 1fr); align-content: start; row-gap: 0.3rem; } .role { text-align: left; } }
 /* Sized from the viewport so the head is the same share of the screen everywhere, with the shoulders running off the bottom. */
 .portrait { position: absolute; left: 50%; bottom: 0; margin: 0; width: min(213vw, 123svh); aspect-ratio: 1600 / 1206; transform: translateX(-50%); }
 .portrait img { display: block; width: 100%; height: 100%; }

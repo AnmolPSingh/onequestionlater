@@ -9,17 +9,17 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What does Anmol actua
 <div class="ask" data-ask hidden>
   <div class="ask-panel" data-ask-panel>
     <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
-      <p class="ask-line ask-bot">Hi. I've read everything on this site, so ask me anything about Anmol. Fair warning: I might answer with a question.</p>
+      <p class="ask-line ask-bot">Hi, I'm Anmol AI. I've read this site and Anmol's LinkedIn, so ask me anything about him. Fair warning: I might answer with a question.</p>
     </div>
     <ul class="ask-suggest" data-ask-suggest>
       {suggestions.map((s) => <li><button type="button" data-ask-try>{s}</button></li>)}
     </ul>
-    <p class="ask-note label">I only know what's on this site. For the rest, <a href={CALENDLY}>book a call</a>.</p>
+    <p class="ask-note label">I only know this site and his LinkedIn. For the rest, <a href={CALENDLY}>book a call</a>.</p>
   </div>
-  <form class="ask-bar" data-ask-form aria-label="Ask about Anmol">
+  <form class="ask-bar" data-ask-form aria-label="Ask Anmol AI">
     <span class="ask-prompt" aria-hidden="true">&gt;</span>
-    <label class="visually-hidden" for="ask-input">Ask anything about Anmol</label>
-    <input id="ask-input" name="q" type="text" autocomplete="off" maxlength="500" placeholder="Ask anything about Anmol" data-ask-input />
+    <label class="visually-hidden" for="ask-input">Ask Anmol AI</label>
+    <input id="ask-input" name="q" type="text" autocomplete="off" maxlength="500" placeholder="Ask Anmol AI" data-ask-input />
     <input class="ask-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
     <button type="submit" class="ask-send" aria-label="Send">&rarr;</button>
     <button type="button" class="ask-close" data-ask-close aria-label="Close the conversation" hidden>&times;</button>
