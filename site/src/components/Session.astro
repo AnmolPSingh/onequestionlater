@@ -6,6 +6,10 @@ import type { ImageMetadata } from 'astro';
 import { getImage } from 'astro:assets';
 import { TRACKS, MILESTONES, END } from '../data/milestones';
 
+interface Props { level?: 1 | 2 }
+const { level = 2 } = Astro.props;
+const Heading = `h${level}`;
+
 const stops = MILESTONES.filter((m) => !m.quiet);
 const shrink = async (picture: ImageMetadata) => (await getImage({ src: picture, width: Math.min(picture.width, 1200), format: picture.format === 'png' ? 'png' : 'webp', quality: 72 })).src;
 const moments = await Promise.all(MILESTONES.map(async (m) => ({
@@ -46,7 +50,7 @@ const firstOfYear = [...new Map(stops.filter((s) => s.from >= 2013).map((s, i) =
   <div class="session-pin" data-pin>
     <div class="session-head" data-head>
       <p class="label eyebrow">The session</p>
-      <h2 id="session-h" class="section-h">Everything so far, on eight tracks.</h2>
+      <Heading id="session-h" class="section-h">Everything so far, on eight tracks.</Heading>
     </div>
 
     <ol class="moments" data-moments>

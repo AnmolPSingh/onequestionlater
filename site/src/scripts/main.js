@@ -8,8 +8,8 @@ import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
 import { createWhale } from './whale.js';
 
-// The conductor: one loop reads the scroll position and drives the figure, the particle morphs,
-// the flight through the years and the walk into the light. The HTML is
+// The conductor: one loop reads the scroll position and drives the figure, the particle morphs
+// and the walk into the light. The HTML is
 // already the finished page, so reduced motion just never starts any of it.
 const PARTICLES = innerWidth < 640 ? 26000 : 58000; // a phone builds every shape on a slower CPU, so it gets fewer dots
 const GLOBE_SHIFT = 0.2; // of the screen's half-width, so the globe sits clear of its sentence; .orbit in base.css moves with it
@@ -18,10 +18,6 @@ const FORM_SECONDS = 2.8;
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN_SCROLL = 1.05; // screens of scroll it takes me to turn from facing you to the three-quarter slant, toward the words
 const HERO_ASIDE_SCROLL = 0.45;
-const PAIR_GAP = 0.018; // of the screen's width, between two pictures that share a scene
-const RUN_UP = 0.6; // stops of track before the first scene
-const RUN_OUT = 0.2;
-const FLY_TAIL = 1.4; // screens after the last scene: the stars gather into the words and hold
 const WALK_END = 3.97; // just short of the horizon; keep under 1 + FAR in scene.js
 const CLOSE_HOLD = 0.3; // screens the landscape holds before the walk, long enough to read the line beside me
 const CLOSE_WALK = 1.4; // screens the walk into the light takes: with the hold, about two scrolls from the line to white
@@ -32,6 +28,7 @@ const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = (t) => t * t * (3 - 2 * t);
+const ramp = (v, a, b) => clamp((v - a) / (b - a));
 const whenIdle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 500 }) : setTimeout(fn, 60));
 
 const score = createScore();
@@ -40,8 +37,6 @@ let markReady;
 const sceneReady = new Promise((resolve) => { markReady = resolve; });
 const gated = root.classList.contains('loading');
 playLoader(sceneReady, (withSound) => score.enter(withSound)).then(() => { formStart = performance.now(); });
-const session = document.querySelector('[data-session]');
-const clipLinks = new Map([...session.querySelectorAll('[data-clip]')].map((a) => [a.dataset.clip, a]));
 
 /* ---------- Motion ---------- */
 
@@ -56,67 +51,6 @@ function splitWords(el) {
     return span;
   });
   return { el, text, words };
-}
-
-// Each moment flies in from its own side: a spiral of angles, so no two neighbours come the same way.
-function buildStops() {
-  return [...session.querySelectorAll('.moment:not(.quiet)')].map((el, i) => ({
-    el,
-    id: el.dataset.moment,
-    visual: el.querySelector('.moment-visual'),
-    also: el.querySelector('.moment-visual.also'),
-    text: el.querySelector('.moment-text'),
-    dx: Math.cos(i * 2.4),
-    dy: Math.sin(i * 2.4),
-    side: el.dataset.side === 'right' ? 1 : -1,
-    overlap: parseFloat(el.dataset.overlap) || 0,
-    shift: 0,
-    alsoShift: 0,
-    on: false,
-  }));
-}
-
-const ramp = (v, a, b) => clamp((v - a) / (b - a));
-
-// Two pictures share the focus side by side, or with the second tucked behind the first.
-function measurePair(stop) {
-  const first = stop.visual.offsetWidth;
-  const second = stop.also.offsetWidth;
-  const gap = stop.overlap ? -stop.overlap * second : innerWidth * PAIR_GAP;
-  stop.shift = (-stop.side * (second + gap)) / 2;
-  stop.alsoShift = (stop.side * (first + gap)) / 2;
-}
-
-function place(visual, t, dx, dy, tiltX, tiltY, vw, vh, shift = 0) {
-  // Far away it's small and off to one side; it hangs at the focus, then passes the camera and is gone.
-  const push = Math.sign(t) * Math.abs(t) ** 1.6 * 2.2;
-  const z = push < 0 ? push * 1500 : push * 620;
-  const out = Math.abs(push) * (t < 0 ? 0.12 : 0.3);
-  const here = 1 - clamp(Math.abs(t) * 2);
-  visual.style.transform = `translate(calc(-50% + ${shift.toFixed(1)}px), -50%) perspective(1000px) translate3d(${(dx * out * vw).toFixed(1)}px, ${(dy * out * vh).toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${(tiltX * (2 + here * 5) + t * 6).toFixed(2)}deg) rotateX(${(tiltY * (2 + here * 4)).toFixed(2)}deg)`;
-}
-
-// s runs 0 to 1 while the playhead is inside this scene's slot, and nothing of it shows outside that.
-function flyStop(stop, s, index, count, vw, vh, tiltX, tiltY) {
-  const on = s > -0.02 && s < 1.08;
-  if (on !== stop.on) {
-    stop.on = on;
-    stop.el.classList.toggle('live', on);
-    if (on && stop.also) measurePair(stop);
-  }
-  if (!on) return;
-  // A pair arrives and leaves in opposite directions, each away from the other.
-  place(stop.visual, s - 0.46, stop.also ? -stop.side : stop.dx, stop.also ? -0.2 : stop.dy, tiltX, tiltY, vw, vh, stop.shift);
-  const fade = ramp(s, 0, 0.2) * (1 - ramp(s, 0.8, 1.06));
-  stop.visual.style.opacity = fade;
-  stop.visual.style.zIndex = count - index;
-  if (stop.also) {
-    place(stop.also, s - 0.46, stop.side, 0.45, tiltX, tiltY, vw, vh, stop.alsoShift);
-    stop.also.style.opacity = fade;
-    stop.also.style.zIndex = count - index - 1;
-  }
-  stop.text.style.opacity = ramp(s, 0, 0.08) * (1 - ramp(s, 0.9, 1));
-  stop.text.style.transform = `translateY(${((s - 0.5) * 16).toFixed(1)}px)`;
 }
 
 async function startMotion() {
@@ -149,13 +83,6 @@ async function startMotion() {
   const closeDetails = document.querySelector('[data-close-details]');
   const whiteLayer = document.querySelector('[data-white]');
   const ghost = document.querySelector('[data-ghost]');
-  const head = session.querySelector('[data-head]');
-  const pin = session.querySelector('[data-pin]');
-  const nextLine = session.querySelector('[data-next-line]');
-  const nextMark = session.querySelector('.session-next');
-  const arrangement = session.querySelector('[data-arrangement]');
-  const firstClip = session.querySelector('.clip');
-  const stops = buildStops();
   const spots = [...document.querySelectorAll('[data-spot]')].map((el) => ({ el, x: 0, y: 0, o: 0 }));
   const lenis = new Lenis({ lerp: 0.09, anchors: true });
 
@@ -170,10 +97,6 @@ async function startMotion() {
   };
 
   let tops = [];
-  let sessionTop = 0;
-  let sessionRange = 1;
-  let slotWidth = 1;
-  let nextTop = 0;
   let closeTop = 0;
   let heroPan = [0, 0];
   let heroEnd = { x: 0, y: 0, zoom: 1 };
@@ -191,10 +114,6 @@ async function startMotion() {
     // Measured with the page at rest, so scroll offsets are stable.
     const y = scrollY;
     tops = sections.map((s) => s.getBoundingClientRect().top + y);
-    sessionTop = session.getBoundingClientRect().top + y;
-    sessionRange = Math.max(1, session.offsetHeight - innerHeight * (1 + FLY_TAIL));
-    nextTop = nextMark.getBoundingClientRect().top + y;
-    slotWidth = firstClip.offsetWidth / (parseFloat(firstClip.style.getPropertyValue('--b')) - parseFloat(firstClip.style.getPropertyValue('--a')));
     closeTop = closeEl.getBoundingClientRect().top + y;
 
     const fig = portraitEl.getBoundingClientRect();
@@ -223,9 +142,7 @@ async function startMotion() {
     // The rest are built one per idle moment, so loading never blocks the page.
     const pending = [
       () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
-      () => scene.setShape('tunnel', shapes.tunnel(PARTICLES, aspect)),
       () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
-      () => scene.setShape('next', shapes.words(PARTICLES, wide ? ['What comes next'] : ['What comes', 'next'], aspect)),
       () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
       buildDesert, // only once its dots have arrived; they are fetched as the close comes near
     ];
@@ -274,22 +191,10 @@ async function startMotion() {
   const reveals = [...document.querySelectorAll('[data-words]')].map(splitWords);
   const cursor = startCursor();
   const lean = [0, 0];
-  const flightStops = stops.length + RUN_UP + RUN_OUT;
-
-  // Clips take you to their moment. Keyboard focus does too, so the tracks work without a mouse.
-  const goToStop = (at) => lenis.scrollTo(sessionTop + ((at + 0.4 + RUN_UP) / flightStops) * sessionRange);
-  const onClip = (e) => {
-    e.preventDefault();
-    e.stopPropagation(); // Lenis's anchor handling would chase the moment's hidden list item
-    goToStop(parseFloat(e.currentTarget.dataset.at));
-  };
-  const onClipFocus = (e) => { if (e.currentTarget.matches(':focus-visible')) goToStop(parseFloat(e.currentTarget.dataset.at)); };
-  clipLinks.forEach((link) => { link.addEventListener('click', onClip); link.addEventListener('focus', onClipFocus); });
 
 
   let bass = 0;
   let shrill = 0;
-  let current = null;
   const t0 = performance.now();
   let raf = 0;
   let lastY = scrollY;
@@ -360,27 +265,6 @@ async function startMotion() {
     const zoom = lerp(1, heroEnd.zoom, aside);
 
 
-    // The flight through the years: scroll is the camera moving forward.
-    const play = clamp((y - sessionTop) / sessionRange);
-    const stopAt = -RUN_UP + play * flightStops;
-    const flyEnd = sessionTop + sessionRange;
-    const inSession = y > sessionTop - vh && y < sessionTop + session.offsetHeight;
-    if (inSession) {
-      const tiltX = cursor.on ? (cursor.x / vw - 0.5) * 2 : 0;
-      const tiltY = cursor.on ? (0.5 - cursor.y / vh) * 2 : 0;
-      stops.forEach((stop, i) => flyStop(stop, stopAt - i, i, stops.length, vw, vh, tiltX, tiltY));
-      // The tracks and their shade arrive once the section has settled, and leave before it goes, so no edge ever crosses the particles.
-      pin.style.setProperty('--veil', (ramp(y, sessionTop - vh * 0.1, sessionTop + vh * 0.35) * (1 - ramp(y, flyEnd - vh * 0.15, flyEnd + vh * 0.3))).toFixed(3));
-      head.style.opacity = ramp(y, sessionTop - vh * 0.1, sessionTop + vh * 0.1) * (1 - ramp(stopAt, -0.3, -0.02));
-      arrangement.scrollLeft = Math.max(0, stopAt) * slotWidth;
-      const nearest = stops[clamp(Math.floor(stopAt), 0, stops.length - 1)];
-      if (nearest !== current) {
-        if (current) clipLinks.get(current.id)?.removeAttribute('aria-current');
-        clipLinks.get(nearest.id)?.setAttribute('aria-current', 'true');
-        current = nearest;
-      }
-      nextLine.style.opacity = ramp(y, nextTop - vh * 0.25, nextTop) * (1 - ramp(y, nextTop + vh * 0.2, nextTop + vh * 0.5));
-    }
 
 
     // The close: the particles settle into the landscape, then scrolling walks you into the light.
@@ -455,7 +339,6 @@ async function startMotion() {
       pan,
       zoom,
       globeX: innerWidth >= 900 ? aspect * GLOBE_SHIFT : 0,
-      fly: play * 16 + time * 0.05,
       walk,
       focus,
       ground: 1 - ramp(y, closeTop - vh * 1.6, closeTop - vh * 0.9), // in the close the desert photo is the ground
