@@ -18,7 +18,7 @@ const next = RELEASES[(index + 1) % RELEASES.length];
 const extra = (release.sites ?? []).filter((site) => site.image !== release.cover); // the rest of what it made, laid beside the cover
 ---
 <Base title={`${release.title} | ${SITE_NAME}`} description={release.summary}>
-  <main id="main" class="plain-main release">
+  <main id="main" class="plain-main release" data-read>
     <p class="kicker label">{[release.group, release.year].filter(Boolean).join(', ')}</p>
     <h1>{release.title}</h1>
     {release.kind && <p class="kicker">{release.kind}</p>}

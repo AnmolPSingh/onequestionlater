@@ -273,13 +273,36 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
   .cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .case:nth-child(even) { margin-top: 9rem; } /* offset so the four read as a spread, not a grid of tiles */
 }
-.work-reach { max-width: 24ch; font-size: var(--h-section); font-weight: 700; line-height: 1.08; letter-spacing: -0.025em; text-wrap: balance; margin-block: 4rem 2rem; }
+/* The globe, inside Selected Work: where the work happens, beside the line that says it. */
+.world { position: relative; height: 150svh; margin-inline: -5vw; }
+.world-pin { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; padding: 0 5vw; overflow: hidden; }
+.world-text { position: relative; z-index: 2; display: grid; gap: 1rem; max-width: 27rem; }
+.world-h { font-size: var(--h-section); font-weight: 700; line-height: 1.1; letter-spacing: -0.025em; text-shadow: 0 0 22px var(--ink), 0 0 6px var(--ink); }
+.world-sub { color: var(--paper); text-shadow: 0 0 14px var(--ink), 0 0 4px var(--ink); }
+.orbit { position: absolute; left: 50%; top: 50%; width: min(96svh, 96vw); height: min(96svh, 96vw); margin: calc(min(96svh, 96vw) / -2) 0 0 calc(min(96svh, 96vw) / -2); fill: var(--dim); font-size: 13px; font-weight: 500; letter-spacing: 0.34em; text-transform: uppercase; }
+html:not(.calm) .orbit { animation: orbit 60s linear infinite; }
+html:not(.scene-on) .world { height: auto; }
+html:not(.scene-on) .world-pin { position: static; height: auto; padding-block: 5rem; }
+html:not(.scene-on) .orbit { display: none; }
+@media (min-width: 900px) { .orbit { left: 60%; } } /* with the globe, which main.js shifts by GLOBE_SHIFT */
+@keyframes orbit { to { transform: rotate(360deg); } }
+.index-wrap { display: grid; gap: clamp(2rem, 1rem + 3vw, 4rem); }
 .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
 .index a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 2rem; align-items: baseline; padding: 1.1rem 0; border-bottom: 1px solid var(--hair); text-decoration: none; }
 .index-title { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem); font-weight: 700; letter-spacing: -0.01em; }
 .index-kind { grid-column: 1; color: var(--dim); }
 .index-year { grid-column: 2; grid-row: 1; color: var(--dim); }
 .index a:hover .index-title, .index a:focus-visible .index-title { color: var(--onair); text-shadow: var(--onair-glow); }
+/* Each row shows its project beside the list on hover, so the index stays a list but never a blind one. */
+.index li { position: relative; }
+.index-peek { display: none; }
+@media (hover: hover) and (min-width: 1100px) {
+  .index { max-width: 56rem; }
+  .index-peek { display: block; position: absolute; left: calc(100% + 3rem); top: 50%; width: min(24rem, calc(90vw - 56rem - 3rem)); opacity: 0; transform: translateY(-46%) scale(0.97); transition: opacity 0.3s, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; z-index: 3; }
+  .index-peek img, .index-peek svg { display: block; width: 100%; height: auto; border-radius: 4px; }
+  .index li:hover .index-peek, .index li:focus-within .index-peek { opacity: 1; transform: translateY(-50%); }
+}
+@media (prefers-reduced-motion: reduce) { .index-peek { transition: none; } }
 @media (min-width: 900px) {
   .index a { grid-template-columns: minmax(0, 20rem) minmax(0, 1fr) auto; }
   .index-kind { grid-column: 2; grid-row: 1; }

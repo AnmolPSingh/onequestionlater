@@ -1,13 +1,16 @@
 ---
-// Selected work: the four cases side by side so a visitor picks which to open, then the rest as a quiet index.
-// It reads the same with or without motion; the particles only settle into dust behind it.
+// Selected work: the four cases side by side so a visitor picks which to open, then the globe beside the
+// line about where the work happens, then the rest as an index whose rows show their project on hover.
+// It reads the same with or without motion.
+import { Image } from 'astro:assets';
 import IsoFigure from './IsoFigure.astro';
 import { RELEASES } from '../data/work';
 
 const cases = RELEASES.filter((r) => r.featured);
 const rest = RELEASES.filter((r) => !r.featured && !r.noSlide);
+const orbit = 'The UK, Europe, Asia, Australia and the Americas  ';
 ---
-<section class="work" data-shape="field" aria-labelledby="work-h">
+<section class="work" data-shape="field" aria-labelledby="work-h" data-read>
   <span id="work" class="work-anchor"></span>
   <h2 id="work-h" class="work-label label">Selected work</h2>
   <ol class="cases">
@@ -20,17 +23,33 @@ const rest = RELEASES.filter((r) => !r.featured && !r.noSlide);
       </li>
     ))}
   </ol>
-  <p class="work-reach">Working with teams across the UK, Europe, Asia, Australia and the Americas.</p>
-  <h3 class="work-label label">More work</h3>
-  <ul class="index">
-    {rest.map((r) => (
-      <li>
-        <a href={`/work/${r.slug}`}>
-          <span class="index-title">{r.title}</span>
-          <span class="index-kind">{r.kind}</span>
-          <span class="index-year label">{r.year}</span>
-        </a>
-      </li>
-    ))}
-  </ul>
+  <div class="world" data-shape="globe" data-subject>
+    <div class="world-pin">
+      <div class="world-text">
+        <p class="world-h" data-words>Working with teams across the UK, Europe, Asia, Australia and the Americas.</p>
+        <p class="world-sub" data-words>I keep moving to where I'm needed.</p>
+      </div>
+      <svg class="orbit" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+        <defs><path id="orbit-path" d="M300 300 m-268 0 a268 268 0 1 1 536 0 a268 268 0 1 1 -536 0" /></defs>
+        <text><textPath href="#orbit-path">{orbit.repeat(2)}</textPath></text>
+      </svg>
+    </div>
+  </div>
+  <div class="index-wrap" data-shape="field">
+    <h3 class="work-label label">More work</h3>
+    <ul class="index">
+      {rest.map((r) => (
+        <li>
+          <a href={`/work/${r.slug}`}>
+            <span class="index-title">{r.title}</span>
+            <span class="index-kind">{r.kind}</span>
+            <span class="index-year label">{r.year}</span>
+          </a>
+          <span class="index-peek" aria-hidden="true">
+            {r.cover ? <Image src={r.cover} alt="" widths={[480, 800]} sizes="24rem" loading="lazy" decoding="async" /> : r.figure && <IsoFigure name={r.figure} />}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
 </section>

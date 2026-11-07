@@ -9,38 +9,38 @@ import '../styles/philosophy.css';
 <Base title={`The philosophy | ${SITE_NAME}`} description="I follow questions. That's the only plan. Until they open unexpected doors." noFooter>
   <main id="main" class="philosophy">
 
-    <section class="ch ch-open" data-shape="field">
+    <section class="ch ch-open" data-read="0.25" data-shape="field">
       <h1 class="ch-label label" style="--i:0">ONE QUESTION LATER</h1>
       <p class="ch-giant" style="--i:1">I follow questions.</p>
       <p class="ch-big" style="--i:2">That's the only plan.</p>
       <p class="ch-big" style="--i:3">Until they open unexpected doors.</p>
     </section>
 
-    <section class="ch" data-shape="tunnel">
+    <section class="ch" data-read="0.25" data-shape="tunnel">
       <p class="ch-quiet" style="--i:0">I never really decided what I wanted to become.</p>
       <p class="ch-giant" style="--i:1">I just kept finding things I wanted to <span class="lit">understand.</span></p>
     </section>
 
-    <section class="ch" data-shape="seam">
+    <section class="ch" data-read="0.25" data-shape="seam">
       <ol class="ch-path">
         {FOUND.map((line, i) => <li class:list={{ lit: i === FOUND.length - 1 }} style={`--i:${i}`}>{line}</li>)}
       </ol>
     </section>
 
-    <section class="ch" data-shape="field">
+    <section class="ch" data-read="0.25" data-shape="field">
       <p class="ch-big" style="--i:0">From the outside, it can look like I changed direction a lot.</p>
       <p class="ch-big" style="--i:1">I don't think I did.</p>
       <p class="ch-big" style="--i:2">I just kept <span class="lit">following the next question.</span></p>
     </section>
 
-    <section class="ch" data-shape="seams">
+    <section class="ch" data-read="0.25" data-shape="seams">
       <h2 class="ch-giant" style="--i:0">One question later...</h2>
       <ol class="ch-list">
         {LEFT_BEHIND.map((line, i) => <li style={`--i:${i + 1}`}>{line}</li>)}
       </ol>
     </section>
 
-    <section class="ch" data-shape="field">
+    <section class="ch" data-read="0.25" data-shape="field">
       <p class="ch-quiet" style="--i:0">But none of these replaced what came before.</p>
       <h2 class="ch-giant" style="--i:1">They accumulated.</h2>
       <ul class="ch-grid">
@@ -50,7 +50,7 @@ import '../styles/philosophy.css';
       <p class="ch-big" style="--i:7">They lead to other doors.</p>
     </section>
 
-    <section class="ch" data-shape="tunnel">
+    <section class="ch" data-read="0.25" data-shape="tunnel">
       <p class="ch-quiet" style="--i:0">Maybe that's why I've never been particularly comfortable defining myself by one discipline.</p>
       <ul class="ch-changes">
         <li style="--i:1">The title changes.</li>
@@ -60,13 +60,13 @@ import '../styles/philosophy.css';
       <p class="ch-giant lit" style="--i:4">The behaviour doesn't.</p>
     </section>
 
-    <section class="ch" data-shape="seam">
+    <section class="ch" data-read="0.25" data-shape="seam">
       <ol class="ch-loop">
         {LOOP.map((line, i) => <li class:list={{ lit: i === LOOP.length - 1 }} style={`--i:${i}`}>{line}</li>)}
       </ol>
     </section>
 
-    <section class="ch ch-end" data-shape="mark">
+    <section class="ch ch-end" data-read="0.5" data-shape="mark">
       <h2 class="ch-label label" style="--i:0">ONE QUESTION LATER...</h2>
       <p class="ch-big" style="--i:1">I'm somewhere I hadn't planned to be.</p>
       <p class="ch-big" style="--i:2">With something I didn't know how to make before.</p>

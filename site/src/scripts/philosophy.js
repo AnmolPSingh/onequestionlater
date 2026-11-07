@@ -3,6 +3,7 @@ import { createScene } from './scene.js';
 import * as shapes from './shapes.js';
 import { isCalm } from './calm.js';
 import { startCursor } from './cursor.js';
+import { quietBehindText } from './quiet.js';
 
 // The philosophy page: one particle field behind nine chapters. Each chapter names its shape in the markup;
 // the field reforms into it as the chapter arrives, and the chapter's lines come in once and stay. The HTML
@@ -31,6 +32,7 @@ async function start() {
   if (!scene) return;
   const lenis = new Lenis({ lerp: 0.09 });
   document.body.prepend(scene.canvas);
+  const quiet = quietBehindText(scene.canvas);
   root.classList.add('scene-on');
   await new Promise(requestAnimationFrame);
 
@@ -74,6 +76,7 @@ async function start() {
   const frame = (now) => {
     requestAnimationFrame(frame);
     lenis.raf(now);
+    quiet();
     const time = (now - t0) / 1000;
     const y = scrollY;
     const vh = innerHeight;
