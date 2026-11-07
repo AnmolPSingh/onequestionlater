@@ -1,18 +1,13 @@
 ---
 // "Ask about Anmol", in the hero: one terminal line that opens into a short conversation. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
-// It needs JS, so without it the line isn't shown at all.
-// Three of these are shown at random, so a returning visitor meets different openings.
-const suggestions = ['Radio, music, film, then AI. How?', 'What do you actually build?', 'Could you help my team?', 'Why "One Question Later"?', "What's Penname?", 'Surprise me.'];
+// It needs JS, so without it the line isn't shown at all. No suggested questions: the visitor leads.
 ---
 <div class="ask" data-ask hidden>
   <div class="ask-panel" data-ask-panel>
     <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
-      <p class="ask-line ask-bot">Hey, I'm Anmol AI. What's on your mind?</p>
+      <p class="ask-line ask-bot">Hey! I'm Anmol AI. How can I help you today?</p>
     </div>
-    <ul class="ask-suggest" data-ask-suggest>
-      {suggestions.map((s) => <li><button type="button" data-ask-try>{s}</button></li>)}
-    </ul>
   </div>
   <form class="ask-bar" data-ask-form aria-label="Ask Anmol AI">
     <span class="ask-prompt" aria-hidden="true">&gt;</span>
@@ -33,14 +28,11 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What do you actually 
     const form = root.querySelector('[data-ask-form]');
     const input = root.querySelector('[data-ask-input]');
     const log = root.querySelector('[data-ask-log]');
-    const suggest = root.querySelector('[data-ask-suggest]');
     const close = root.querySelector('[data-ask-close]');
     const trap = root.querySelector('.ask-trap');
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const history = [];
     let busy = false;
-    const tries = [...suggest.querySelectorAll('li')];
-    for (let i = tries.length; i > 3; i--) tries.splice(Math.floor(Math.random() * i), 1)[0].remove();
 
     const asked = () => { try { return Number(sessionStorage.getItem('ask-count')) || 0; } catch { return 0; } };
     const count = () => { try { sessionStorage.setItem('ask-count', String(asked() + 1)); } catch { /* private mode */ } };
@@ -91,7 +83,6 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What do you actually 
       const q = question.trim();
       if (!q || busy) return;
       open();
-      suggest.hidden = true;
       line('you', q);
       input.value = '';
       if (asked() >= MAX_PER_SESSION) {
@@ -123,7 +114,6 @@ const suggestions = ['Radio, music, film, then AI. How?', 'What do you actually 
 
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
     input.addEventListener('focus', open);
-    root.querySelectorAll('[data-ask-try]').forEach((b) => b.addEventListener('click', () => send(b.textContent)));
     close.addEventListener('click', shut);
     root.addEventListener('keydown', (e) => { if (e.key === 'Escape') shut(); });
   }

@@ -180,10 +180,6 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .ask-line.thinking::after { content: ''; display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.15em; background: var(--onair); box-shadow: var(--onair-glow); }
 html:not(.calm) .ask-line.thinking::after { animation: caret 1s steps(2, start) infinite; }
 @keyframes caret { to { visibility: hidden; } }
-.ask-suggest { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
-.ask-suggest[hidden] { display: none; }
-.ask-suggest button { padding: 0.4rem 0.85rem; border: 1px solid var(--hair); border-radius: 999px; color: var(--dim); font-size: 0.875rem; transition: color 0.2s, border-color 0.2s; }
-.ask-suggest button:hover { color: var(--paper); border-color: var(--paper); }
 @media (max-width: 639px) { .ask { bottom: 5svh; } .ask-log { max-height: 38svh; } }
 
 /* ---------- Statement: held on screen while the figure turns and moves to the right ---------- */
