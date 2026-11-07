@@ -23,7 +23,16 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
     <h1>{release.title}</h1>
     {release.kind && <p class="kicker">{release.kind}</p>}
     <p class="summary"><Named text={release.summary} /></p>
-    {release.cover && (extra.length ? (
+    {release.video ? (
+      <div class="video">
+        <iframe src={`https://www.youtube-nocookie.com/embed/${release.video.id}?rel=0`} title={release.video.title} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    ) : release.loop && release.cover ? (
+      <video class="loop" autoplay muted loop playsinline poster={release.cover.src} aria-label={release.coverAlt} data-loop>
+        <source src={`${release.loop}.webm`} type="video/webm" />
+        <source src={`${release.loop}.mp4`} type="video/mp4" />
+      </video>
+    ) : release.cover && (extra.length ? (
       <div class="cluster">
         <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 30rem, 92vw" loading="eager" />
         {extra.map((site) => <Image src={site.image} alt={site.alt} widths={[480, 900]} sizes="(min-width: 700px) 18rem, 92vw" loading="lazy" />)}
@@ -32,7 +41,8 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
       <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
     ))}
     {release.figure && <IsoFigure class="system" name={release.figure} />}
-    {release.figure && <IsoFigure class="architecture-figure" name={`${release.slug}-architecture`} />}
+    {(release.figure || release.diagram) && <IsoFigure class="architecture-figure" name={`${release.slug}-architecture`} />}
+    {release.video && release.cover && <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="lazy" />}
     {release.stats && (
       <dl class="stats">
         {release.stats.map(([value, label]) => (
@@ -52,4 +62,6 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
 
 <script>
   import '../../scripts/ambient.js';
+  // Reduced motion: loops stay on their poster frame.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll<HTMLVideoElement>('[data-loop]').forEach((v) => { v.removeAttribute('autoplay'); v.pause(); });
 </script>

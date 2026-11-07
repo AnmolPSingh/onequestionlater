@@ -47,7 +47,12 @@ const orbit = 'The UK, Europe, Asia, Australia and the Americas  ';
             <span class="index-arrow" aria-hidden="true">&rarr;</span>
           </a>
           <span class="index-peek" aria-hidden="true">
-            {r.cover ? <Image src={r.cover} alt="" widths={[640, 1100]} sizes="34rem" loading="lazy" decoding="async" /> : r.figure && <IsoFigure name={r.figure} />}
+            {r.loop && r.cover ? (
+              <video muted loop playsinline preload="none" poster={r.cover.src} data-peek-loop>
+                <source src={`${r.loop}.webm`} type="video/webm" />
+                <source src={`${r.loop}.mp4`} type="video/mp4" />
+              </video>
+            ) : r.cover ? <Image src={r.cover} alt="" widths={[640, 1100]} sizes="34rem" loading="lazy" decoding="async" /> : r.figure && <IsoFigure name={r.figure} />}
           </span>
         </li>
       ))}
@@ -75,6 +80,13 @@ const orbit = 'The UK, Europe, Asia, Australia and the Americas  ';
       raf = Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(tilt) > 0.1 ? requestAnimationFrame(step) : 0;
     };
     list.addEventListener('pointerenter', (e) => { x = tx = e.clientX; y = ty = e.clientY; step(); });
+    // A looping preview plays only while its row is hovered.
+    list.querySelectorAll('li').forEach((li) => {
+      const loop = li.querySelector<HTMLVideoElement>('[data-peek-loop]');
+      if (!loop || calm.matches) return;
+      li.addEventListener('pointerenter', () => { loop.play().catch(() => {}); });
+      li.addEventListener('pointerleave', () => loop.pause());
+    });
     list.addEventListener('pointermove', (e) => {
       tx = e.clientX;
       ty = e.clientY;

@@ -259,6 +259,9 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .iso-figure svg { display: block; width: 100%; height: auto; }
 .case-figure { margin-bottom: 1rem; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .release .iso-figure { margin-block: 2rem; }
+.release video.loop { display: block; width: 100%; height: auto; margin-block: 1.5rem; border-radius: 3px; background: #000; }
+.release .video { position: relative; aspect-ratio: 16 / 9; margin-block: 1.5rem; background: var(--raised); }
+.release .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 3px; }
 .architecture-figure { overflow-x: auto; } /* the diagram keeps its readable width; a phone scrolls it, not the page */
 @media (min-width: 900px) { .release .iso-figure { width: min(64rem, 90vw); margin-left: 50%; translate: -50% 0; } } /* wider than the reading column, so the labels stay legible */
 @media (min-width: 900px) { .release .architecture-figure { width: min(72rem, 94vw); } }
@@ -307,7 +310,7 @@ html:not(.scene-on) .orbit { display: none; }
   .index li:hover a { color: var(--dim); }
   .index li:hover .index-arrow { color: var(--paper); transform: translateX(0.3em); }
   .index-peek { display: block; position: fixed; left: var(--mx, -999px); top: var(--my, -999px); z-index: 5; width: min(34rem, 40vw); opacity: 0; transform: translate(-28%, -56%) rotate(var(--tilt, 0deg)) scale(0.92); transition: opacity 0.25s, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
-  .index-peek img, .index-peek svg { display: block; width: 100%; height: auto; border-radius: 2px; box-shadow: 0 24px 60px rgb(0 0 0 / 0.55); }
+  .index-peek img, .index-peek svg, .index-peek video { display: block; width: 100%; height: auto; border-radius: 2px; box-shadow: 0 24px 60px rgb(0 0 0 / 0.55); }
   .index-peek .iso-figure { background: var(--ink); border: 1px solid var(--hair); border-radius: 2px; }
   .index li:hover .index-peek { opacity: 1; transform: translate(-28%, -56%) rotate(var(--tilt, 0deg)) scale(1); }
 }
