@@ -5,6 +5,7 @@ import { startCursor } from './cursor.js';
 import { isCalm } from './calm.js';
 import { quietBehindText } from './quiet.js';
 import { createClose } from './close.js';
+import { createScore } from './score.js';
 
 // The story page: my life as a long arrangement. While the session is pinned, scroll is the camera
 // flying forward: each moment appears far away, comes to you and passes, and the tracks run underneath,
@@ -197,6 +198,9 @@ async function start() {
   };
   requestAnimationFrame(frame);
 }
+
+// The same soundtrack and Sound toggle as every other page; reduced motion stays silent.
+createScore().init(document.querySelector('[data-sound-toggle]'), isCalm, false);
 
 document.fonts.ready.then(() => {
   if (isCalm()) return;

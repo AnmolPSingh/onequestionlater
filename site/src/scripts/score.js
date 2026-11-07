@@ -1,9 +1,12 @@
 // The soundtrack is my own track, Reverie, looping. It's on by default and fades up from silence.
 // Browsers won't start sound until someone clicks, taps or presses a key on the page, so if the
-// first try is refused the fade starts at that first gesture. An analyser feeds the particles.
+// first try is refused the fade starts at that first gesture. Moving to another page, it carries on from
+// where it was with a short fade, rather than starting over. An analyser feeds the particles.
 const TRACK_URL = '/score/reverie.mp3';
 const VOLUME = 0.35;
 const FADE_IN_SECONDS = 8;
+const RESUME_FADE_SECONDS = 1.5; // when carrying on from the last page
+const AT_KEY = 'sound-at';
 const SUSPEND_AFTER_MS = 900;
 const LOW_BINS = [0, 5];
 const HIGH_BINS = [28, 110];
@@ -18,6 +21,7 @@ const average = (bins, [from, to]) => {
 
 const remembered = () => { try { return localStorage.getItem(MUTED_KEY) === '1'; } catch { return false; } };
 const remember = (off) => { try { localStorage.setItem(MUTED_KEY, off ? '1' : '0'); } catch { /* private mode: it just asks again next visit */ } };
+const lastAt = () => { try { return Number(sessionStorage.getItem(AT_KEY)) || 0; } catch { return 0; } };
 
 export function createScore() {
   const audio = new Audio(TRACK_URL);
@@ -87,6 +91,8 @@ export function createScore() {
       const start = async () => {
         if (on) return true;
         if (!ctx) boot();
+        const from = lastAt();
+        if (from) audio.currentTime = from;
         try {
           await audio.play();
           await ctx.resume();
@@ -97,7 +103,7 @@ export function createScore() {
         const now = ctx.currentTime;
         gain.gain.cancelScheduledValues(now);
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(VOLUME, now + FADE_IN_SECONDS);
+        gain.gain.linearRampToValueAtTime(VOLUME, now + (from ? RESUME_FADE_SECONDS : FADE_IN_SECONDS));
         return true;
       };
 
@@ -123,6 +129,9 @@ export function createScore() {
         remember(false);
         if (!await start()) show(false, 'Sound off');
       });
+
+      // Leaving for another page, note where the track was, so the next page carries on from there.
+      addEventListener('pagehide', () => { try { sessionStorage.setItem(AT_KEY, on ? String(audio.currentTime) : '0'); } catch { /* private mode: it starts over */ } });
 
       document.addEventListener('visibilitychange', () => {
         if (!on) return;
