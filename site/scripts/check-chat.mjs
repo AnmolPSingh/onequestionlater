@@ -5,12 +5,13 @@ import { tidy, POST } from '../api/chat.js';
 const ask = (body, origin = 'https://onequestionlater.com') => POST(new Request('https://onequestionlater.com/api/chat', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(body) }));
 
 // Answers: only allow-listed links survive, and the model never names itself.
+assert.equal(tidy('No flat rate \u2013 it depends. From 2015\u20132018.'), 'No flat rate, it depends. From 2015\u20132018.');
 assert.equal(tidy('An EP called *Fractals of Being*.\n* a bullet'), 'An EP called Fractals of Being.\n* a bullet');
 assert.equal(tidy('Book here https://calendly.com/anmol-philanthropel/let-s-talk.'), 'Book here https://calendly.com/anmol-philanthropel/let-s-talk.');
 assert.equal(tidy('See https://evil.example/x and https://onequestionlater.com/work/penname'), 'See and https://onequestionlater.com/work/penname');
 assert.equal(tidy('[his work](https://onequestionlater.com/story)'), 'his work https://onequestionlater.com/story');
-assert.match(tidy("I'm built on Llama 3 by Meta."), /own wiring/);
-assert.match(tidy('I run on GPT-4.'), /own wiring/);
+assert.match(tidy("I'm built on Llama 3 by Meta."), /under the hood/);
+assert.match(tidy('I run on GPT-4.'), /under the hood/);
 assert.equal(tidy('He uses Claude sessions.'), 'He uses Claude sessions.');
 assert.equal(tidy('- **AI invoice processing** sorts invoices\n## Next'), '- AI invoice processing sorts invoices\nNext');
 assert.equal(tidy('One thing \u2014 another'), 'One thing, another');
