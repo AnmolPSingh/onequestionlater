@@ -52,7 +52,7 @@ const orbit = 'The UK, Europe, Asia, Australia and the Americas  ';
                 <source src={`${r.loop}.webm`} type="video/webm" />
                 <source src={`${r.loop}.mp4`} type="video/mp4" />
               </video>
-            ) : r.cover ? <Image src={r.cover} alt="" widths={[640, 1100]} sizes="34rem" loading="lazy" decoding="async" /> : r.figure && <IsoFigure name={r.figure} />}
+            ) : (r.peek ?? r.cover) ? <Image src={(r.peek ?? r.cover)!} alt="" widths={[640, 1100]} sizes="34rem" loading="lazy" decoding="async" /> : r.figure && <IsoFigure name={r.figure} />}
           </span>
         </li>
       ))}

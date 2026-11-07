@@ -10,6 +10,7 @@ import alumnus from '../assets/linkedin/isdi-alumnus-1.jpg';
 import jivamoda from '../assets/photos/jivamoda.jpg';
 import expobazaar from '../assets/photos/startup-delhi-fair-namecard.jpg';
 import expobazaarLogo from '../assets/logos/expobazaar.png';
+import expobazaarBrand from '../assets/work/expobazaar-brand.webp';
 
 export interface Release {
   slug: string;
@@ -40,6 +41,8 @@ export interface Release {
   video?: { id: string; title: string };
   /** A short silent loop in public/ (path without extension; .webm and .mp4 both exist), played where the cover would be. The cover is its poster. */
   loop?: string;
+  /** What the home page's list shows on hover, when it should differ from the cover. */
+  peek?: ImageMetadata;
 }
 
 const GP = 'Global Philanthropic';
@@ -154,6 +157,7 @@ export const RELEASES: Release[] = [
     cover: expobazaar, coverAlt: 'A table name card reading Anmol Pratap Singh on Delhi Fair 2023 brochures.',
     stats: [['25%', 'more supplier engagement'], ['3', 'B2B platforms'], ['200+', 'global buyers']],
     logo: expobazaarLogo,
+    peek: expobazaarBrand,
     diagram: true,
     video: { id: 'V_dsjTCUiG0', title: 'ExpoBazaar brand video' },
     links: [{ label: 'expobazaar.com', href: 'https://expobazaar.com' }],
