@@ -1,6 +1,0 @@
-# Finder duplicates ("base 2.css", "[slug] 2.astro") would otherwise build as live pages like /index 2.
-* 2
-* 2.*
-# Source art for the offline scripts in scripts/; the build never reads it.
-assets-src
-dist

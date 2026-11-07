@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "build": "astro build && bash scripts/check-build.sh",
     "preview": "astro preview",
-    "vercel": "vercel --global-config \"$HOME/.config/vercel-onequestionlater\""
+    "vercel": "cd .. && vercel --global-config \"$HOME/.config/vercel-onequestionlater\""
   },
   "type": "module",
   "private": "true",
