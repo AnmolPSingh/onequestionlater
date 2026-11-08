@@ -164,13 +164,19 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .ask-prompt { color: var(--onair); text-shadow: var(--onair-glow); font-weight: 500; }
 .ask-bar input[type='text'] { flex: 1; min-width: 0; padding: 0.2rem 0; border: 0; background: none; color: var(--paper); font: inherit; font-size: 1rem; caret-color: var(--onair); outline: none; } /* 16px, so iPhones don't zoom in on it */
 .ask-bar input::placeholder { color: var(--dim); }
-.ask-send, .ask-close { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: var(--dim); font-size: 1.1rem; transition: color 0.2s, background 0.2s; }
-.ask-send:hover, .ask-close:hover { color: var(--paper); background: var(--hair); }
+.ask-send, .ask-close, .ask-clear { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: var(--dim); font-size: 1.1rem; transition: color 0.2s, background 0.2s; }
+.ask-send:hover, .ask-close:hover, .ask-clear:hover { color: var(--paper); background: var(--hair); }
 .ask-bar.busy .ask-send { opacity: 0.35; pointer-events: none; }
 .ask-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.ask-panel { display: none; position: absolute; left: 0; right: 0; bottom: calc(100% + 0.6rem); padding: 1rem 1.15rem 0.9rem; border: 1px solid var(--hair); border-radius: 1rem; background: rgb(13 12 11 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.ask-panel, .ask-foot { display: none; }
+/* Open, the bar becomes one box (greeting, conversation, prompt, foot) over the hero, which dims and blurs behind it. */
+.ask-veil { position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+.ask-veil.on { opacity: 1; pointer-events: auto; }
+.ask.open { padding: 1.2rem 1.25rem 0; border: 1px solid var(--hair); border-radius: 1rem; background: rgb(13 12 11 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.ask.open .ask-bar { padding: 0.7rem 0 0.9rem; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.ask.open .ask-foot { display: flex; justify-content: space-between; align-items: center; margin: 0 -1.25rem; padding: 0.35rem 0.65rem; border-top: 1px solid var(--hair); border-radius: 0 0 1rem 1rem; background: rgb(255 255 255 / 0.03); }
 .ask.open .ask-panel { display: block; }
-.ask-log { display: grid; gap: 0.75rem; max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
+.ask-log { display: grid; align-content: start; gap: 0.75rem; min-height: min(12rem, 24svh); max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
 .ask-log:empty { display: none; }
 .ask-line { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: break-word; white-space: pre-line; } /* answers keep their line breaks, so lists stay lists */
 .ask-you { color: var(--dim); }
@@ -180,10 +186,6 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .ask-line.thinking::after { content: ''; display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.15em; background: var(--onair); box-shadow: var(--onair-glow); }
 html:not(.calm) .ask-line.thinking::after { animation: caret 1s steps(2, start) infinite; }
 @keyframes caret { to { visibility: hidden; } }
-.ask-suggest { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
-.ask-suggest[hidden] { display: none; }
-.ask-suggest button { padding: 0.4rem 0.85rem; border: 1px solid var(--hair); border-radius: 999px; color: var(--dim); font-size: 0.875rem; transition: color 0.2s, border-color 0.2s; }
-.ask-suggest button:hover { color: var(--paper); border-color: var(--paper); }
 @media (max-width: 639px) { .ask { bottom: 5svh; } .ask-log { max-height: 38svh; } }
 
 /* ---------- Statement: held on screen while the figure turns and moves to the right ---------- */
