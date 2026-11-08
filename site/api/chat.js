@@ -8,6 +8,10 @@
 import { KNOWLEDGE, ALLOWED_LINKS } from './_knowledge.js';
 
 const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'; // Groq's Llama models are enterprise-only since late 2026
+// Groq's free tier allows each model only so many tokens a minute, and every question carries the whole KNOWLEDGE,
+// so a quick run of questions spends the main model's minute. The fallback has its own allowance.
+const FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-20b';
+const MAX_WAIT = 8; // seconds a visitor is held while an allowance refills, before "busy"
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MAX_TURNS = 10; // earlier messages are dropped, so a long chat costs no more than a short one
 const MAX_QUESTION = 500; // characters
@@ -146,13 +150,28 @@ export async function POST(request) {
     return json({ error: 'unavailable' }, 503);
   }
 
+  const ask = (model) => fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ model, temperature: 0.6, max_completion_tokens: MAX_ANSWER_TOKENS, reasoning_effort: 'low', include_reasoning: false, messages: [{ role: 'system', content: SYSTEM }, ...turns] }),
+    signal: AbortSignal.timeout(20000),
+  });
+
   try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL, temperature: 0.6, max_completion_tokens: MAX_ANSWER_TOKENS, reasoning_effort: 'low', include_reasoning: false, messages: [{ role: 'system', content: SYSTEM }, ...turns] }),
-      signal: AbortSignal.timeout(20000),
-    });
+    // Main model, then the fallback, then one short wait for whichever allowance refills first.
+    let res = await ask(MODEL);
+    if (res.status === 429) {
+      const mainWait = Number(res.headers.get('retry-after')) || Infinity;
+      res = await ask(FALLBACK_MODEL);
+      if (res.status === 429) {
+        const fallbackWait = Number(res.headers.get('retry-after')) || Infinity;
+        const wait = Math.min(mainWait, fallbackWait);
+        if (wait <= MAX_WAIT) {
+          await new Promise((done) => setTimeout(done, wait * 1000));
+          res = await ask(mainWait <= fallbackWait ? MODEL : FALLBACK_MODEL);
+        }
+      }
+    }
     if (!res.ok) {
       console.error('ask: model returned', res.status, (await res.text()).slice(0, 300));
       return json({ error: res.status === 429 ? 'busy' : 'unavailable' }, res.status === 429 ? 429 : 502);

@@ -24,6 +24,31 @@ assert.equal((await ask({ messages: [] })).status, 400);
 assert.equal((await ask({ messages: [{ role: 'assistant', content: 'hi' }] })).status, 400);
 const bot = await ask({ messages: [{ role: 'user', content: 'hi' }], website: 'spam' });
 assert.equal(bot.status, 200);
+// A spent minute falls back to the second model, then waits briefly, and only then says "busy". The model is faked.
+const realFetch = globalThis.fetch;
+const fake = (answers) => {
+  const models = [];
+  globalThis.fetch = async (url, opts) => {
+    models.push(JSON.parse(opts.body).model);
+    const [status, wait] = answers.shift();
+    return status === 200
+      ? Response.json({ choices: [{ message: { content: 'Hi, I build AI tools.' } }] })
+      : new Response('{}', { status, headers: { 'retry-after': String(wait) } });
+  };
+  return models;
+};
+process.env.GROQ_API_KEY = 'test';
+let models = fake([[429, 30], [200]]);
+assert.equal((await (await ask({ messages: [{ role: 'user', content: 'hi' }] })).json()).reply, 'Hi, I build AI tools.');
+assert.deepEqual(models, ['openai/gpt-oss-120b', 'openai/gpt-oss-20b']);
+models = fake([[429, 30], [429, 1], [200]]);
+assert.equal((await ask({ messages: [{ role: 'user', content: 'hi' }] })).status, 200);
+assert.deepEqual(models, ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'openai/gpt-oss-20b']);
+models = fake([[429, 30], [429, 40]]);
+assert.equal((await (await ask({ messages: [{ role: 'user', content: 'hi' }] })).json()).error, 'busy');
+assert.equal(models.length, 2);
+globalThis.fetch = realFetch;
+
 // Without a key it refuses cleanly instead of crashing.
 delete process.env.GROQ_API_KEY;
 assert.equal((await ask({ messages: [{ role: 'user', content: 'What does Anmol build?' }] })).status, 503);
