@@ -177,6 +177,7 @@ export async function POST(request) {
       return json({ error: res.status === 429 ? 'busy' : 'unavailable' }, res.status === 429 ? 429 : 502);
     }
     const data = await res.json();
+    console.log('ask: tokens', data?.usage?.prompt_tokens, data?.usage?.completion_tokens); // counts only, never the text
     const reply = tidy(data?.choices?.[0]?.message?.content || '');
     return json({ reply: reply || DEFLECT });
   } catch (err) {
