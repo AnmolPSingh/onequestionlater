@@ -12,17 +12,16 @@ His philosophy: he follows questions, and that's the only plan, until they open 
 
 ## What Anmol can help with
 
-Anmol takes on projects with organisations that want AI to do real work for them, without hiring a technical team. What he can help with:
+Projects with organisations that want AI to do real work without hiring a technical team (examples below):
+- AI assistants that answer from your own documents (document assistant, research assistant).
+- AI voice agents that answer calls, handle questions and take bookings (voice receptionist).
+- Back-office automations that sort, flag and prepare work for a person to approve (invoice processing).
+- Multi-agent products that turn weeks of manual work into minutes (proposal system).
+- Using AI safely on confidential documents (Penname, which gives every private detail a stand-in, then puts the real details back).
+- AI training for leaders and teams (Catalyst).
+- Designing, building and looking after websites; UX and product design.
 
-- AI assistants that answer from your own documents and knowledge, so your team can find earlier work and use it (like his AI document assistant and AI research assistant).
-- AI voice agents that answer calls, handle questions and take bookings (like his AI voice receptionist).
-- Automations for back-office work, such as sorting invoices, flagging what needs review and preparing emails for a person to approve (like his AI invoice processing).
-- Multi-agent products that turn weeks of manual work into minutes (like the proposal system, which took a client-ready proposal from three weeks to about seven minutes).
-- Using AI safely on confidential documents (Penname, his app, gives every private detail a stand-in, then puts the real details back).
-- AI training for leaders and teams, on the decisions already on their desk (like Catalyst).
-- Designing, building and looking after websites, and UX and product design.
-
-The way to start is a short call: book one at https://calendly.com/anmol-philanthropel/let-s-talk. People can also email anmol@philanthropel.com or message him on LinkedIn at https://www.linkedin.com/in/anmolps/.
+Start with a short call: https://calendly.com/anmol-philanthropel/let-s-talk. Or email anmol@philanthropel.com, or LinkedIn https://www.linkedin.com/in/anmolps/.
 
 ## Selected work
 
@@ -67,22 +66,21 @@ He joined as the designer, then kept running into problems that design alone cou
 - From February 2025: member and mentee at XR Guild, mentored by Jay Van Buren.
 - Alongside it all: runs a podcast.
 - May 2026: Talking Philanthropy London.
-- 2026: works with three laptops, each on its own Claude session, with twenty-seven agents in the background. He isn't a developer; he thinks in systems and the agents do the building.
 - October 2026: back at ISDI as an alumnus guest lecturer, talking about curiosity.
 - What comes next: he doesn't know yet, and that's the part he likes.
 More at https://onequestionlater.com/story and https://onequestionlater.com/philosophy
 
 ## From his LinkedIn (snapshot, 7 November 2026; where it differs from the site, the site is right)
 
-Roles: Design Specialist at Global Philanthropic from April 2024, promoted to Design Technologist in June 2025. Associate UX Designer at ExpoBazaar. Video and Graphic Visualizer at Zilch, where he also set up an in-house product photography studio. A summer at All India Radio in 2016 and a marketing internship in 2017.
-Education: a bachelor's in Journalism and Mass Communication at Amity University, Noida (2015 to 2018), where he did Amity Radio, documentary and short film making, and won first prize for a public service ad. A postgraduate in Design and Innovation at ISDI, ATLAS SkillTech University (2023 to 2024). In April 2026 he was invited back to its Board of Studies as an industry alumnus.
-Certificates: The Art of Storytelling (IESE Business School, 2025), Introduction to Virtual Reality (Goldsmiths, 2024), AR and ARCore (Google, 2024), UX for AR, VR, MR and XR (University of Michigan, 2023), HTML, CSS and JavaScript (Johns Hopkins, 2022), the Google UX Design certificate (2022), and Electronic Music Production and Digital DJ (2014).
+Roles: at Global Philanthropic, Design Specialist, then Design Technologist from June 2025. Associate UX Designer at ExpoBazaar. At Zilch he also set up an in-house product photography studio. A summer at All India Radio in 2016, a marketing internship in 2017.
+Education: BA Journalism and Mass Communication, Amity University, Noida (Amity Radio, documentary and short film; first prize for a public service ad). PG in Design and Innovation, ISDI, ATLAS SkillTech University; in April 2026 invited onto its Board of Studies as an industry alumnus.
+Certificates: The Art of Storytelling (IESE, 2025), Introduction to Virtual Reality (Goldsmiths, 2024), AR and ARCore (Google, 2024), UX for AR/VR/MR/XR (University of Michigan, 2023), HTML, CSS and JavaScript (Johns Hopkins, 2022), Google UX Design (2022), Electronic Music Production and Digital DJ (2014).
 Languages: English and Hindi, and a little German. Based in London.
 How he describes himself: a Design Technologist and AI generalist. "Someone has an idea or a design, I build a working version of it." He doesn't code full-time and doesn't only design; he solves problems with whatever tool fits. At Global Philanthropic, beyond the work on this site, a core web experience went from a failing usability score to a near-perfect one, and automations took a large part of the team's manual work away.
 His tools: Claude Code, n8n and Zapier, MCP connectors, and open-source agent runtimes like Hermes.
 Music: in April 2025 he released Fractals of Being, his debut EP as NYUN, four tracks and a bonus, with his own artwork for each. Music has always been his emotional outlet.
 Experiments: in early 2025 he tried Bezi's Sidekick in beta, prototyping an AR handpan and using handpan rhythms to switch a rainforest between rain and sunshine. JivaModa started when a sustainable fashion project made him realise fast fashion is rarely truly sustainable.
-How he works: he likes the image of Gustave, the concierge in The Grand Budapest Hotel, running a front desk where every screen is a different job. His desk is three laptops, twenty-seven agents, rominimal playing and the odd round of Mario Kart. He keeps himself the human in the loop: hand the work off, get specific about what he wants back, weigh what returns, stay diligent about the result. He does his best thinking on the move, so he speaks ideas to an agent on a walk and lets it build while he keeps walking.
+How he works: like Gustave, the concierge in The Grand Budapest Hotel, at a front desk where every screen is a different job: three laptops, each on its own Claude session, twenty-seven agents, rominimal playing and the odd round of Mario Kart. He isn't a developer; he thinks in systems and the agents build. He stays the human in the loop: hand the work off, be specific about what he wants back, weigh what returns. He thinks best on the move, speaking ideas to an agent on a walk while it builds.
 Things he believes, in his words:
 - "The philanthropic sector has never lacked ambition, but it has always lacked capacity."
 - Everyone tells the third sector to catch up on AI; he thinks they have it backwards.
@@ -92,13 +90,6 @@ Things he believes, in his words:
 - "Numbers obscure nuance."
 - Designers have to stay optimistic and keep progress on the right track.
 Catalyst's first cohort includes leaders in climate finance, education for hard-to-reach children, sport for young people in Kibera, and purpose-led business.
-
-## Contact
-
-- Book a call: https://calendly.com/anmol-philanthropel/let-s-talk
-- Email: anmol@philanthropel.com
-- LinkedIn: https://www.linkedin.com/in/anmolps/
-- Philanthropel: https://philanthropel.com
 `.trim();
 
 // The only addresses an answer may link to. Anything else is removed before it reaches the visitor.
