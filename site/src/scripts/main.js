@@ -88,11 +88,13 @@ async function startMotion() {
   let heroPan = [0, 0];
   let heroEnd = { x: 0, y: 0, zoom: 1 };
   let layoutRun = 0;
+  let domeFrame = shapes.domeFrame(1);
 
   const layout = () => {
     const aspect = innerWidth / innerHeight;
     const wide = innerWidth >= 900;
     scene.resize();
+    domeFrame = shapes.domeFrame(aspect);
 
     // Measured with the page at rest, so scroll offsets are stable.
     const y = scrollY;
@@ -112,7 +114,7 @@ async function startMotion() {
     // The rest are built one per idle moment, so loading never blocks the page.
     const pending = [
       () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
-      () => scene.setShape('dome', shapes.dome(PARTICLES)), // what I become when someone talks with Anmol AI
+      () => scene.setShape('dome', shapes.dome(PARTICLES, domeFrame)), // what I become when someone talks with Anmol AI
       () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
       () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
       close.build, // only once its dots have arrived; they are fetched as the close comes near
@@ -276,6 +278,7 @@ async function startMotion() {
       ground,
       voice,
       bands,
+      dome: [domeFrame.y, domeFrame.r],
     });
   };
   raf = requestAnimationFrame(frame);
