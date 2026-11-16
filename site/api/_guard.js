@@ -18,31 +18,39 @@ export function allowedOrigin(origin) {
 
 export const visitor = (request) => (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
 
-async function hash(text) {
+export async function hash(text) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(bytes)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Counts this visitor's requests of one kind this minute and today, and the whole site's today, in one round trip.
-export async function withinLimits(ip, kind = 'ask') {
+// Runs Redis commands in one round trip and returns their results, or null when Redis isn't configured.
+export async function redis(commands) {
   // Vercel's Upstash integration may name these either way.
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (!url || !token) {
-    if (process.env.VERCEL_ENV === 'production') throw new Error('Rate limiting is not configured');
-    return true; // local development only
-  }
+  if (!url || !token) return null;
+  const res = await fetch(`${url}/pipeline`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify(commands),
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!res.ok) throw new Error(`Redis returned ${res.status}`);
+  return (await res.json()).map((r) => r.result);
+}
+
+// Counts this visitor's requests of one kind this minute and today, and the whole site's today, in one round trip.
+export async function withinLimits(ip, kind = 'ask') {
   const who = await hash(ip); // the address itself is never stored
   const minute = Math.floor(Date.now() / 60000);
   const day = new Date().toISOString().slice(0, 10);
   const keys = [`${kind}:m:${who}:${minute}`, `${kind}:d:${who}:${day}`, `${kind}:site:${day}`];
-  const res = await fetch(`${url}/pipeline`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify([['INCR', keys[0]], ['EXPIRE', keys[0], 70], ['INCR', keys[1]], ['EXPIRE', keys[1], 90000], ['INCR', keys[2]], ['EXPIRE', keys[2], 90000]]),
-  });
-  if (!res.ok) throw new Error(`Rate limiter returned ${res.status}`);
-  const [minuteCount, , dayCount, , siteCount] = (await res.json()).map((r) => r.result);
+  const results = await redis([['INCR', keys[0]], ['EXPIRE', keys[0], 70], ['INCR', keys[1]], ['EXPIRE', keys[1], 90000], ['INCR', keys[2]], ['EXPIRE', keys[2], 90000]]);
+  if (!results) {
+    if (process.env.VERCEL_ENV === 'production') throw new Error('Rate limiting is not configured');
+    return true; // local development only
+  }
+  const [minuteCount, , dayCount, , siteCount] = results;
   return minuteCount <= PER_MINUTE && dayCount <= PER_DAY && siteCount <= SITE_PER_DAY;
 }
 
