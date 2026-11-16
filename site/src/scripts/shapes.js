@@ -11,6 +11,8 @@ const VIEW = 12; // me, as one of the reference views in dots: lit like Elimar, 
 const TUNNEL = 9; // stars streaming past the camera as the scroll flies forward
 const LANDSCAPE = 10; // the desert, each dot at its own depth, so the camera can walk into it
 const FIGURE = 11; // me in that desert: the wind blows past, and these dots only shimmer in place
+const DOME_SHELL = 13; // the voice agent's dome: a shell of dots, brightest where it curves away
+const DOME_LAND = 14; // the ground inside it, which ripples with whoever is speaking
 
 const LAND_W = 360;
 const LAND_H = 180;
@@ -193,6 +195,39 @@ const onSphere = (lat, lon, r = GLOBE_RADIUS) => {
 };
 
 // Continents in dots; India, the UK, Australia and the USA lit, joined by arcs.
+// When a visitor talks with Anmol AI, I become this: a dome of dots rising from the bottom of the screen with a
+// landscape inside that moves with the voice. Placed in screen units, centred, so it sits behind the chat.
+// Its centre and radius are matched by dome() in scene.js.
+export const DOME = { y: -0.62, r: 1.45 }; // the chat sits in its lower half, the talking ground shows above it
+export function dome(n) {
+  const out = new Float32Array(n * 4);
+  const r = DOME.r;
+  const shell = Math.floor(n * 0.62);
+  for (let i = 0; i < n; i++) {
+    if (i < shell) {
+      let x;
+      let y;
+      if (i % 4 === 0) {
+        const a = rand(Math.PI); // a quarter of the shell draws the outline, so the dome has a crisp, bright edge
+        const d = r * rand(1, 0.975);
+        x = Math.cos(a) * d;
+        y = Math.sin(a) * d;
+      } else {
+        do { x = rand(r, -r); y = rand(r, 0); } while (x * x + y * y > r * r); // even over the screen, so it reads as halftone
+      }
+      const front = i % 2 === 1;
+      const z = Math.sqrt(Math.max(r * r - x * x - y * y, 0));
+      const rim = 1 - z / r;
+      write(out, i, x, DOME.y + y, (front ? z : -z) * 0.35, DOME_SHELL, Math.min(1, (front ? 0.08 : 0.16) + rim * rim * rim * 0.95));
+    } else {
+      const a = rand(Math.PI * 2);
+      const d = Math.sqrt(Math.random()) * r * 0.92;
+      write(out, i, Math.cos(a) * d, 0, Math.sin(a) * d, DOME_LAND, rand(0.95, 0.25)); // y is set by the shader's waves
+    }
+  }
+  return out;
+}
+
 export function globe(n, land) {
   const out = new Float32Array(n * 4);
   const cities = [DELHI, MUMBAI, LONDON, EDINBURGH, SYDNEY, MELBOURNE, NEW_YORK, SAN_FRANCISCO];

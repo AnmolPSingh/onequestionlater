@@ -159,11 +159,11 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .ask { position: absolute; left: 50%; bottom: 8svh; z-index: 5; width: min(38rem, calc(100vw - 2 * var(--gutter))); transform: translateX(-50%); }
 .ask[hidden] { display: none; }
-.ask-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.75rem 0.65rem 1.1rem; border: 1px solid var(--hair); border-radius: 999px; background: rgb(13 12 11 / 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: border-color 0.25s; }
+.ask-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.75rem 0.65rem 1.1rem; border: 1px solid var(--glass-edge); border-radius: 999px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); transition: border-color 0.25s; }
 .ask-bar:focus-within { border-color: var(--onair); box-shadow: var(--onair-glow); }
 .ask-prompt { color: var(--onair); text-shadow: var(--onair-glow); font-weight: 500; }
 .ask-bar input[type='text'] { flex: 1; min-width: 0; padding: 0.2rem 0; border: 0; background: none; color: var(--paper); font: inherit; font-size: 1rem; caret-color: var(--onair); outline: none; } /* 16px, so iPhones don't zoom in on it */
-.ask-bar input::placeholder { color: var(--dim); }
+.ask-bar input::placeholder { color: rgb(243 238 228 / 0.78); }
 .ask-send, .ask-close, .ask-clear, .ask-mic, .ask-talk { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; color: var(--dim); font-size: 1.1rem; transition: color 0.2s, background 0.2s; }
 .ask-send:hover, .ask-close:hover, .ask-clear:hover, .ask-mic:hover, .ask-talk:hover { color: var(--paper); background: var(--hair); }
 .ask-bar.busy .ask-send { opacity: 0.35; pointer-events: none; }
@@ -177,7 +177,8 @@ html:not(.calm) .ask.listening .ask-mic { animation: listening 1.4s ease-in-out 
 /* Open, the bar becomes one box (greeting, conversation, prompt, foot) over the hero, which dims and blurs behind it. */
 .ask-veil { position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.35s; }
 .ask-veil.on { opacity: 1; pointer-events: auto; }
-.ask.open { padding: 1.2rem 1.25rem 0; border: 1px solid var(--hair); border-radius: 1rem; background: rgb(13 12 11 / 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+html.talking .ask-veil { background: rgb(0 0 0 / 0.2); backdrop-filter: none; -webkit-backdrop-filter: none; } /* the dome stays sharp behind the conversation */
+.ask.open { padding: 1.2rem 1.25rem 0; border: 1px solid var(--glass-edge); border-radius: 1rem; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); }
 .ask.open .ask-bar { padding: 0.7rem 0 0.9rem; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .ask.open .ask-foot { display: flex; justify-content: space-between; align-items: center; margin: 0 -1.25rem; padding: 0.35rem 0.65rem; border-top: 1px solid var(--hair); border-radius: 0 0 1rem 1rem; background: rgb(255 255 255 / 0.03); }
 .ask.open .ask-panel { display: block; }

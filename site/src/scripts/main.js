@@ -17,6 +17,7 @@ const FORM_SECONDS = 2.8;
 const LEAN = [0.07, 0.035]; // radians the figure leans toward the light, sideways and up: about 4 and 2 degrees
 const HERO_TURN_SCROLL = 1.05; // screens of scroll it takes me to turn from facing you to the three-quarter slant, toward the words
 const HERO_ASIDE_SCROLL = 0.45;
+const TALK_EASE = 0.035; // per frame: about a second and a half to become the dome, and as long to come back
 const root = document.documentElement;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -111,6 +112,7 @@ async function startMotion() {
     // The rest are built one per idle moment, so loading never blocks the page.
     const pending = [
       () => scene.setShape('slant', shapes.portrait(PARTICLES, figure, 1, { w: bw, h: bh })), // only seen once you scroll, so built when the page is idle
+      () => scene.setShape('dome', shapes.dome(PARTICLES)), // what I become when someone talks with Anmol AI
       () => scene.setShape('globe', shapes.globe(PARTICLES, land)),
       () => scene.setShape('field', shapes.field(PARTICLES, aspect)), // quiet dust where the words are the point
       close.build, // only once its dots have arrived; they are fetched as the close comes near
@@ -145,6 +147,12 @@ async function startMotion() {
 
   let bass = 0;
   let shrill = 0;
+  // While the voice agent is on, Ask.astro hands over a reader for the voice's bands; I become the dome.
+  let hearVoice = null;
+  let talk = 0;
+  let bands;
+  let voice = 0;
+  addEventListener('ask:talk', (e) => { hearVoice = e.detail?.bands || null; });
   const t0 = performance.now();
   let raf = 0;
   markReady();
@@ -197,6 +205,14 @@ async function startMotion() {
         if (toName === 'portrait') toName = 'slant';
       }
     }
+    talk += ((hearVoice && scene.has('dome') ? 1 : 0) - talk) * TALK_EASE;
+    if (talk > 0.002 && scene.has('dome')) {
+      fromName = morph < 0.5 ? fromName : toName;
+      toName = 'dome';
+      morph = ease(clamp(talk * 1.02));
+    }
+    bands = hearVoice ? hearVoice() : undefined;
+    voice = bands ? bands.reduce((a, b) => a + b, 0) / bands.length : 0;
     if (!scene.has(toName)) toName = fromName;
     if (!scene.has(fromName)) { fromName = 'cloud'; toName = 'cloud'; }
 
@@ -258,6 +274,8 @@ async function startMotion() {
       walk,
       focus,
       ground,
+      voice,
+      bands,
     });
   };
   raf = requestAnimationFrame(frame);
