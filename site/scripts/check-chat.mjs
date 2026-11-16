@@ -1,6 +1,9 @@
 // Checks the chat's guardrails without calling the model: node scripts/check-chat.mjs
 import assert from 'node:assert/strict';
 import { tidy, POST } from '../api/chat.js';
+import { POST as speak } from '../api/speak.js';
+import { POST as hear } from '../api/transcribe.js';
+import { sign } from '../api/_guard.js';
 
 const ask = (body, origin = 'https://onequestionlater.com') => POST(new Request('https://onequestionlater.com/api/chat', { method: 'POST', headers: { origin, 'content-type': 'application/json' }, body: JSON.stringify(body) }));
 
@@ -52,4 +55,26 @@ globalThis.fetch = realFetch;
 // Without a key it refuses cleanly instead of crashing.
 delete process.env.GROQ_API_KEY;
 assert.equal((await ask({ messages: [{ role: 'user', content: 'What does Anmol build?' }] })).status, 503);
-console.log('chat guardrails: ok');
+
+// Voice: speech is only made from answers the chat signed, and only audio of an expected kind is transcribed.
+const post = (route, body, type, origin = 'https://onequestionlater.com') => route(new Request('https://onequestionlater.com/api/x', { method: 'POST', headers: { origin, 'content-type': type }, body }));
+assert.equal((await post(hear, 'x', 'audio/webm', 'https://evil.example')).status, 403);
+assert.equal((await post(hear, 'x', 'text/plain')).status, 415);
+assert.equal((await post(hear, new Uint8Array(0), 'audio/webm')).status, 400);
+process.env.ELEVENLABS_API_KEY = 'test-key';
+process.env.ELEVENLABS_VOICE_ID = 'voice';
+const answer = 'Book a call: https://calendly.com/anmol-philanthropel/let-s-talk';
+assert.equal((await post(speak, JSON.stringify({ text: 'Anything I like', voice: await sign(answer) }), 'application/json')).status, 403);
+assert.equal((await post(speak, JSON.stringify({ text: answer, voice: 'f'.repeat(64) }), 'application/json')).status, 403);
+assert.equal((await post(speak, JSON.stringify({ text: answer }), 'application/json')).status, 403);
+let spoken;
+globalThis.fetch = async (url, opts) => { spoken = JSON.parse(opts.body).text; return new Response('mp3', { headers: { 'content-type': 'audio/mpeg' } }); };
+const voiced = await post(speak, JSON.stringify({ text: answer, voice: await sign(answer) }), 'application/json');
+assert.equal(voiced.headers.get('content-type'), 'audio/mpeg');
+assert.equal(spoken, 'Book a call.'); // links stay written, never read aloud
+globalThis.fetch = async () => Response.json({ choices: [{ message: { content: 'Hi.' } }] });
+process.env.GROQ_API_KEY = 'test';
+const chatted = await (await ask({ messages: [{ role: 'user', content: 'hi' }] })).json();
+assert.equal(chatted.voice, await sign('Hi.'));
+globalThis.fetch = realFetch;
+console.log('chat and voice guardrails: ok');

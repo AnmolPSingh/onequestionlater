@@ -4,8 +4,10 @@
 // they hold across every server). The model only knows what's in _knowledge.js, is told to stay on Anmol,
 // and its answer is cleaned before it goes back: links outside the allow-list are removed, and any slip that
 // names the model behind it is replaced. Configuration lives in environment variables, never in code:
-// GROQ_API_KEY, GROQ_MODEL (optional), UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_*).
+// GROQ_API_KEY, GROQ_MODEL (optional), UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_*),
+// and ELEVENLABS_API_KEY when spoken answers are on (each answer is then signed, so speak.js will voice it).
 import { KNOWLEDGE, ALLOWED_LINKS } from './_knowledge.js';
+import { json, allowedOrigin, visitor, withinLimits, sign } from './_guard.js';
 
 const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'; // Groq's Llama models are enterprise-only since late 2026
 // Groq's free tier allows each model only so many tokens a minute, and every question carries the whole KNOWLEDGE,
@@ -16,10 +18,6 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MAX_TURNS = 6; // the last three exchanges; earlier ones are dropped, so a long chat costs no more than a short one
 const MAX_QUESTION = 500; // characters
 const MAX_ANSWER_TOKENS = 900; // includes the model's brief thinking, which never reaches the visitor
-const PER_MINUTE = 6; // per visitor
-const PER_DAY = 40; // per visitor
-const SITE_PER_DAY = 900; // for everyone together: the free quota can never be spent in one day
-const SITES = ['https://onequestionlater.com', 'https://www.onequestionlater.com'];
 const DEFLECT = "That's under the hood, and it stays there. Ask me about what I build instead?";
 const LIMITED = "That's a lot of questions, which I'll take as a compliment. Let's carry on in person: https://calendly.com/anmol-philanthropel/let-s-talk";
 
@@ -60,16 +58,6 @@ ${KNOWLEDGE}`;
 // Names that would give the model away. "Claude" is left out on purpose: it's part of Anmol's own story.
 const GIVEAWAYS = /\b(llama|meta ai|groq|openai|chatgpt|gpt-?\d|mixtral|mistral|gemma|qwen|deepseek|anthropic|gemini|large language model)\b/i;
 
-const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
-
-function allowedOrigin(origin) {
-  if (!origin) return false;
-  if (SITES.includes(origin)) return true;
-  const own = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL].filter(Boolean).map((host) => `https://${host}`);
-  if (own.includes(origin)) return true; // this deployment's own preview address
-  return process.env.VERCEL_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1|\[::1\]):\d+$/.test(origin);
-}
-
 // Only the visitor's last few turns, each a short string with the right role, ending on their question.
 function clean(messages) {
   if (!Array.isArray(messages) || !messages.length) return null;
@@ -79,34 +67,6 @@ function clean(messages) {
   if (last.role !== 'user' || last.content.length > MAX_QUESTION) return null;
   if (turns.some((m) => m.content.length > (m.role === 'user' ? MAX_QUESTION : 2000))) return null;
   return turns;
-}
-
-async function hash(text) {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(bytes)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Counts this visitor's questions this minute and today, and the whole site's today, in one round trip.
-async function withinLimits(ip) {
-  // Vercel's Upstash integration may name these either way.
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (!url || !token) {
-    if (process.env.VERCEL_ENV === 'production') throw new Error('Rate limiting is not configured');
-    return true; // local development only
-  }
-  const who = await hash(ip); // the address itself is never stored
-  const minute = Math.floor(Date.now() / 60000);
-  const day = new Date().toISOString().slice(0, 10);
-  const keys = [`ask:m:${who}:${minute}`, `ask:d:${who}:${day}`, `ask:site:${day}`];
-  const res = await fetch(`${url}/pipeline`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify([['INCR', keys[0]], ['EXPIRE', keys[0], 70], ['INCR', keys[1]], ['EXPIRE', keys[1], 90000], ['INCR', keys[2]], ['EXPIRE', keys[2], 90000]]),
-  });
-  if (!res.ok) throw new Error(`Rate limiter returned ${res.status}`);
-  const [minuteCount, , dayCount, , siteCount] = (await res.json()).map((r) => r.result);
-  return minuteCount <= PER_MINUTE && dayCount <= PER_DAY && siteCount <= SITE_PER_DAY;
 }
 
 // Keep only allow-listed links, and never let the model name itself.
@@ -136,9 +96,8 @@ export async function POST(request) {
   const turns = clean(body?.messages);
   if (!turns) return json({ error: 'bad request' }, 400);
 
-  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
   try {
-    if (!(await withinLimits(ip))) return json({ reply: LIMITED, limited: true }, 429);
+    if (!(await withinLimits(visitor(request)))) return json({ reply: LIMITED, limited: true }, 429);
   } catch (err) {
     console.error('ask: rate limiter unavailable', err.message);
     return json({ error: 'unavailable' }, 503);
@@ -179,7 +138,8 @@ export async function POST(request) {
     const data = await res.json();
     console.log('ask: tokens', data?.usage?.prompt_tokens, data?.usage?.completion_tokens); // counts only, never the text
     const reply = tidy(data?.choices?.[0]?.message?.content || '');
-    return json({ reply: reply || DEFLECT });
+    const answer = reply || DEFLECT;
+    return json({ reply: answer, voice: await sign(answer) });
   } catch (err) {
     console.error('ask: model request failed', err.message);
     return json({ error: 'unavailable' }, 502);

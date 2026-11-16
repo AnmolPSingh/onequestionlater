@@ -2,6 +2,9 @@
 // "Ask about Anmol", in the hero: one terminal line that opens into a short conversation. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
 // It needs JS, so without it the line isn't shown at all. No suggested questions: the visitor leads.
+// Voice, where the browser can record: the mic dictates into the line (site/api/transcribe.js), and the talk
+// button is the voice agent: it listens, sends when the visitor pauses, answers aloud in Anmol's voice
+// (site/api/speak.js), then listens again, until it's tapped off or hears nothing.
 // Open, it's one box over a dimmed, blurred hero: the greeting, the conversation, the prompt, then a foot.
 ---
 <div class="ask-veil" data-ask-veil></div>
@@ -16,6 +19,12 @@
     <label class="visually-hidden" for="ask-input">Ask Anmol AI</label>
     <input id="ask-input" name="q" type="text" autocomplete="off" enterkeyhint="send" maxlength="500" placeholder="Ask Anmol AI" data-ask-input />
     <input class="ask-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <button type="button" class="ask-mic" data-ask-mic aria-label="Speak your question" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+    </button>
+    <button type="button" class="ask-talk" data-ask-talk aria-label="Talk with Anmol AI" aria-pressed="false" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg>
+    </button>
     <button type="submit" class="ask-send" aria-label="Send">&rarr;</button>
   </form>
   <div class="ask-foot">
@@ -43,6 +52,100 @@
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const history = [];
     let busy = false;
+
+    // Voice. Hearing stops at a pause after speech, a second tap, or the cap; silence alone is never sent.
+    const LOUD = 10; // peak wobble around the waveform's middle (128) that counts as speech
+    const PAUSE_MS = 1200;
+    const NO_SPEECH_MS = 8000;
+    const MAX_LISTEN_MS = 30000;
+    const mic = root.querySelector('[data-ask-mic]');
+    const talk = root.querySelector('[data-ask-talk]');
+    const placeholder = input.placeholder;
+    let sound = null; // one AudioContext, woken by a tap, so phones let it play an answer that arrives later
+    let recording = null; // { stop } while the mic is open
+    let speaking = null; // the answer being played
+    let talking = false; // the voice agent is on
+
+    const wake = () => { sound ??= new AudioContext(); sound.resume(); };
+
+    const listen = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const rec = new MediaRecorder(stream);
+      const chunks = [];
+      rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      const meter = sound.createAnalyser();
+      const source = sound.createMediaStreamSource(stream);
+      source.connect(meter);
+      const wave = new Uint8Array(meter.fftSize);
+      const started = performance.now();
+      let heard = false;
+      let quietSince = 0;
+      const stopped = new Promise((done) => { rec.onstop = done; });
+      const stop = () => { if (rec.state !== 'inactive') rec.stop(); };
+      recording = { stop };
+      root.classList.add('listening');
+      input.placeholder = 'Listening...';
+      rec.start();
+      const watch = () => {
+        if (rec.state === 'inactive') return;
+        meter.getByteTimeDomainData(wave);
+        let peak = 0;
+        for (const v of wave) peak = Math.max(peak, Math.abs(v - 128));
+        const now = performance.now();
+        if (peak > LOUD) { heard = true; quietSince = 0; } else quietSince ||= now;
+        const paused = heard && quietSince && now - quietSince > PAUSE_MS;
+        if (paused || now - started > MAX_LISTEN_MS || (!heard && now - started > NO_SPEECH_MS)) stop();
+        else requestAnimationFrame(watch);
+      };
+      watch();
+      await stopped;
+      stream.getTracks().forEach((t) => t.stop());
+      source.disconnect();
+      recording = null;
+      root.classList.remove('listening');
+      if (!heard) { input.placeholder = placeholder; return ''; }
+      input.placeholder = 'Thinking...';
+      try {
+        const type = rec.mimeType.split(';')[0];
+        const res = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': type }, body: new Blob(chunks, { type }) });
+        return (await res.json().catch(() => ({}))).text || '';
+      } finally { input.placeholder = placeholder; }
+    };
+
+    // Plays a signed answer in Anmol's voice; resolves when it's finished, stopped or failed.
+    // shortcut: waits for the whole clip before playing, about a second for a short answer; stream it if that drags.
+    const say = async (text, signature) => {
+      try {
+        const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, voice: signature }) });
+        if (res.status !== 200 || !talking) return;
+        const clip = sound.createBufferSource();
+        clip.buffer = await sound.decodeAudioData(await res.arrayBuffer());
+        clip.connect(sound.destination);
+        speaking = clip;
+        await new Promise((done) => { clip.onended = done; clip.start(); });
+      } catch (err) {
+        console.warn('Ask: could not speak the answer', err);
+      } finally { speaking = null; }
+    };
+
+    const endTalk = () => {
+      talking = false;
+      talk.setAttribute('aria-pressed', 'false');
+      talk.setAttribute('aria-label', 'Talk with Anmol AI');
+      recording?.stop();
+      try { speaking?.stop(); } catch { /* already finished */ }
+    };
+
+    // The voice agent: listen, answer aloud, listen again. Silence, an error or a tap ends it.
+    const converse = async () => {
+      while (talking) {
+        let words = '';
+        try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); }
+        if (!talking || !words) break;
+        await send(words);
+      }
+      endTalk();
+    };
 
     const asked = () => { try { return Number(sessionStorage.getItem('ask-count')) || 0; } catch { return 0; } };
     const count = () => { try { sessionStorage.setItem('ask-count', String(asked() + 1)); } catch { /* private mode */ } };
@@ -104,11 +207,12 @@
       const reply = line('bot thinking', '');
       history.push({ role: 'user', content: q });
       let text;
+      let signature = null;
       try {
         const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-10), website: trap.value }) });
         const data = await res.json().catch(() => ({}));
         text = data.reply || (res.status === 429 ? 'Too many curious people at once. Give me a minute, or skip the queue and book a call with me: https://calendly.com/anmol-philanthropel/let-s-talk' : "I've lost the signal for a moment. Reach me at anmol@philanthropel.com, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
-        if (data.reply) history.push({ role: 'assistant', content: data.reply });
+        if (data.reply) { history.push({ role: 'assistant', content: data.reply }); signature = data.voice; }
         else history.pop();
         count();
       } catch (err) {
@@ -117,21 +221,48 @@
         text = "Still no signal on my end. You can reach me at anmol@philanthropel.com.";
       }
       reply.classList.remove('thinking');
+      const speech = talking && signature ? say(text, signature) : null; // the voice and the typing run together
       await type(reply, text);
+      await speech;
       busy = false;
       form.classList.remove('busy');
     };
 
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
     input.addEventListener('focus', open);
-    close.addEventListener('click', shut);
-    veil.addEventListener('click', shut);
+    if (navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.AudioContext) {
+      mic.hidden = false;
+      talk.hidden = false;
+      // Dictation: the words land in the line, to edit or send. While talking, a tap just means "I'm done".
+      mic.addEventListener('click', async () => {
+        if (recording) { recording.stop(); return; }
+        if (busy || talking) return;
+        wake();
+        try {
+          const words = await listen();
+          if (words) { input.value = words; input.focus(); }
+        } catch (err) { console.warn('Ask: microphone unavailable', err); }
+      });
+      talk.addEventListener('click', () => {
+        if (talking) { endTalk(); return; }
+        if (busy || recording) return;
+        wake();
+        talking = true;
+        talk.setAttribute('aria-pressed', 'true');
+        talk.setAttribute('aria-label', 'Stop talking');
+        open();
+        converse();
+      });
+    }
+
+    close.addEventListener('click', () => { endTalk(); shut(); });
+    veil.addEventListener('click', () => { endTalk(); shut(); });
     clear.addEventListener('click', () => {
       if (busy) return;
       history.length = 0;
       log.replaceChildren(greeting.cloneNode(true));
       input.focus();
     });
-    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') shut(); });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { endTalk(); shut(); } });
   }
 </script>
