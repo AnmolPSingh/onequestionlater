@@ -197,11 +197,17 @@ const onSphere = (lat, lon, r = GLOBE_RADIUS) => {
 // Continents in dots; India, the UK, Australia and the USA lit, joined by arcs.
 // When a visitor talks with Anmol AI, I become this: a dome of dots rising from the bottom of the screen with a
 // landscape inside that moves with the voice. Placed in screen units, centred, so it sits behind the chat.
-// Its centre and radius are matched by dome() in scene.js.
-export const DOME = { y: -0.62, r: 1.45 }; // the chat sits in its lower half, the talking ground shows above it
-export function dome(n) {
+// Its centre and radius go to the shader too (uDome), so it fits the screen: on a wide one the chat sits in its
+// lower half with the talking ground above; on a phone it spans the width and sits higher, clear of the chat.
+const DOME_WIDE = 1.45;
+const DOME_FILL = 0.94; // of the screen's half-width a narrow dome may take
+export function domeFrame(aspect) {
+  const r = Math.min(DOME_WIDE, aspect * DOME_FILL);
+  return { y: -0.62 + (DOME_WIDE - r) * 0.55, r };
+}
+export function dome(n, frame) {
   const out = new Float32Array(n * 4);
-  const r = DOME.r;
+  const { r } = frame;
   const shell = Math.floor(n * 0.62);
   for (let i = 0; i < n; i++) {
     if (i < shell) {
@@ -218,7 +224,7 @@ export function dome(n) {
       const front = i % 2 === 1;
       const z = Math.sqrt(Math.max(r * r - x * x - y * y, 0));
       const rim = 1 - z / r;
-      write(out, i, x, DOME.y + y, (front ? z : -z) * 0.35, DOME_SHELL, Math.min(1, (front ? 0.08 : 0.16) + rim * rim * rim * 0.95));
+      write(out, i, x, frame.y + y, (front ? z : -z) * 0.35, DOME_SHELL, Math.min(1, (front ? 0.08 : 0.16) + rim * rim * rim * 0.95));
     } else {
       const a = rand(Math.PI * 2);
       const d = Math.sqrt(Math.random()) * r * 0.92;

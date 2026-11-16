@@ -171,6 +171,8 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 /* Voice: the mic glows while it hears, the talk button while the voice agent is on. */
 .ask.listening .ask-mic, .ask-talk[aria-pressed='true'] { color: var(--onair); filter: drop-shadow(0 0 6px var(--onair)); }
 html:not(.calm) .ask.listening .ask-mic { animation: listening 1.4s ease-in-out infinite; }
+.ask.listening .ask-mic { box-shadow: 0 0 0 calc(2px + var(--level, 0) * 12px) rgb(244 248 255 / 0.2); transition: box-shadow 0.08s; } /* a ring that grows with the voice, so you can see it hearing you */
+.ask.listening:not(.open) .ask-bar, .ask.listening.open { border-color: var(--onair); box-shadow: var(--onair-glow), var(--glass-lift); }
 @keyframes listening { 50% { opacity: 0.45; } }
 .ask-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .ask-panel, .ask-foot { display: none; }

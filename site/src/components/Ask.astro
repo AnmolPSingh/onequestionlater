@@ -54,7 +54,9 @@
     let busy = false;
 
     // Voice. Hearing stops at a pause after speech, a second tap, or the cap; silence alone is never sent.
-    const LOUD = 10; // peak wobble around the waveform's middle (128) that counts as speech
+    const LOUD = 6; // peak wobble around the waveform's middle (128) that counts as speech; low, as noise suppression quietens voices
+    const MAX_UNMETERED_MS = 12000; // if the meter can't run, a tap or this ends the recording instead of a pause
+    const HINT_MS = 3500;
     const PAUSE_MS = 1200;
     const NO_SPEECH_MS = 8000;
     const MAX_LISTEN_MS = 30000;
@@ -112,8 +114,15 @@
       return bands;
     };
 
+    // Says why nothing happened, in the line itself, then puts the usual prompt back.
+    const hint = (text) => {
+      input.placeholder = text;
+      setTimeout(() => { if (input.placeholder === text) input.placeholder = placeholder; }, HINT_MS);
+    };
+
     const listen = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      await sound.resume(); // iPhones pause page audio when the mic opens; without this the meter hears only silence
       const rec = new MediaRecorder(stream);
       const chunks = [];
       rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
@@ -121,6 +130,7 @@
       source.connect(meter);
       const started = performance.now();
       let heard = false;
+      let metered = false; // whether the meter ever ran; if it never did, the clip is sent anyway rather than thrown away
       let quietSince = 0;
       const stopped = new Promise((done) => { rec.onstop = done; });
       const stop = () => { if (rec.state !== 'inactive') rec.stop(); };
@@ -130,10 +140,17 @@
       rec.start();
       const watch = () => {
         if (rec.state === 'inactive') return;
+        const now = performance.now();
+        if (sound.state !== 'running') {
+          sound.resume();
+          if (now - started > MAX_UNMETERED_MS) stop(); else requestAnimationFrame(watch);
+          return;
+        }
+        metered = true;
         meter.getByteTimeDomainData(wave);
         let peak = 0;
         for (const v of wave) peak = Math.max(peak, Math.abs(v - 128));
-        const now = performance.now();
+        root.style.setProperty('--level', Math.min(1, peak / 48).toFixed(2)); // the mic's ring grows with the voice
         if (peak > LOUD) { heard = true; quietSince = 0; } else quietSince ||= now;
         const paused = heard && quietSince && now - quietSince > PAUSE_MS;
         if (paused || now - started > MAX_LISTEN_MS || (!heard && now - started > NO_SPEECH_MS)) stop();
@@ -145,13 +162,21 @@
       source.disconnect();
       recording = null;
       root.classList.remove('listening');
-      if (!heard) { input.placeholder = placeholder; return ''; }
+      root.style.setProperty('--level', '0');
+      input.placeholder = placeholder;
+      if (metered && !heard) { hint("I didn't catch that. Try again?"); return ''; }
       input.placeholder = 'Thinking...';
       try {
-        const type = rec.mimeType.split(';')[0];
+        const type = (rec.mimeType || chunks[0]?.type || 'audio/mp4').split(';')[0];
         const res = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': type }, body: new Blob(chunks, { type }) });
-        return (await res.json().catch(() => ({}))).text || '';
-      } finally { input.placeholder = placeholder; }
+        const text = (await res.json().catch(() => ({}))).text || '';
+        input.placeholder = placeholder;
+        if (!text) hint(res.ok ? "I didn't catch that. Try again?" : 'My ears are busy. Try again in a moment?');
+        return text;
+      } catch (err) {
+        input.placeholder = placeholder;
+        throw err;
+      }
     };
 
     // Plays a signed answer in Anmol's voice; resolves when it's finished, stopped or failed.
@@ -185,7 +210,7 @@
     const converse = async () => {
       while (talking) {
         let words = '';
-        try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); }
+        try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
         if (!talking || !words) break;
         await send(words);
       }
@@ -286,7 +311,7 @@
         try {
           const words = await listen();
           if (words) { input.value = words; input.focus(); }
-        } catch (err) { console.warn('Ask: microphone unavailable', err); }
+        } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
       });
       talk.addEventListener('click', () => {
         if (talking) { endTalk(); return; }

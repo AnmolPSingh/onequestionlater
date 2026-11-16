@@ -1,5 +1,3 @@
-import { DOME } from './shapes.js';
-
 // One particle cloud behind the whole page. Every frame it mixes two shapes per particle,
 // each particle starting at its own moment and swirling mid-flight, and every shape keeps
 // its own live motion, so nothing ever settles completely.
@@ -38,6 +36,7 @@ attribute float aSeed;
 attribute vec3 aNormal;
 uniform vec2 uFocus;
 uniform float uMorph, uSize, uLevel, uHigh, uGlobeX, uFly, uWalk, uVoice;
+uniform vec2 uDome; // the dome's centre height and radius, from shapes.domeFrame
 uniform float uBands[8]; // the voice, low to high, each 0..1: fast to rise, slow to fall (see Ask.astro)
 varying vec3 vColor;
 varying float vAlpha;
@@ -94,9 +93,9 @@ float band(float t) {
 // The dome the voice agent talks through. Each height of the shell answers one part of the voice, lows at the
 // base and highs at the crown, so a deep word swells it and an "s" frays its top. The ground inside ripples out
 // from the middle like cymatics: low sounds in the centre, high ones toward the wall.
-const vec2 DOME_C = vec2(0.0, ${DOME.y.toFixed(3)});
-const float DOME_R = ${DOME.r.toFixed(3)};
 vec3 dome(vec3 p, bool ground) {
+  vec2 DOME_C = vec2(0.0, uDome.x);
+  float DOME_R = uDome.y;
   float phase = aSeed * 6.2831;
   if (ground) {
     float d = length(p.xz) / (DOME_R * 0.92);
@@ -276,7 +275,7 @@ void main() {
 }`;
 
 const SILENT = new Float32Array(8);
-const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk', 'uVoice', 'uBands'];
+const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk', 'uVoice', 'uBands', 'uDome'];
 
 function compile(gl, type, src) {
   const shader = gl.createShader(type);
@@ -373,7 +372,7 @@ export function createScene(count) {
       gl.uniform1f(u.uAspect, innerWidth / innerHeight);
       gl.uniform1f(u.uSize, (innerWidth < 640 ? 1.35 : 1.7) * dpr);
     },
-    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], ground = 1, voice = 0, bands = SILENT }) {
+    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], ground = 1, voice = 0, bands = SILENT, dome = [-0.62, 1.45] }) {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.disable(gl.DEPTH_TEST);
       gl.depthMask(false);
@@ -419,6 +418,7 @@ export function createScene(count) {
       gl.uniform1f(u.uGlobeX, globeX);
       gl.uniform1f(u.uVoice, voice);
       gl.uniform1fv(u.uBands, bands);
+      gl.uniform2f(u.uDome, dome[0], dome[1]);
       gl.drawArrays(gl.POINTS, 0, count);
     },
     stop() {
