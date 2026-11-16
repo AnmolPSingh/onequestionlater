@@ -1,3 +1,5 @@
+import { DOME } from './shapes.js';
+
 // One particle cloud behind the whole page. Every frame it mixes two shapes per particle,
 // each particle starting at its own moment and swirling mid-flight, and every shape keeps
 // its own live motion, so nothing ever settles completely.
@@ -35,7 +37,8 @@ attribute vec4 aTo;
 attribute float aSeed;
 attribute vec3 aNormal;
 uniform vec2 uFocus;
-uniform float uMorph, uSize, uLevel, uHigh, uGlobeX, uFly, uWalk;
+uniform float uMorph, uSize, uLevel, uHigh, uGlobeX, uFly, uWalk, uVoice;
+uniform float uBands[8]; // the voice, low to high, each 0..1: fast to rise, slow to fall (see Ask.astro)
 varying vec3 vColor;
 varying float vAlpha;
 ${FIGURE_GLSL}
@@ -79,6 +82,45 @@ vec3 walked(vec3 p, bool figure) {
   return vec3(q, 0.0);
 }
 
+// The voice's spectrum at t (0 low .. 1 high), read smoothly between bands.
+float band(float t) {
+  float x = clamp(t, 0.0, 1.0) * 6.999;
+  int i = int(x);
+  float a = 0.0, b = 0.0;
+  for (int k = 0; k < 8; k++) { if (k == i) a = uBands[k]; if (k == i + 1) b = uBands[k]; }
+  return mix(a, b, fract(x));
+}
+
+// The dome the voice agent talks through. Each height of the shell answers one part of the voice, lows at the
+// base and highs at the crown, so a deep word swells it and an "s" frays its top. The ground inside ripples out
+// from the middle like cymatics: low sounds in the centre, high ones toward the wall.
+const vec2 DOME_C = vec2(0.0, ${DOME.y.toFixed(3)});
+const float DOME_R = ${DOME.r.toFixed(3)};
+vec3 dome(vec3 p, bool ground) {
+  float phase = aSeed * 6.2831;
+  if (ground) {
+    float d = length(p.xz) / (DOME_R * 0.92);
+    float fall = 1.0 - d * d;
+    float level = band(d);
+    float ripple = 0.55 + 0.45 * sin(d * 22.0 - uTime * 7.0); // rings travel outward while someone speaks
+    float idle = sin(p.x * 3.4 + uTime * 0.9 + sin(p.z * 2.0)) * 0.5 + sin(p.z * 4.6 - uTime * 1.3) * 0.3;
+    p.y = DOME_C.y + DOME_R * 0.52 - p.z * 0.16 + (idle * 0.04 + level * ripple * 0.32) * fall;
+    p.z *= 0.35;
+    gLit = 0.45 + level * ripple * 1.4;
+    gGrow = 1.0 + level * 0.5;
+    return p;
+  }
+  float h = clamp((p.y - DOME_C.y) / DOME_R, 0.0, 1.0);
+  float level = band(h);
+  float spike = step(0.88, fract(aSeed * 17.0)) * band(0.75 + h * 0.25); // a few dots flick out on the highs
+  vec2 r = p.xy - DOME_C;
+  p.xy = DOME_C + r * (1.0 + level * 0.06 + uVoice * 0.02 + spike * 0.09);
+  p.xy += vec2(sin(uTime * (0.6 + aSeed) + phase * 13.0), cos(uTime * (0.5 + aSeed) + phase * 7.0)) * 0.004;
+  gLit = 1.0 + level * 1.2 + spike;
+  gGrow = 1.0 + spike * 0.6;
+  return p;
+}
+
 vec3 live(vec4 s) {
   float code = floor(s.w + 0.001);
   vec3 p = s.xyz;
@@ -86,7 +128,9 @@ vec3 live(vec4 s) {
   gLit = 1.0;
   gGrow = 1.0;
   gFacing = vec3(0.0, 0.0, 1.0);
-  if (code > 11.5) {
+  if (code > 12.5) {
+    return dome(p, code > 13.5);
+  } else if (code > 11.5) {
     // Me, lit the way Elimar lights a scene: dots where light falls, a few larger flecks. Life comes from
     // movement, not flicker: each dot wanders on its own, the shadows and edges fray more than the lit face,
     // and a few lift off as dust and drift out into the dark before they come back.
@@ -231,7 +275,8 @@ void main() {
   gl_FragColor = vec4(vec3(v) * vec3(1.0, 0.985, 0.97), uGround);
 }`;
 
-const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk'];
+const SILENT = new Float32Array(8);
+const UNIFORMS = ['uMouse', 'uLean', 'uPan', 'uFocus', 'uAspect', 'uTime', 'uMorph', 'uSize', 'uLevel', 'uHigh', 'uGlobeX', 'uTurn', 'uZoom', 'uFly', 'uWalk', 'uVoice', 'uBands'];
 
 function compile(gl, type, src) {
   const shader = gl.createShader(type);
@@ -328,7 +373,7 @@ export function createScene(count) {
       gl.uniform1f(u.uAspect, innerWidth / innerHeight);
       gl.uniform1f(u.uSize, (innerWidth < 640 ? 1.35 : 1.7) * dpr);
     },
-    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], ground = 1 }) {
+    draw({ from, to, morph, time, mouse, level = 0, high = 0, globeX = 0, turn = 0, lean = [0, 0], pan = [0, 0], zoom = 1, fly = 0, walk = 0, focus = [0, 0], ground = 1, voice = 0, bands = SILENT }) {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.disable(gl.DEPTH_TEST);
       gl.depthMask(false);
@@ -372,6 +417,8 @@ export function createScene(count) {
       gl.uniform1f(u.uLevel, level);
       gl.uniform1f(u.uHigh, high);
       gl.uniform1f(u.uGlobeX, globeX);
+      gl.uniform1f(u.uVoice, voice);
+      gl.uniform1fv(u.uBands, bands);
       gl.drawArrays(gl.POINTS, 0, count);
     },
     stop() {

@@ -58,6 +58,15 @@
     const PAUSE_MS = 1200;
     const NO_SPEECH_MS = 8000;
     const MAX_LISTEN_MS = 30000;
+    // The dome's ears: the spectrum in log-spaced bands across speech, each rising fast and falling slowly,
+    // divided by a slowly fading peak so a quiet voice moves it as much as a loud one.
+    const BANDS = 8;
+    const LOW_HZ = 90;
+    const HIGH_HZ = 5000;
+    const ATTACK = 0.55;
+    const RELEASE = 0.08;
+    const PEAK_FADE = 0.995;
+    const PEAK_FLOOR = 0.12;
     const mic = root.querySelector('[data-ask-mic]');
     const talk = root.querySelector('[data-ask-talk]');
     const placeholder = input.placeholder;
@@ -65,18 +74,51 @@
     let recording = null; // { stop } while the mic is open
     let speaking = null; // the answer being played
     let talking = false; // the voice agent is on
+    let meter = null; // hears the mic while listening and the answer while speaking, never sent to the speakers
+    let wave;
+    let spectrum;
+    let edges;
+    let peak = PEAK_FLOOR;
+    const bands = new Float32Array(BANDS);
 
-    const wake = () => { sound ??= new AudioContext(); sound.resume(); };
+    const wake = () => {
+      if (!sound) {
+        sound = new AudioContext();
+        meter = sound.createAnalyser();
+        meter.fftSize = 1024;
+        meter.smoothingTimeConstant = 0.5;
+        wave = new Uint8Array(meter.fftSize);
+        spectrum = new Uint8Array(meter.frequencyBinCount);
+        const hz = sound.sampleRate / meter.fftSize;
+        edges = Array.from({ length: BANDS + 1 }, (_, b) => Math.round((LOW_HZ * (HIGH_HZ / LOW_HZ) ** (b / BANDS)) / hz));
+        for (let b = 1; b <= BANDS; b++) edges[b] = Math.max(edges[b], edges[b - 1] + 1);
+      }
+      sound.resume();
+    };
+
+    const hear = () => {
+      meter.getByteFrequencyData(spectrum);
+      const raw = [];
+      for (let b = 0; b < BANDS; b++) {
+        let sum = 0;
+        for (let i = edges[b]; i < edges[b + 1]; i++) sum += spectrum[i];
+        raw.push(sum / ((edges[b + 1] - edges[b]) * 255));
+      }
+      peak = Math.max(...raw, peak * PEAK_FADE, PEAK_FLOOR);
+      raw.forEach((v, b) => {
+        const target = Math.min(1, v / peak);
+        bands[b] += (target - bands[b]) * (target > bands[b] ? ATTACK : RELEASE);
+      });
+      return bands;
+    };
 
     const listen = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
       const rec = new MediaRecorder(stream);
       const chunks = [];
       rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-      const meter = sound.createAnalyser();
       const source = sound.createMediaStreamSource(stream);
       source.connect(meter);
-      const wave = new Uint8Array(meter.fftSize);
       const started = performance.now();
       let heard = false;
       let quietSince = 0;
@@ -121,6 +163,7 @@
         const clip = sound.createBufferSource();
         clip.buffer = await sound.decodeAudioData(await res.arrayBuffer());
         clip.connect(sound.destination);
+        clip.connect(meter);
         speaking = clip;
         await new Promise((done) => { clip.onended = done; clip.start(); });
       } catch (err) {
@@ -129,7 +172,9 @@
     };
 
     const endTalk = () => {
+      if (talking) dispatchEvent(new CustomEvent('ask:talk', { detail: null })); // I come back from the dome
       talking = false;
+      document.documentElement.classList.remove('talking');
       talk.setAttribute('aria-pressed', 'false');
       talk.setAttribute('aria-label', 'Talk with Anmol AI');
       recording?.stop();
@@ -248,6 +293,8 @@
         if (busy || recording) return;
         wake();
         talking = true;
+        document.documentElement.classList.add('talking');
+        dispatchEvent(new CustomEvent('ask:talk', { detail: { bands: hear } })); // the bust becomes the dome
         talk.setAttribute('aria-pressed', 'true');
         talk.setAttribute('aria-label', 'Stop talking');
         open();
