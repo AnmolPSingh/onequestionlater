@@ -183,6 +183,7 @@ html.talking .ask-veil { background: rgb(0 0 0 / 0.2); backdrop-filter: none; -w
 .ask.open { padding: 1.2rem 1.25rem 0; border: 1px solid var(--glass-edge); border-radius: 1rem; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); }
 .ask.open .ask-bar { padding: 0.7rem 0 0.9rem; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .ask.open .ask-foot { display: flex; justify-content: space-between; align-items: center; margin: 0 -1.25rem; padding: 0.35rem 0.65rem; border-top: 1px solid var(--hair); border-radius: 0 0 1rem 1rem; background: rgb(255 255 255 / 0.03); }
+.ask-note { flex: 1; margin: 0 0.5rem; color: var(--dim); font-size: 0.72rem; line-height: 1.3; text-align: center; }
 .ask.open .ask-panel { display: block; }
 .ask-log { display: grid; align-content: start; gap: 0.75rem; min-height: min(12rem, 24svh); max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
 .ask-log:empty { display: none; }

@@ -14,6 +14,8 @@ interface Props {
   plain?: boolean;
   /** The home page ends on its own close, which carries the footer. */
   noFooter?: boolean;
+  /** Private pages stay out of search engines. */
+  noindex?: boolean;
 }
 
 const {
@@ -21,6 +23,7 @@ const {
   description = 'I follow questions. Occasionally they turn into careers.',
   plain = false,
   noFooter = false,
+  noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // Every page but the home page shares its own title.
@@ -35,6 +38,7 @@ const shareDescription = Astro.props.description ?? `I follow questions. Occasio
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0d0c0b" />
     <meta property="og:type" content="website" />

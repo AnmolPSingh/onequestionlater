@@ -1,0 +1,117 @@
+---
+// Anmol's private view of what Anmol AI has heard (api/insights.js). Not linked anywhere and kept out of search.
+// It asks for the INSIGHTS_TOKEN once and keeps it in this browser. Everything visitors wrote is shown as text only.
+import { SITE_NAME } from '../config';
+import Base from '../layouts/Base.astro';
+---
+<Base title={`Insights | ${SITE_NAME}`} plain noindex noFooter>
+  <main id="main" class="insights">
+    <h1>What Anmol AI has heard</h1>
+    <form class="in-key" data-key hidden>
+      <label for="in-token">Insights key</label>
+      <input id="in-token" type="password" aria-describedby="in-error" autocomplete="current-password" required />
+      <button type="submit">Open</button>
+      <p class="in-error" id="in-error" data-error role="alert"></p>
+    </form>
+    <div data-out hidden>
+      <section><h2>Leads</h2><div data-leads></div></section>
+      <section><h2>Who's asking</h2><div class="in-counts" data-counts></div></section>
+      <section><h2>Gaps: questions it couldn't answer</h2><ol data-gaps></ol></section>
+      <section><h2>Latest conversations</h2><div data-convs></div></section>
+      <button type="button" class="in-forget" data-forget>Forget the key on this browser</button>
+    </div>
+    <noscript><p>This page needs JavaScript.</p></noscript>
+  </main>
+</Base>
+
+<style>
+  .insights { max-width: 56rem; margin: 0 auto; padding: 6rem 5vw 4rem; overflow-wrap: anywhere; }
+  .insights h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin-bottom: 2rem; }
+  .insights h2 { font-size: 1.1rem; margin: 2.5rem 0 0.75rem; }
+  .in-key { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+  .in-key input { flex: 1 1 12rem; padding: 0.6rem 0.8rem; border: 1px solid var(--hair); border-radius: 0.5rem; background: transparent; color: var(--paper); }
+  .in-key button, .in-forget { padding: 0.6rem 1rem; border: 1px solid var(--hair); border-radius: 0.5rem; color: var(--paper); }
+  .in-error { flex-basis: 100%; color: var(--paper); }
+  .in-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1.25rem; }
+  .in-counts h3 { font-size: 0.85rem; color: var(--dim); font-weight: 500; margin-bottom: 0.3rem; }
+  .insights details { border-top: 1px solid var(--hair); padding: 0.75rem 0; }
+  .insights summary { cursor: pointer; }
+  .insights .meta { color: var(--dim); font-size: 0.85rem; }
+  .insights dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 1rem; margin: 0.75rem 0; }
+  .insights dt { color: var(--dim); }
+  .insights .turn { margin: 0.6rem 0; white-space: pre-wrap; }
+  .insights .q { color: var(--dim); }
+  .in-forget { margin-top: 3rem; }
+</style>
+
+<script>
+  const KEY = 'insights-token';
+  const form = document.querySelector('[data-key]');
+  const input = document.querySelector('#in-token');
+  const error = document.querySelector('[data-error]');
+  const out = document.querySelector('[data-out]');
+
+  const read = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
+  const keep = (v) => { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch { /* private mode */ } };
+
+  // Builds elements from text only: nothing a visitor wrote is ever read as HTML.
+  const el = (tag, text, className) => {
+    const node = document.createElement(tag);
+    if (text != null) node.textContent = String(text);
+    if (className) node.className = className;
+    return node;
+  };
+  const when = (iso) => (iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '');
+
+  const conversation = (c) => {
+    const n = c.notes || {};
+    const box = el('details');
+    const headline = n.problem || c.turns?.[0]?.q || 'A conversation';
+    box.append(el('summary', `${headline}`));
+    box.append(el('p', [when(c.updated), n.visitor_type, c.country, c.device, c.channel, c.page, c.referrer && `via ${c.referrer}`].filter(Boolean).join(' · '), 'meta'));
+    const facts = el('dl');
+    for (const [label, value] of [['Name', n.name], ['Email', n.email], ['Organisation', n.org_type], ['Intent', n.intent], ['Problem', n.problem], ['First read', n.vision]]) {
+      if (value) facts.append(el('dt', label), el('dd', value));
+    }
+    if (facts.childElementCount) box.append(facts);
+    for (const t of c.turns || []) box.append(el('p', `> ${t.q}`, 'turn q'), el('p', t.a, 'turn'));
+    return box;
+  };
+
+  const show = (data) => {
+    const leads = document.querySelector('[data-leads]');
+    leads.replaceChildren(...(data.leads.length ? data.leads.map(conversation) : [el('p', 'No leads yet.', 'meta')]));
+    document.querySelector('[data-counts]').replaceChildren(...Object.entries({ Visitors: data.counts.visitors, Countries: data.counts.countries, 'Came from': data.counts.referrers, 'Started on': data.counts.pages, Channel: data.counts.channels }).map(([title, rows]) => {
+      const box = el('div');
+      const list = el('ul');
+      rows.slice(0, 8).forEach(([name, count]) => list.append(el('li', `${name}: ${count}`)));
+      box.append(el('h3', title), list);
+      return box;
+    }));
+    const gaps = document.querySelector('[data-gaps]');
+    gaps.replaceChildren(...(data.gaps.length ? data.gaps.map(([q, count]) => el('li', `${q} (${count})`)) : [el('li', 'None yet.', 'meta')]));
+    document.querySelector('[data-convs]').replaceChildren(...data.conversations.map(conversation));
+    form.hidden = true;
+    out.hidden = false;
+  };
+
+  const load = async (token) => {
+    error.textContent = '';
+    try {
+      const res = await fetch('/api/insights', { headers: { authorization: `Bearer ${token}` } });
+      if (res.status === 403) { keep(null); form.hidden = false; error.textContent = 'That key did not work.'; return; }
+      if (!res.ok) throw new Error(`status ${res.status}`);
+      keep(token);
+      show(await res.json());
+    } catch (err) {
+      console.warn('insights: could not load', err);
+      form.hidden = false;
+      error.textContent = 'Could not load the insights. Try again in a moment.';
+    }
+  };
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); load(input.value.trim()); });
+  document.querySelector('[data-forget]').addEventListener('click', () => { keep(null); location.reload(); });
+  const saved = read();
+  if (saved) load(saved); else form.hidden = false;
+</script>
