@@ -1,5 +1,5 @@
 ---
-// "Ask about Anmol": a mic that floats on every screen, saying "Talk to me". A tap opens the conversation and
+// "Ask about Anmol": a mic that floats on every screen, saying "Talk to Anmol AI". A tap opens the conversation and
 // starts talking straight away, with the bust turning into the dome behind it. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
 // It needs JS, so without it neither the mic nor the box is shown. No suggested questions: the visitor leads.
@@ -12,7 +12,7 @@
   <span class="ask-launch-icon" aria-hidden="true"><i></i><i></i>
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
   </span>
-  <span class="ask-launch-label">Talk to me</span>
+  <span class="ask-launch-label">Talk to Anmol AI</span>
 </button>
 <div class="ask-veil" data-ask-veil></div>
 <div class="ask" data-ask role="dialog" aria-label="Anmol AI" hidden>
@@ -38,6 +38,7 @@
     <button type="button" class="ask-clear" data-ask-clear aria-label="Start over">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12M4.6 14.6l8.8-8.8a2 2 0 0 1 2.8 0l2 2a2 2 0 0 1 0 2.8L11 18H8z"/><path d="m9.2 10 4.8 4.8"/></svg>
     </button>
+    <p class="ask-note">I keep chats for 90 days so I can follow up. Your contact details, only if you share them.</p>
     <button type="button" class="ask-close" data-ask-close aria-label="Close the conversation">&times;</button>
   </div>
 </div>
@@ -61,6 +62,9 @@
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const history = [];
     let busy = false;
+    // One id per conversation, so the server can remember it; "start over" begins a new one.
+    const fresh = () => { const id = crypto.randomUUID(); try { sessionStorage.setItem('ask-conversation', id); } catch { /* private mode */ } return id; };
+    let conversation = (() => { try { return sessionStorage.getItem('ask-conversation'); } catch { return null; } })() || fresh();
 
     // Voice. Hearing stops at a pause after speech, a second tap, or the cap; silence alone is never sent.
     const LOUD = 6; // peak wobble around the waveform's middle (128) that counts as speech; low, as noise suppression quietens voices
@@ -232,7 +236,7 @@
         let words = '';
         try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
         if (!talking || !words) break;
-        await send(words);
+        await send(words, 'voice');
       }
       endTalk();
     };
@@ -287,7 +291,7 @@
       step();
     });
 
-    const send = async (question) => {
+    const send = async (question, channel = 'text') => {
       const q = question.trim();
       if (!q || busy) return;
       open();
@@ -304,7 +308,7 @@
       let text;
       let signature = null;
       try {
-        const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-10), website: trap.value }) });
+        const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history.slice(-10), website: trap.value, conversation, channel, page: location.pathname, referrer: document.referrer }) });
         const data = await res.json().catch(() => ({}));
         text = data.reply || (res.status === 429 ? 'Too many curious people at once. Give me a minute, or skip the queue and book a call with me: https://calendly.com/anmol-philanthropel/let-s-talk' : "I've lost the signal for a moment. Reach me at anmol@philanthropel.com, or book a call: https://calendly.com/anmol-philanthropel/let-s-talk");
         if (data.reply) { history.push({ role: 'assistant', content: data.reply }); signature = data.voice; }
@@ -360,6 +364,7 @@
     clear.addEventListener('click', () => {
       if (busy) return;
       history.length = 0;
+      conversation = fresh();
       log.replaceChildren(greeting.cloneNode(true));
       input.focus();
     });
