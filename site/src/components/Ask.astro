@@ -1,14 +1,21 @@
 ---
-// "Ask about Anmol", in the hero: one terminal line that opens into a short conversation. The questions go
+// "Ask about Anmol": a mic that floats on every screen, saying "Talk to Anmol AI". A tap opens the conversation and
+// starts talking straight away, with the bust turning into the dome behind it. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
-// It needs JS, so without it the line isn't shown at all. No suggested questions: the visitor leads.
+// It needs JS, so without it neither the mic nor the box is shown. No suggested questions: the visitor leads.
 // Voice, where the browser can record: the mic dictates into the line (site/api/transcribe.js), and the talk
 // button is the voice agent: it listens, sends when the visitor pauses, answers aloud in Anmol's voice
 // (site/api/speak.js), then listens again, until it's tapped off or hears nothing.
-// Open, it's one box over a dimmed, blurred hero: the greeting, the conversation, the prompt, then a foot.
+// Open, it's one box over the dimmed page: the greeting, the conversation, the prompt, then a foot.
 ---
+<button type="button" class="ask-launch" data-ask-launch hidden>
+  <span class="ask-launch-icon" aria-hidden="true"><i></i><i></i>
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+  </span>
+  <span class="ask-launch-label">Talk to Anmol AI</span>
+</button>
 <div class="ask-veil" data-ask-veil></div>
-<div class="ask" data-ask hidden>
+<div class="ask" data-ask role="dialog" aria-label="Anmol AI" hidden>
   <div class="ask-panel" data-ask-panel>
     <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
       <p class="ask-line ask-bot">Hey! I'm Anmol AI. How can I help you today?</p>
@@ -48,6 +55,8 @@
     const close = root.querySelector('[data-ask-close]');
     const clear = root.querySelector('[data-ask-clear]');
     const veil = document.querySelector('[data-ask-veil]');
+    const launch = document.querySelector('[data-ask-launch]');
+    launch.hidden = false;
     const greeting = log.firstElementChild.cloneNode(true);
     const trap = root.querySelector('.ask-trap');
     const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -211,6 +220,17 @@
     };
 
     // The voice agent: listen, answer aloud, listen again. Silence, an error or a tap ends it.
+    const startTalk = () => {
+      wake();
+      talking = true;
+      document.documentElement.classList.add('talking');
+      dispatchEvent(new CustomEvent('ask:talk', { detail: { bands: hear } })); // the bust becomes the dome
+      talk.setAttribute('aria-pressed', 'true');
+      talk.setAttribute('aria-label', 'Stop talking');
+      open();
+      converse();
+    };
+
     const converse = async () => {
       while (talking) {
         let words = '';
@@ -224,8 +244,13 @@
     const asked = () => { try { return Number(sessionStorage.getItem('ask-count')) || 0; } catch { return 0; } };
     const count = () => { try { sessionStorage.setItem('ask-count', String(asked() + 1)); } catch { /* private mode */ } };
 
-    const open = () => { root.classList.add('open'); veil.classList.add('on'); };
-    const shut = () => { root.classList.remove('open'); veil.classList.remove('on'); input.blur(); };
+    const open = () => { root.classList.add('open'); veil.classList.add('on'); launch.classList.add('away'); };
+    const shut = () => {
+      if (!root.classList.contains('open')) return;
+      root.classList.remove('open'); veil.classList.remove('on'); launch.classList.remove('away');
+      input.blur();
+      launch.focus({ preventScroll: true });
+    };
 
     // Text and links only: the answer is never inserted as HTML, and only approved addresses become links.
     const render = (el, text) => {
@@ -303,8 +328,18 @@
     };
 
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
-    input.addEventListener('focus', open);
-    if (navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.AudioContext) {
+    const canTalk = Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.AudioContext);
+    // The floating mic: talking starts at once; where the browser can't record, it opens the box to type in.
+    launch.addEventListener('click', () => {
+      if (canTalk && !busy && !recording) startTalk();
+      else { open(); input.focus(); }
+    });
+    // On phones it shrinks to just the mic once the hero has gone, so it never sits on the words.
+    const hero = document.querySelector('.hero');
+    if (hero && 'IntersectionObserver' in window) {
+      new IntersectionObserver(([entry]) => launch.classList.toggle('compact', !entry.isIntersecting), { threshold: 0.35 }).observe(hero);
+    }
+    if (canTalk) {
       mic.hidden = false;
       talk.hidden = false;
       // Dictation: the words land in the line, to edit or send. While talking, a tap just means "I'm done".
@@ -320,14 +355,7 @@
       talk.addEventListener('click', () => {
         if (talking) { endTalk(); return; }
         if (busy || recording) return;
-        wake();
-        talking = true;
-        document.documentElement.classList.add('talking');
-        dispatchEvent(new CustomEvent('ask:talk', { detail: { bands: hear } })); // the bust becomes the dome
-        talk.setAttribute('aria-pressed', 'true');
-        talk.setAttribute('aria-label', 'Stop talking');
-        open();
-        converse();
+        startTalk();
       });
     }
 
