@@ -155,12 +155,31 @@ html:not(.calm) .scroll-hint { animation: hint 2.2s ease-in-out infinite; }
 html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross the face */
 @keyframes hint { 0%, 100% { transform: scaleY(0.25); opacity: 0.4; } 50% { transform: scaleY(1); opacity: 1; } }
 
-/* ---------- Ask about Anmol: one terminal line in the hero that opens into a conversation ---------- */
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ask { position: absolute; left: 50%; bottom: 8svh; z-index: 5; width: min(38rem, calc(100vw - 2 * var(--gutter))); transform: translateX(-50%); }
-.ask[hidden] { display: none; }
-.ask-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.75rem 0.65rem 1.1rem; border: 1px solid var(--glass-edge); border-radius: 999px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); transition: border-color 0.25s; }
-.ask-bar:focus-within { border-color: var(--onair); box-shadow: var(--onair-glow); }
+/* ---------- Ask: one mic that floats on every screen and opens into the conversation ---------- */
+.ask-launch { position: fixed; right: max(var(--gutter), env(safe-area-inset-right)); bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem)); z-index: 45; display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.4rem 1.15rem 0.4rem 0.4rem; border: 1px solid var(--glass-edge); border-radius: 999px; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); color: var(--paper); font: inherit; font-size: 0.95rem; font-weight: 500; letter-spacing: 0; cursor: pointer; transition: opacity 0.35s, transform 0.35s, border-color 0.2s, box-shadow 0.2s, padding 0.3s; }
+.ask-launch[hidden] { display: none; }
+.ask-launch:hover, .ask-launch:focus-visible { border-color: var(--onair); box-shadow: var(--onair-glow), var(--glass-lift); }
+.ask-launch.away { opacity: 0; transform: translateY(0.75rem) scale(0.96); pointer-events: none; }
+html.loading .ask-launch { visibility: hidden; }
+.ask-launch-icon { position: relative; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--onair); border-radius: 50%; color: var(--onair); box-shadow: var(--onair-glow); }
+.ask-launch-icon i { position: absolute; inset: -1px; border: 1px solid var(--onair); border-radius: 50%; opacity: 0; pointer-events: none; } /* the pulse: rings leaving the mic, like sound */
+html:not(.calm) .ask-launch-icon i { animation: ripple 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+html:not(.calm) .ask-launch-icon i + i { animation-delay: 1.2s; }
+html:not(.calm) .ask-launch:is(:hover, :focus-visible) .ask-launch-icon i { animation-duration: 1.6s; }
+@keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.9); opacity: 0; } }
+.ask-launch-label { white-space: nowrap; }
+html.whiteout .ask-launch { color: var(--ink); background: rgb(255 255 255 / 0.6); border-color: rgb(13 12 11 / 0.18); box-shadow: 0 10px 30px rgb(0 0 0 / 0.12); }
+@media (max-width: 639px) {
+  .ask-launch.compact { padding: 0.4rem; gap: 0; } /* past the hero, phones get just the mic, so it never sits on the words */
+  .ask-launch.compact .ask-launch-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+
+.ask { position: fixed; left: 50%; bottom: max(8svh, calc(env(safe-area-inset-bottom) + 1rem)); z-index: 47; width: min(38rem, calc(100vw - 2 * var(--gutter))); padding: 1.2rem 1.25rem 0; border: 1px solid var(--glass-edge); border-radius: 1rem; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); transform: translateX(-50%); --onair: #f4f8ff; --onair-glow: 0 0 10px rgb(214 230 255 / 0.55), 0 0 2px rgb(214 230 255 / 0.4); }
+.ask[hidden], .ask:not(.open) { display: none; }
+html:not(.calm) .ask.open { animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 1rem); } }
+.ask-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0 0.9rem; }
 .ask-prompt { color: var(--onair); text-shadow: var(--onair-glow); font-weight: 500; }
 .ask-bar input[type='text'] { flex: 1; min-width: 0; padding: 0.2rem 0; border: 0; background: none; color: var(--paper); font: inherit; font-size: 1rem; caret-color: var(--onair); outline: none; } /* 16px, so iPhones don't zoom in on it */
 .ask-bar input::placeholder { color: rgb(243 238 228 / 0.78); }
@@ -168,22 +187,16 @@ html.scrolled .scroll-hint { visibility: hidden; } /* it would otherwise cross t
 .ask-send:hover, .ask-close:hover, .ask-clear:hover, .ask-mic:hover, .ask-talk:hover { color: var(--paper); background: var(--hair); }
 .ask-bar.busy .ask-send { opacity: 0.35; pointer-events: none; }
 .ask-mic[hidden], .ask-talk[hidden] { display: none; }
-/* Voice: the mic glows while it hears, the talk button while the voice agent is on. */
 .ask.listening .ask-mic, .ask-talk[aria-pressed='true'] { color: var(--onair); filter: drop-shadow(0 0 6px var(--onair)); }
 html:not(.calm) .ask.listening .ask-mic { animation: listening 1.4s ease-in-out infinite; }
 .ask.listening .ask-mic { box-shadow: 0 0 0 calc(2px + var(--level, 0) * 12px) rgb(244 248 255 / 0.2); transition: box-shadow 0.08s; } /* a ring that grows with the voice, so you can see it hearing you */
-.ask.listening:not(.open) .ask-bar, .ask.listening.open { border-color: var(--onair); box-shadow: var(--onair-glow), var(--glass-lift); }
+.ask.listening { border-color: var(--onair); box-shadow: var(--onair-glow), var(--glass-lift); }
 @keyframes listening { 50% { opacity: 0.45; } }
 .ask-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.ask-panel, .ask-foot { display: none; }
-/* Open, the bar becomes one box (greeting, conversation, prompt, foot) over the hero, which dims and blurs behind it. */
-.ask-veil { position: fixed; inset: 0; z-index: 4; background: rgb(0 0 0 / 0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+.ask-veil { position: fixed; inset: 0; z-index: 46; background: rgb(0 0 0 / 0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.35s; }
 .ask-veil.on { opacity: 1; pointer-events: auto; }
 html.talking .ask-veil { background: rgb(0 0 0 / 0.2); backdrop-filter: none; -webkit-backdrop-filter: none; } /* the dome stays sharp behind the conversation */
-.ask.open { padding: 1.2rem 1.25rem 0; border: 1px solid var(--glass-edge); border-radius: 1rem; background: var(--glass); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: var(--glass-lift); }
-.ask.open .ask-bar { padding: 0.7rem 0 0.9rem; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-.ask.open .ask-foot { display: flex; justify-content: space-between; align-items: center; margin: 0 -1.25rem; padding: 0.35rem 0.65rem; border-top: 1px solid var(--hair); border-radius: 0 0 1rem 1rem; background: rgb(255 255 255 / 0.03); }
-.ask.open .ask-panel { display: block; }
+.ask-foot { display: flex; justify-content: space-between; align-items: center; margin: 0 -1.25rem; padding: 0.35rem 0.65rem; border-top: 1px solid var(--hair); border-radius: 0 0 1rem 1rem; background: rgb(255 255 255 / 0.03); }
 .ask-log { display: grid; align-content: start; gap: 0.75rem; min-height: min(12rem, 24svh); max-height: 42svh; overflow-y: auto; overscroll-behavior: contain; }
 .ask-log:empty { display: none; }
 .ask-line { margin: 0; font-size: 1rem; line-height: 1.5; overflow-wrap: break-word; white-space: pre-line; } /* answers keep their line breaks, so lists stay lists */
@@ -194,7 +207,7 @@ html.talking .ask-veil { background: rgb(0 0 0 / 0.2); backdrop-filter: none; -w
 .ask-line.thinking::after { content: ''; display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.15em; background: var(--onair); box-shadow: var(--onair-glow); }
 html:not(.calm) .ask-line.thinking::after { animation: caret 1s steps(2, start) infinite; }
 @keyframes caret { to { visibility: hidden; } }
-@media (max-width: 639px) { .ask { bottom: 5svh; } .ask-log { max-height: 38svh; } }
+@media (max-width: 639px) { .ask { bottom: max(5svh, calc(env(safe-area-inset-bottom) + 0.75rem)); } .ask-log { max-height: 38svh; } }
 
 /* ---------- Statement: held on screen while the figure turns and moves to the right ---------- */
 .statement-pin { display: grid; align-content: center; gap: 1.75rem; min-height: 100svh; padding: 18svh var(--gutter); max-width: 62rem; }
