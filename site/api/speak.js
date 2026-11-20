@@ -1,12 +1,14 @@
 // Anmol AI's spoken answers, in Anmol's cloned voice through ElevenLabs. It only voices answers the chat itself
 // wrote: each carries a signature from chat.js, checked here, so no one can make the voice say anything else.
 // Links are left out of the speech (they stay in the written answer). Audio streams straight back, never stored.
+// The one exception is the greeting, a fixed line the page asks for with { greet: true } when the voice agent opens.
 // Configuration: ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL (optional). Limits count under "say".
 import { timingSafeEqual } from 'node:crypto';
 import { json, allowedOrigin, visitor, withinLimits, sign } from './_guard.js';
 
 const MODEL = process.env.ELEVENLABS_MODEL || 'eleven_flash_v2_5'; // the fastest to first sound, which matters in a conversation
 const MAX_TEXT = 2000; // the chat's own longest answer
+export const GREETING = "Hey! I'm Anmol AI. How can I help you today?"; // the same line the chat box opens with
 
 const spoken = (text) => text.replace(/(https?:\/\/|mailto:)[^\s<>"']+/g, '').replace(/\s+([.,;:!?])/g, '$1').replace(/[:,]\s*$/gm, '.').replace(/\s{2,}/g, ' ').trim();
 
@@ -18,7 +20,8 @@ export async function POST(request) {
 
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad request' }, 400); }
-  const text = typeof body?.text === 'string' ? body.text : '';
+  const greet = body?.greet === true;
+  const text = greet ? GREETING : typeof body?.text === 'string' ? body.text : '';
   if (!text || text.length > MAX_TEXT) return json({ error: 'bad request' }, 400);
 
   const key = process.env.ELEVENLABS_API_KEY;
@@ -27,7 +30,7 @@ export async function POST(request) {
     console.error('say: ELEVENLABS_API_KEY or ELEVENLABS_VOICE_ID is not set');
     return json({ error: 'unavailable' }, 503);
   }
-  if (!same(body?.voice, await sign(text))) return json({ error: 'forbidden' }, 403);
+  if (!greet && !same(body?.voice, await sign(text))) return json({ error: 'forbidden' }, 403);
 
   const words = spoken(text);
   if (!words) return new Response(null, { status: 204 }); // nothing but a link: nothing to say
