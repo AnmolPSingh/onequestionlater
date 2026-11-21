@@ -44,6 +44,7 @@ test('similar spots a repeated reply, salvage rescues a refused tool call', () =
   assert.equal(parseAnswer(salvage(body)).reply, 'Hi');
   assert.equal(salvage('{"error":{"message":"nope"}}'), null);
   assert.equal(salvage('not json'), null);
+  assert.equal(parseAnswer(salvage(JSON.stringify({ error: { failed_generation: 'Who reads them?' } }))).reply, 'Who reads them?');
 });
 
 test('compact sends only what is known, and nextStep times the detail and the handoff', () => {
@@ -51,10 +52,12 @@ test('compact sends only what is known, and nextStep times the detail and the ha
   assert.deepEqual(compact({ problem: 'x', answered: true, brief: { goal: 'y', budget: '' } }), { problem: 'x', brief: { goal: 'y' } });
   assert.equal(nextStep(null), ''); // never on the first reply
   assert.match(nextStep({ turns: [{}], notes: {} }), /one detail/);
+  assert.match(nextStep({ turns: [{}], notes: { detail: 'Leeds', brief: { problem: 'p' } } }), /what good would look like/);
+  assert.match(nextStep({ turns: [{}], notes: { detail: 'Leeds', brief: { problem: 'p', goal: 'g' } } }), /how it happens today/);
   assert.equal(nextStep({ turns: [{}], notes: { asked_detail: true } }), '');
   const ready = { turns: [{}, {}], notes: { asked_detail: true, brief: { problem: 'p', goal: 'g', budget: 'b' } } };
   assert.match(nextStep(ready), /Anmol will see a summary/);
-  assert.equal(nextStep({ ...ready, notes: { ...ready.notes, offered_handoff: true } }), '');
+  assert.doesNotMatch(nextStep({ ...ready, notes: { ...ready.notes, offered_handoff: true } }), /summary/);
 });
 
 test('validEmail', () => {
