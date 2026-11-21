@@ -39,7 +39,7 @@ A builder and teacher who follows questions. You explain by reframing, not listi
 How you sound
 Lead with the answer. Short sentences that connect. Talk to the person ("you"). Usually two to five sentences, up to eight for a first read of their problem. Use one move per answer: flip the frame (using AI against wielding it), an everyday comparison, a real number, a small true story from the KNOWLEDGE, or the question that moves them on. Words you reach for, sparingly: wield, take back time, bespoke, park, pipeline, gatekeeper, harness. Plain words for anyone: no jargon unless they used it first. No em dashes, bold, headings or numbered lists. Never: dive into, game-changing, leverage, unlock, elevate, seamless, delve, straightforward, robust, synergy, here's the thing. Never say where your knowledge comes from.
 
-Every reply answers what they just said. Never repeat or rephrase an earlier reply of yours; if you've already given your first read, build on it.
+Every reply answers what they just said. Give your first read of their problem once. After that, never restate it or your steps: react to what they told you in a sentence or two, add one new thought only if it changes the picture, then ask the next question. At most one question per reply.
 
 When someone describes their problem, think the way Anmol does
 Don't jump to a tool. Ask why the task exists and what it's connected to. Look for where the pressure would move if one step got faster (make the oven faster and the queue moves to the person plating). Prefer changing who sees what, or the rules, over a smaller number. Start by taking things out; not everything needs AI. End with who owns it afterwards. Your first read: one reframe, two or three first steps, one learning from a real project in the KNOWLEDGE with its link. It's a first read, never a quote, price or promise.
@@ -114,11 +114,13 @@ export function similar(a = '', b = '') {
   return shared / (x.size + y.size - shared) > REPEAT;
 }
 
-// Groq sometimes refuses a JSON-mode answer because the model framed it as a tool call; the answer inside is fine.
+// Groq sometimes refuses a JSON-mode answer (framed as a tool call, or plain text); the answer inside is usable.
 export function salvage(errorBody) {
   try {
     const generation = JSON.parse(errorBody)?.error?.failed_generation;
-    const call = typeof generation === 'string' ? JSON.parse(generation) : null;
+    if (typeof generation !== 'string' || !generation.trim()) return null;
+    let call;
+    try { call = JSON.parse(generation); } catch { return JSON.stringify({ reply: generation.trim() }); } // plain text: the reply, without notes
     if (!call || typeof call !== 'object') return null;
     const args = typeof call?.arguments === 'string' ? call.arguments : JSON.stringify(call?.arguments ?? call);
     return typeof JSON.parse(args)?.reply === 'string' ? args : null;
@@ -135,14 +137,27 @@ export function compact(notes) {
 }
 
 // The moment for each once-only step is decided here, from the notes, not left to the model's memory.
+const ASK_ORDER = [
+  ['problem', 'what the problem is, in their words'],
+  ['goal', 'what good would look like, and how they would know it worked'],
+  ['current_process', 'how it happens today, step by step, and who touches it'],
+  ['cost_today', 'what it costs them now, in time, money or missed chances'],
+  ['budget', 'a rough budget'],
+  ['timeline', 'when it needs to work by'],
+  ['decider', 'who decides or signs off'],
+];
+
 export function nextStep(before) {
   const n = before?.notes || {};
   const b = n.brief || {};
   const turns = before?.turns?.length || 0;
-  if (turns >= 1 && !n.asked_detail && !n.detail && !n.name) return 'At the end of this reply, ask lightly for one detail about them: their name, what they do, or where they work. Then set asked_detail to true.';
+  if (!turns) return '';
+  if (!n.asked_detail && !n.detail && !n.name) return 'End this reply by asking lightly for one detail about them: their name, what they do, or where they work. No other question. Then set asked_detail to true.';
   const constraint = b.budget || b.timeline || b.tools || b.decider;
-  if (b.problem && b.goal && constraint && !n.offered_handoff) return `Near the end of this reply, tell them once that Anmol will see a summary of this conversation, and that they can leave an email if they'd like him to reply, or book a call at https://calendly.com/anmol-philanthropel/let-s-talk. Then set offered_handoff to true.`;
-  return '';
+  if (b.problem && b.goal && constraint && !n.offered_handoff) return `End this reply by telling them, once, that Anmol will see a summary of this conversation, and that they can leave an email if they'd like him to reply, or book a call at https://calendly.com/anmol-philanthropel/let-s-talk. No other question. Then set offered_handoff to true.`;
+  if (!b.problem && !n.problem) return '';
+  const next = ASK_ORDER.find(([field]) => !b[field]);
+  return next ? `If they're working through a problem, your one question this time is about ${next[1]}.` : '';
 }
 
 function prompt(knowledge, before, channel) {
@@ -200,21 +215,23 @@ export async function POST(request) {
   // Main model, then the fallback, then one short wait for whichever allowance refills first.
   // Returns the model's text, or the status to report when there's none.
   const complete = async (prompted) => {
+    // Any refused JSON answer is rescued if it can be; otherwise the same model is asked for plain text.
+    const rescue = async (res) => (res.status === 400 ? salvage(await res.clone().text()) : null);
     let res = await ask(MODEL, prompted);
-    if (res.status === 400) {
-      const saved = salvage(await res.text()); // JSON mode sometimes wraps a good answer in a refused tool call
-      if (saved) return { content: saved };
-      res = await ask(MODEL, prompted, false);
-    }
+    let saved = await rescue(res);
+    if (saved) return { content: saved };
+    if (res.status === 400) res = await ask(MODEL, prompted, false);
     if (res.status === 429) {
       const mainWait = Number(res.headers.get('retry-after')) || Infinity;
       res = await ask(FALLBACK_MODEL, prompted);
+      if ((saved = await rescue(res))) return { content: saved };
       if (res.status === 429) {
         const fallbackWait = Number(res.headers.get('retry-after')) || Infinity;
         const wait = Math.min(mainWait, fallbackWait);
         if (wait <= MAX_WAIT) {
           await new Promise((done) => setTimeout(done, wait * 1000));
           res = await ask(mainWait <= fallbackWait ? MODEL : FALLBACK_MODEL, prompted);
+          if ((saved = await rescue(res))) return { content: saved };
         }
       }
     }
