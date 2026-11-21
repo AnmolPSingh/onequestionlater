@@ -163,3 +163,10 @@ test('insights needs the exact key', async () => {
   const res = await GET(new Request('http://localhost/api/insights', { headers: { authorization: 'Bearer wrong' } }));
   assert.equal(res.status, 403);
 });
+
+test('the spoken greeting is the same line the chat box shows', async () => {
+  const { GREETING } = await import('../api/speak.js');
+  const { readFileSync } = await import('node:fs');
+  const page = readFileSync(new URL('../src/components/Ask.astro', import.meta.url), 'utf8');
+  assert.ok(page.includes(`<p class="ask-line ask-bot">${GREETING}</p>`));
+});
