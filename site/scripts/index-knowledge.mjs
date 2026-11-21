@@ -3,9 +3,13 @@
 // the KNOWLEDGE in api/_knowledge.js (its first two sections are left out: chat.js sends them with every
 // question anyway), every project page in src/content/work, and Anmol's own notes in site/knowledge.
 // A project's "What I found", "What I tried" and "The next question", and all of knowledge/learnings.md, are
-// tagged as learnings, which the chat pulls in when a visitor describes a problem.
+// tagged as learnings, which the chat pulls in when a visitor describes a problem; knowledge/method.md (how Anmol
+// runs a discovery) is tagged as method, pulled in the same way.
+// Before anything is sent, every passage is checked against a list of private names (clients, colleagues): one
+// match stops the index and fails the build, so a name can never reach the public chat. The list lives in
+// knowledge/.private-names (one per line, never committed) and in PRIVATE_NAMES (comma-separated, on Vercel).
 // Configuration: UPSTASH_VECTOR_REST_URL and UPSTASH_VECTOR_REST_TOKEN. Without them it skips, so local builds work.
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { basename, join } from 'node:path';
 import { KNOWLEDGE } from '../api/_knowledge.js';
@@ -15,6 +19,8 @@ const SITE = 'https://onequestionlater.com';
 const MAX_WORDS = 250;
 const LEARNING_HEADINGS = /^(what i found|what i tried|the next question)$/i;
 const BATCH = 50;
+const NOTE_KINDS = { learnings: 'learning', method: 'method' };
+const TITLES = { learning: 'What Anmol has learned', method: 'How Anmol works through a problem', fact: 'About Anmol' };
 
 const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const words = (text) => text.split(/\s+/).filter(Boolean).length;
@@ -58,8 +64,8 @@ export function chunks({ knowledge = KNOWLEDGE, work = readWork(), notes = readN
     }
   }
   for (const [name, markdown] of notes) {
-    const kind = name === 'learnings' ? 'learning' : 'fact';
-    for (const s of sections(markdown)) add(`note:${name}`, s.heading, s.body, kind, kind === 'learning' ? 'What Anmol has learned' : 'About Anmol');
+    const kind = NOTE_KINDS[name] || 'fact';
+    for (const s of sections(markdown)) add(`note:${name}`, s.heading, s.body, kind, TITLES[kind]);
   }
   return out;
 }
@@ -70,6 +76,19 @@ function readMarkdown(dir, skip = []) {
 }
 const readWork = () => readMarkdown(join(ROOT, 'src/content/work'));
 const readNotes = () => readMarkdown(join(ROOT, 'knowledge'), ['README.md']);
+
+// The private names, from the local file and the environment. Lines starting with # are comments.
+export function privateNames(file = join(ROOT, 'knowledge/.private-names'), env = process.env.PRIVATE_NAMES || '') {
+  const fromFile = existsSync(file) ? readFileSync(file, 'utf8').split('\n') : [];
+  return [...fromFile, ...env.split(',')].map((n) => n.trim()).filter((n) => n.length > 1 && !n.startsWith('#'));
+}
+
+// Every passage that mentions a private name, as whole words, ignoring case: [{ id, name }].
+export function leaks(passages, names) {
+  const escape = (n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const tests = names.map((name) => [name, new RegExp(`\\b${escape(name)}\\b`, 'i')]);
+  return passages.flatMap((p) => tests.filter(([, re]) => re.test(p.data)).map(([name]) => ({ id: p.id, name })));
+}
 
 async function vector(path, body) {
   const res = await fetch(`${process.env.UPSTASH_VECTOR_REST_URL}/${path}`, {
@@ -99,6 +118,11 @@ async function main() {
     return;
   }
   const all = chunks();
+  const found = leaks(all, privateNames());
+  if (found.length) {
+    found.forEach((l) => console.error(`index-knowledge: private name "${l.name}" in ${l.id}`));
+    throw new Error(`${found.length} passage(s) mention a private name; nothing was indexed`);
+  }
   for (let i = 0; i < all.length; i += BATCH) await vector('upsert-data', all.slice(i, i + BATCH));
   const keep = new Set(all.map((c) => c.id));
   const stale = (await existingIds()).filter((id) => !keep.has(id));
@@ -108,5 +132,8 @@ async function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   // A failed index leaves the previous passages in place, which still work, so the deploy carries on; the log says why.
-  main().catch((err) => console.error('index-knowledge: FAILED, the chat keeps the previous index.', err.message));
+  main().catch((err) => {
+    console.error('index-knowledge: FAILED, the chat keeps the previous index.', err.message);
+    if (/private name/.test(err.message)) process.exitCode = 1; // a leaked name stops the deploy; an outage doesn't
+  });
 }

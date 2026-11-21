@@ -1,0 +1,5 @@
+# Copy to .private-names (never committed) and list one client or colleague name per line.
+# The index refuses to upload any passage that mentions one, and the build fails.
+# On Vercel, set the same names in PRIVATE_NAMES, comma-separated.
+Example Client Ltd
+Jane Example

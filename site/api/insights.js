@@ -1,8 +1,9 @@
-// Anmol's private view of what Anmol AI has heard: leads, recent conversations, who's visiting and from where,
+// Anmol's private view of what Anmol AI has heard: the briefs (sent, or waiting for the visitor to go quiet), leads, recent conversations, who's visiting and from where,
 // and the questions it couldn't answer. Read by /insights. Only with the INSIGHTS_TOKEN (a long random string set
 // in Vercel); without it, nothing. Configuration: INSIGHTS_TOKEN and the Redis variables in _guard.js.
 import { timingSafeEqual } from 'node:crypto';
 import { json, redis } from './_guard.js';
+import { hasBrief } from './_memory.js';
 
 const RECENT = 100;
 const MIN_TOKEN = 24;
@@ -23,14 +24,19 @@ export async function GET(request) {
       ['ZREVRANGE', 'convs', 0, RECENT - 1],
       ['ZREVRANGE', 'leads', 0, RECENT - 1],
       ['ZREVRANGE', 'gaps', 0, 49, 'WITHSCORES'],
+      ['ZRANGE', 'pending', 0, -1],
     ]);
     if (!lists) return json({ error: 'Redis is not configured' }, 503);
-    const [recent, leadIds, gapFlat] = lists;
-    const ids = [...new Set([...leadIds, ...recent])];
-    const [records = []] = ids.length ? await redis([['MGET', ...ids.map((id) => `conv:${id}`)]]) : [[]];
-    const byId = Object.fromEntries(records.filter(Boolean).map((raw) => JSON.parse(raw)).map((c) => [c.id, c]));
+    const [recent, leadIds, gapFlat, pending] = lists;
+    const ids = [...new Set([...leadIds, ...recent, ...pending])];
+    const [records = [], sent = []] = ids.length
+      ? await redis([['MGET', ...ids.map((id) => `conv:${id}`)], ['MGET', ...ids.map((id) => `sent:${id}`)]])
+      : [[], []];
+    const waiting = new Set(pending);
+    const byId = Object.fromEntries(records.map((raw, i) => raw && { ...JSON.parse(raw), briefSent: Number(sent[i]) || null, briefWaiting: waiting.has(ids[i]) }).filter(Boolean).map((c) => [c.id, c]));
     const convs = recent.map((id) => byId[id]).filter(Boolean);
     return json({
+      briefs: Object.values(byId).filter(hasBrief).sort((a, b) => (b.last || 0) - (a.last || 0)),
       leads: leadIds.map((id) => byId[id]).filter(Boolean),
       conversations: convs,
       counts: {
