@@ -8,3 +8,6 @@ site/.astro/
 .claude/
 .env*
 .vercel
+
+# Names that must never reach Anmol AI (see site/scripts/index-knowledge.mjs)
+site/knowledge/.private-names

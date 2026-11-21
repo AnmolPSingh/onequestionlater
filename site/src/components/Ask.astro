@@ -65,6 +65,14 @@
     // One id per conversation, so the server can remember it; "start over" begins a new one.
     const fresh = () => { const id = crypto.randomUUID(); try { sessionStorage.setItem('ask-conversation', id); } catch { /* private mode */ } return id; };
     let conversation = (() => { try { return sessionStorage.getItem('ask-conversation'); } catch { return null; } })() || fresh();
+    // When the visitor goes quiet, the server sends Anmol the brief from this conversation, if it has one.
+    // Closing the chat or the page counts as done; a hidden tab gets a few minutes to come back.
+    const quiet = (leaving) => {
+      if (!history.length || !navigator.sendBeacon) return;
+      navigator.sendBeacon('/api/brief', JSON.stringify({ conversation, leaving }));
+    };
+    addEventListener('pagehide', () => quiet(true));
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') quiet(false); });
 
     // Voice. Hearing stops at a pause after speech, a second tap, or the cap; silence alone is never sent.
     const LOUD = 6; // peak wobble around the waveform's middle (128) that counts as speech; low, as noise suppression quietens voices
@@ -359,15 +367,16 @@
       });
     }
 
-    close.addEventListener('click', () => { endTalk(); shut(); });
-    veil.addEventListener('click', () => { endTalk(); shut(); });
+    close.addEventListener('click', () => { endTalk(); shut(); quiet(true); });
+    veil.addEventListener('click', () => { endTalk(); shut(); quiet(true); });
     clear.addEventListener('click', () => {
       if (busy) return;
+      quiet(true);
       history.length = 0;
       conversation = fresh();
       log.replaceChildren(greeting.cloneNode(true));
       input.focus();
     });
-    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { endTalk(); shut(); } });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') { endTalk(); shut(); quiet(true); } });
   }
 </script>
