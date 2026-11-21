@@ -5,9 +5,9 @@
 // Configuration: UPSTASH_VECTOR_REST_URL and UPSTASH_VECTOR_REST_TOKEN. The underscore keeps Vercel from serving it.
 import { KNOWLEDGE } from './_knowledge.js';
 
-const TOP = 5; // passages per question
-const LEARNINGS = 3; // extra learnings when the visitor describes a problem
-const METHOD = 2; // and how Anmol works through one (knowledge/method.md)
+const TOP = 4; // passages per question
+const LEARNINGS = 2; // extra learnings when the visitor describes a problem
+const METHOD = 1; // and how Anmol works through one (knowledge/method.md)
 export const CORE = KNOWLEDGE.split(/\n(?=## )/).slice(0, 2).join('\n\n');
 
 async function search(data, topK, filter) {

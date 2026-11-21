@@ -2,7 +2,7 @@
 // may keep, the passages it searches, and the insights key. Run with: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tidy, parseAnswer } from '../api/chat.js';
+import { tidy, parseAnswer, similar, salvage, compact, nextStep } from '../api/chat.js';
 import { cleanNotes, validEmail, briefEmail, merge, finalize, finalizeQuiet } from '../api/_memory.js';
 import { chunks, pieces, leaks, privateNames } from '../scripts/index-knowledge.mjs';
 import { authorised, GET } from '../api/insights.js';
@@ -30,6 +30,31 @@ test('cleanNotes keeps only known shapes, and contact details the visitor typed'
   assert.equal(notes.problem.length, 300);
   assert.equal(cleanNotes({ email: 'Sam@Charity.org' }, 'reach me at sam@charity.org').email, 'sam@charity.org');
   assert.deepEqual(cleanNotes('nope'), {});
+});
+
+test('tidy straightens quotes and drops list numbers', () => {
+  assert.equal(tidy('It\u2019s \u201cfine\u201d\n1. One\n2) Two'), 'It\'s "fine"\nOne\nTwo');
+});
+
+test('similar spots a repeated reply, salvage rescues a refused tool call', () => {
+  const first = 'Map every hand-off in the quarterly report, then ask who signs it off and what success looks like.';
+  assert.ok(similar(first, `${first} Also, who are you?`));
+  assert.ok(!similar(first, 'A tiny budget is fine: start with one shared sheet and a template the CEO already trusts.'));
+  const body = JSON.stringify({ error: { failed_generation: JSON.stringify({ name: 'assistant', arguments: { reply: 'Hi', notes: {} } }) } });
+  assert.equal(parseAnswer(salvage(body)).reply, 'Hi');
+  assert.equal(salvage('{"error":{"message":"nope"}}'), null);
+  assert.equal(salvage('not json'), null);
+});
+
+test('compact sends only what is known, and nextStep times the detail and the handoff', () => {
+  assert.equal(compact({ problem: '', answered: true, brief: { goal: '' } }), null);
+  assert.deepEqual(compact({ problem: 'x', answered: true, brief: { goal: 'y', budget: '' } }), { problem: 'x', brief: { goal: 'y' } });
+  assert.equal(nextStep(null), ''); // never on the first reply
+  assert.match(nextStep({ turns: [{}], notes: {} }), /one detail/);
+  assert.equal(nextStep({ turns: [{}], notes: { asked_detail: true } }), '');
+  const ready = { turns: [{}, {}], notes: { asked_detail: true, brief: { problem: 'p', goal: 'g', budget: 'b' } } };
+  assert.match(nextStep(ready), /Anmol will see a summary/);
+  assert.equal(nextStep({ ...ready, notes: { ...ready.notes, offered_handoff: true } }), '');
 });
 
 test('validEmail', () => {
