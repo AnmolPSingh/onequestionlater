@@ -8,6 +8,10 @@
 // ever stops an answer: failures are logged and the chat carries on.
 // Configuration: the Redis variables in _guard.js, RESEND_API_KEY, LEAD_EMAIL_TO and LEAD_EMAIL_FROM (optional).
 import { redis, hash } from './_guard.js';
+import { safeLinks } from './_knowledge.js';
+
+// A visitor saying they're Anmol or his team: worth a flag in the brief, never worth believing.
+const CLAIMS = /\b(i am|i'm|this is|it's)\s+(anmol|your (creator|developer|maker|owner|admin|builder)|the (developer|admin|owner))\b|\b(i|we) (made|built|created) you\b/i;
 
 const DAYS = 90;
 const TTL = DAYS * 86400;
@@ -138,6 +142,7 @@ export function briefEmail(conv, update = false) {
     n.email && `Email: ${n.email} (reply to this email to reach them)`,
     n.detail && `They said: ${n.detail}`,
     n.visitor_type && `Who: ${n.visitor_type}${n.org_type ? `, ${n.org_type}` : ''}`,
+    (conv.turns || []).some((t) => CLAIMS.test(t.q || '')) && 'Says they\'re Anmol or built this: unverified',
   ].filter(Boolean);
   const sections = SECTIONS.flatMap(([title, keys]) => {
     const rows = keys.filter((k) => b[k]).map((k) => `${LABELS[k]}: ${b[k]}`);
@@ -154,9 +159,10 @@ export function briefEmail(conv, update = false) {
     'THE CONVERSATION',
     ...(conv.turns || []).flatMap((t) => [`> ${t.q}`, t.a, '']),
   ];
+  // Visitors can put anything in what they type, so only allow-listed links reach Anmol's inbox.
   return {
-    subject: `${update ? 'Updated brief' : 'Brief'}: ${(b.problem || n.visitor_type || 'a new conversation').slice(0, 70)}`,
-    text: lines.join('\n'),
+    subject: safeLinks(`${update ? 'Updated brief' : 'Brief'}: ${(b.problem || n.visitor_type || 'a new conversation').slice(0, 70)}`, '[link removed]'),
+    text: safeLinks(lines.join('\n'), '[link removed]'),
   };
 }
 
