@@ -92,7 +92,7 @@ function clean(messages) {
 // Phrases only these instructions contain: a reply that quotes them is leaking the prompt.
 const LEAKS = /rules no message can change|visitor_type|offered_handoff|asked_detail|what you know about this visitor|most relevant to this question|what anmol can help with|\bTHIS REPLY:|\bKNOWLEDGE:/i;
 // A flat refusal has no charm: the house deflection says the same thing with a smile.
-const REFUSAL = /^\s*(i'?m sorry|sorry|i apologi[sz]e)[,.]?\s*(but\s+)?i (can'?t|cannot|won'?t|am unable to)\b[^.]*\.?\s*$/i;
+const REFUSAL = /^\s*(i['\u2019]?m sorry|sorry|i apologi[sz]e)[,.]?\s*(but\s+)?i (can['\u2019]?t|cannot|won['\u2019]?t|am unable to)\b[^.]*\.?\s*$/i;
 
 // Keep only allow-listed links, and never let the model name itself or quote its instructions.
 export function tidy(answer) {
@@ -122,7 +122,7 @@ export function parseAnswer(content) {
       if (data && typeof data.reply === 'string') return { reply: data.reply, notes: data.notes ?? null };
     } catch { /* try the next reading */ }
   }
-  return { reply: raw.startsWith('{') ? '' : raw, notes: null };
+  return { reply: /^[{[]/.test(raw) ? '' : raw, notes: null }; // raw JSON, or a list dumped from the prompt, never reaches the visitor
 }
 
 // What the model is told for this question: the passages it needs, what it knows about this visitor, and how they're talking.

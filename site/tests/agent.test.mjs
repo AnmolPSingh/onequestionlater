@@ -244,3 +244,8 @@ test('flat refusals and leaked headings get the house deflection', () => {
   assert.equal(tidy('Anmol Pratap Singh\nWhat Anmol can help with\nMost relevant to this question'), deflect);
   assert.notEqual(tidy("Sorry I missed that. I can't wait to hear more."), deflect); // an ordinary apology stays
 });
+
+test('curly-apostrophe refusals and dumped lists never reach the visitor', () => {
+  assert.equal(tidy('I’m sorry, but I can’t comply with that.'), tidy('openai'));
+  assert.equal(parseAnswer('["Anmol Pratap Singh","He builds AI tools"]').reply, '');
+});
