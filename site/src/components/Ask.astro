@@ -114,9 +114,11 @@
     let talking = false; // the voice agent is on
     const MIC = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
     // Browsers can hand the page a virtual device (BlackHole, Zoom, Teams: macOS browsers label them "(Virtual)" or
-    // "(Aggregate)"), which carries no sound from the room, so the agent hears silence and gives up. Given one, it
-    // swaps to the system's default mic, or else the built-in one, when that's a real microphone.
-    const VIRTUAL = /\((virtual|aggregate)\)|blackhole|soundflower|loopback/i;
+    // "(Aggregate)"), which carries no sound from the room, so the agent hears silence and gives up. A Bluetooth
+    // speaker's mic is nearly as bad: call-quality sound from across the room, with the agent's own voice in it.
+    // Given either, it swaps to the system's default mic, or else the built-in one, when that's a better one; with
+    // nothing better (a Bluetooth headset on a desktop), it keeps what it was given.
+    const VIRTUAL = /\((virtual|aggregate|bluetooth)\)|blackhole|soundflower|loopback/i;
     const openMic = async () => {
       const stream = await navigator.mediaDevices.getUserMedia(MIC);
       if (!VIRTUAL.test(stream.getAudioTracks()[0]?.label || '')) return stream;
