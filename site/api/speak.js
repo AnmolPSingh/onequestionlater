@@ -11,7 +11,7 @@ const MODEL = process.env.ELEVENLABS_MODEL || 'eleven_flash_v2_5'; // the fastes
 const MAX_TEXT = 2000; // the chat's own longest answer
 export const GREETING = "Hey! I'm Anmol AI. How can I help you today?"; // the same line the chat box opens with
 
-const spoken = (text) => text.replace(/(https?:\/\/|mailto:)[^\s<>"']+/g, '').replace(/\s+([.,;:!?])/g, '$1').replace(/[:,]\s*$/gm, '.').replace(/\s{2,}/g, ' ').trim();
+export const spoken = (text) => text.replace(/(https?:\/\/|mailto:)[^\s<>"']+/g, '').replace(/\s+([.,;:!?])/g, '$1').replace(/[:,]\s*$/gm, '.').replace(/\bAI\b\.?/g, 'A.I.') /* said as letters, not "I" */.replace(/\s{2,}/g, ' ').trim();
 
 const GREETING_CACHE = { browser: 86400, cdn: 2592000 }; // seconds: a day in the browser, a month at the edge
 
