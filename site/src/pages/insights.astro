@@ -14,6 +14,7 @@ import Base from '../layouts/Base.astro';
       <p class="in-error" id="in-error" data-error role="alert"></p>
     </form>
     <div data-out hidden>
+      <section><h2>Briefs</h2><div data-briefs></div></section>
       <section><h2>Leads</h2><div data-leads></div></section>
       <section><h2>Who's asking</h2><div class="in-counts" data-counts></div></section>
       <section><h2>Gaps: questions it couldn't answer</h2><ol data-gaps></ol></section>
@@ -66,11 +67,13 @@ import Base from '../layouts/Base.astro';
   const conversation = (c) => {
     const n = c.notes || {};
     const box = el('details');
-    const headline = n.problem || c.turns?.[0]?.q || 'A conversation';
-    box.append(el('summary', `${headline}`));
+    const b = n.brief || {};
+    const headline = b.problem || n.problem || c.turns?.[0]?.q || 'A conversation';
+    const status = c.briefSent ? `brief sent ${when(c.briefSent)}` : c.briefWaiting ? 'brief waiting until they go quiet' : '';
+    box.append(el('summary', `${headline}${status ? ` (${status})` : ''}`));
     box.append(el('p', [when(c.updated), n.visitor_type, c.country, c.device, c.channel, c.page, c.referrer && `via ${c.referrer}`].filter(Boolean).join(' · '), 'meta'));
     const facts = el('dl');
-    for (const [label, value] of [['Name', n.name], ['Email', n.email], ['Organisation', n.org_type], ['Intent', n.intent], ['Problem', n.problem], ['First read', n.vision]]) {
+    for (const [label, value] of [['Name', n.name], ['Email', n.email], ['They said', n.detail], ['Organisation', n.org_type], ['Intent', n.intent], ['Problem', b.problem || n.problem], ['Context', b.context], ['Today', b.current_process], ['Cost now', b.cost_today], ['Goal', b.goal], ['Success', b.success], ['Budget', b.budget], ['Timeline', b.timeline], ['Tools', b.tools], ['Decides', b.decider], ['First read', n.vision], ['Closest project', b.related_project], ['First steps', b.first_steps], ['Ask on the call', b.open_questions]]) {
       if (value) facts.append(el('dt', label), el('dd', value));
     }
     if (facts.childElementCount) box.append(facts);
@@ -79,6 +82,8 @@ import Base from '../layouts/Base.astro';
   };
 
   const show = (data) => {
+    const briefs = document.querySelector('[data-briefs]');
+    briefs.replaceChildren(...(data.briefs?.length ? data.briefs.map(conversation) : [el('p', 'No briefs yet.', 'meta')]));
     const leads = document.querySelector('[data-leads]');
     leads.replaceChildren(...(data.leads.length ? data.leads.map(conversation) : [el('p', 'No leads yet.', 'meta')]));
     document.querySelector('[data-counts]').replaceChildren(...Object.entries({ Visitors: data.counts.visitors, Countries: data.counts.countries, 'Came from': data.counts.referrers, 'Started on': data.counts.pages, Channel: data.counts.channels }).map(([title, rows]) => {
