@@ -101,3 +101,12 @@ export const ALLOWED_LINKS = [
   'https://philanthropel.com',
   'mailto:anmol@philanthropel.com',
 ];
+
+export const CALENDLY = 'https://calendly.com/anmol-philanthropel/let-s-talk';
+
+// Every link in the text that isn't on the allow-list becomes the replacement. Shared by the chat and the brief email.
+export const safeLinks = (text, replacement = '') => text.replace(/(https?:\/\/[^\s)<>"']+|mailto:[^\s)<>"']+)/g, (url) => {
+  const bare = url.replace(/[.,;:!?]+$/, '');
+  const ok = ALLOWED_LINKS.some((allowed) => bare === allowed || bare.startsWith(`${allowed}/`) || bare.startsWith(`${allowed}?`));
+  return ok ? url : replacement;
+});
