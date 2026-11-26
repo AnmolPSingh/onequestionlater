@@ -111,6 +111,8 @@
     let hello = null;
     const fetchHello = () => (hello ||= fetch('/api/speak').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
     let talking = false; // the voice agent is on
+    const MIC = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+    let held = null; // the mic, opened once when a talk starts and kept until it ends, so it's asked for only once
     let meter = null; // hears the mic while listening and the answer while speaking, never sent to the speakers
     let wave;
     let spectrum;
@@ -163,8 +165,9 @@
       setTimeout(() => { if (input.placeholder === text) prompt(placeholder); }, HINT_MS);
     };
 
-    const listen = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    // Given the talk's open mic it uses that; on its own (dictation) it opens the mic just for this and closes it after.
+    const listen = async (given) => {
+      const stream = given || await navigator.mediaDevices.getUserMedia(MIC);
       await sound.resume(); // iPhones pause page audio when the mic opens; without this the meter hears only silence
       const rec = new MediaRecorder(stream);
       const chunks = [];
@@ -201,7 +204,7 @@
       };
       watch();
       await stopped;
-      stream.getTracks().forEach((t) => t.stop());
+      if (!given) stream.getTracks().forEach((t) => t.stop());
       source.disconnect();
       recording = null;
       root.classList.remove('listening');
@@ -296,11 +299,15 @@
       talk.setAttribute('aria-label', 'Talk with Anmol AI');
       recording?.stop();
       try { speaking?.stop(); } catch { /* already finished */ }
+      held?.getTracks().forEach((t) => t.stop());
+      held = null;
     };
 
     // The voice agent: listen, answer aloud, listen again. Silence, an error or a tap ends it.
-    // From the floating mic it's voice only, and opens with the greeting said aloud.
+    // From the floating mic it's voice only, and opens with the greeting said aloud. The mic is asked for first,
+    // still inside the tap, so the browser's question comes before anything else, never in the middle of the talk.
     const startTalk = (voiceOnly = false) => {
+      const mic = navigator.mediaDevices.getUserMedia(MIC);
       wake();
       talking = true;
       root.classList.toggle('voice', voiceOnly);
@@ -309,14 +316,24 @@
       talk.setAttribute('aria-pressed', 'true');
       talk.setAttribute('aria-label', 'Stop talking');
       open();
-      converse(voiceOnly && !history.length);
+      converse(mic, voiceOnly && !history.length);
     };
 
-    const converse = async (greet) => {
+    const converse = async (mic, greet) => {
+      try {
+        held = await mic;
+      } catch (err) {
+        console.warn('Ask: microphone unavailable', err);
+        hint('I need the microphone for that.');
+        endTalk();
+        return;
+      }
+      if (!talking) { endTalk(); return; } // closed while the browser was asking
+      await sound.resume(); // iPhones pause page audio when the mic opens
       if (greet) await say().done;
       while (talking) {
         let words = '';
-        try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
+        try { words = await listen(held); } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
         if (!talking || !words) break;
         await send(words, 'voice');
       }
