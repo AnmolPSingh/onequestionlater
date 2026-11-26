@@ -113,6 +113,25 @@
     const fetchHello = () => (hello ||= fetch(`/api/speak?v=${GREETING_VERSION}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
     let talking = false; // the voice agent is on
     const MIC = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+    // Browsers can hand the page a virtual device (BlackHole, Zoom, Teams: macOS browsers label them "(Virtual)" or
+    // "(Aggregate)"), which carries no sound from the room, so the agent hears silence and gives up. Given one, it
+    // swaps to the system's default mic, or else the built-in one, when that's a real microphone.
+    const VIRTUAL = /\((virtual|aggregate)\)|blackhole|soundflower|loopback/i;
+    const openMic = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia(MIC);
+      if (!VIRTUAL.test(stream.getAudioTracks()[0]?.label || '')) return stream;
+      const inputs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput' && d.label && !VIRTUAL.test(d.label));
+      const real = inputs.find((d) => d.deviceId === 'default') || inputs.find((d) => /built-in|macbook|internal/i.test(d.label)) || inputs[0];
+      if (!real) return stream;
+      try {
+        const better = await navigator.mediaDevices.getUserMedia({ audio: { ...MIC.audio, deviceId: { exact: real.deviceId } } });
+        stream.getTracks().forEach((t) => t.stop());
+        return better;
+      } catch (err) {
+        console.warn('Ask: could not switch to a real microphone', err);
+        return stream;
+      }
+    };
     let held = null; // the mic, opened once when a talk starts and kept until it ends, so it's asked for only once
     let meter = null; // hears the mic while listening and the answer while speaking, never sent to the speakers
     let wave;
@@ -168,7 +187,7 @@
 
     // Given the talk's open mic it uses that; on its own (dictation) it opens the mic just for this and closes it after.
     const listen = async (given) => {
-      const stream = given || await navigator.mediaDevices.getUserMedia(MIC);
+      const stream = given || await openMic();
       await sound.resume(); // iPhones pause page audio when the mic opens; without this the meter hears only silence
       const rec = new MediaRecorder(stream);
       const chunks = [];
@@ -308,7 +327,7 @@
     // From the floating mic it's voice only, and opens with the greeting said aloud. The mic is asked for first,
     // still inside the tap, so the browser's question comes before anything else, never in the middle of the talk.
     const startTalk = (voiceOnly = false) => {
-      const mic = navigator.mediaDevices.getUserMedia(MIC);
+      const mic = openMic(); // its first request goes out inside the tap
       wake();
       talking = true;
       root.classList.toggle('voice', voiceOnly);
