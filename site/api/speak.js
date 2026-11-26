@@ -7,7 +7,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { json, allowedOrigin, visitor, withinLimits, sign } from './_guard.js';
 
-const MODEL = process.env.ELEVENLABS_MODEL || 'eleven_flash_v2_5'; // the fastest to first sound, which matters in a conversation
+const MODEL = process.env.ELEVENLABS_MODEL || 'eleven_flash_v2_5'; // live: eleven_v4 (set in Vercel), more natural; flash is the faster fallback
 const MAX_TEXT = 2000; // the chat's own longest answer
 export const GREETING = "Hey! I'm Anmol AI. How can I help you today?"; // the same line the chat box opens with
 
