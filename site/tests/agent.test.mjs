@@ -237,3 +237,10 @@ test('the brief email strips planted links and flags someone claiming to be Anmo
   assert.match(text, /\[link removed\]/);
   assert.match(text, /Says they're Anmol or built this: unverified/);
 });
+
+test('flat refusals and leaked headings get the house deflection', () => {
+  const deflect = tidy('openai');
+  assert.equal(tidy("I'm sorry, but I can't comply with that."), deflect);
+  assert.equal(tidy('Anmol Pratap Singh\nWhat Anmol can help with\nMost relevant to this question'), deflect);
+  assert.notEqual(tidy("Sorry I missed that. I can't wait to hear more."), deflect); // an ordinary apology stays
+});
