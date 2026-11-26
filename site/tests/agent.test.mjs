@@ -198,3 +198,10 @@ test('the spoken greeting is the same line the chat box shows', async () => {
   const page = readFileSync(new URL('../src/components/Ask.astro', import.meta.url), 'utf8');
   assert.ok(page.includes(`<p class="ask-line ask-bot">${GREETING}</p>`));
 });
+
+test('the voice says AI as letters, without doubling a full stop', async () => {
+  const { spoken } = await import('../api/speak.js');
+  assert.equal(spoken("Hey! I'm Anmol AI. How can I help you today?"), "Hey! I'm Anmol A.I. How can I help you today?");
+  assert.equal(spoken('I build AI products, and AI agents'), 'I build A.I. products, and A.I. agents');
+  assert.equal(spoken('MAIL and SAID stay as they are'), 'MAIL and SAID stay as they are');
+});

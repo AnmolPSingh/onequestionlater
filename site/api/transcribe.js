@@ -7,6 +7,10 @@ const MODEL = process.env.GROQ_WHISPER_MODEL || 'whisper-large-v3-turbo';
 const GROQ_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const MAX_BYTES = 1_500_000; // about 45 seconds of the browser's compressed speech; the page stops at 30
 const MAX_QUESTION = 500; // the chat's own limit
+// Left to guess, Whisper heard Indian-accented English as Indonesian; the site is in English, so it listens for English,
+// and the names it should expect help it spell them.
+const LANGUAGE = 'en';
+const NAMES = 'Anmol, Anmol AI, Philanthropel, One Question Later, Global Philanthropic.';
 const TYPES = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'mp4', 'audio/mpeg': 'mp3', 'audio/wav': 'wav' };
 
 export async function POST(request) {
@@ -38,6 +42,8 @@ export async function POST(request) {
   form.append('model', MODEL);
   form.append('response_format', 'json');
   form.append('temperature', '0');
+  form.append('language', LANGUAGE);
+  form.append('prompt', NAMES);
   try {
     const res = await fetch(GROQ_URL, { method: 'POST', headers: { authorization: `Bearer ${key}` }, body: form, signal: AbortSignal.timeout(15000) });
     if (!res.ok) {
