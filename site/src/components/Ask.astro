@@ -1,6 +1,7 @@
 ---
-// "Ask about Anmol": a mic that floats on every screen, saying "Talk to Anmol AI". A tap opens the conversation and
-// starts talking straight away, with the bust turning into the dome behind it. The questions go
+// "Ask about Anmol": a mic that floats at the bottom of every screen, saying "Talk to Anmol AI". A tap opens the
+// voice agent alone (no typing line): it greets the visitor aloud at once (the clip is fetched ahead), then listens, with the bust turning into the
+// dome behind it. When the talk ends, the typing line comes back. The questions go
 // to /api/chat (site/api/chat.js), which holds the key and the guardrails; nothing secret is in the page.
 // It needs JS, so without it neither the mic nor the box is shown. No suggested questions: the visitor leads.
 // Voice, where the browser can record: the mic dictates into the line (site/api/transcribe.js), and the talk
@@ -20,6 +21,7 @@
     <div class="ask-log" data-ask-log data-lenis-prevent aria-live="polite">
       <p class="ask-line ask-bot">Hey! I'm Anmol AI. How can I help you today?</p>
     </div>
+    <p class="ask-status" data-ask-status aria-live="polite"></p>
   </div>
   <form class="ask-bar" data-ask-form aria-label="Ask Anmol AI">
     <span class="ask-prompt" aria-hidden="true">&gt;</span>
@@ -92,10 +94,22 @@
     const PEAK_FLOOR = 0.12;
     const mic = root.querySelector('[data-ask-mic]');
     const talk = root.querySelector('[data-ask-talk]');
+    const status = root.querySelector('[data-ask-status]');
     const placeholder = input.placeholder;
+    // What the agent is doing, in the typing line and, while it's voice only, in the line that replaces it.
+    const prompt = (text) => { input.placeholder = text; status.textContent = text === placeholder ? '' : text; };
     let sound = null; // one AudioContext, woken by a tap, so phones let it play an answer that arrives later
     let recording = null; // { stop } while the mic is open
-    let speaking = null; // the answer being played
+    let speaking = null; // { stop } while the voice is playing
+    // Answers play while they're still arriving, through one <audio> the first tap unlocks; where the browser can't
+    // stream MP3 they play once the whole clip is in.
+    const STREAMS = Boolean(window.MediaSource?.isTypeSupported?.('audio/mpeg'));
+    const SILENT = 'data:audio/wav;base64,UklGRqQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+    const VOICE_WAIT_MS = 4000; // the answer's text waits this long at most for its voice, so they arrive together
+    let voice = null;
+    // The greeting's sound, fetched ahead of time (the CDN keeps it), so it plays the moment the mic is tapped.
+    let hello = null;
+    const fetchHello = () => (hello ||= fetch('/api/speak').then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
     let talking = false; // the voice agent is on
     let meter = null; // hears the mic while listening and the answer while speaking, never sent to the speakers
     let wave;
@@ -115,6 +129,14 @@
         const hz = sound.sampleRate / meter.fftSize;
         edges = Array.from({ length: BANDS + 1 }, (_, b) => Math.round((LOW_HZ * (HIGH_HZ / LOW_HZ) ** (b / BANDS)) / hz));
         for (let b = 1; b <= BANDS; b++) edges[b] = Math.max(edges[b], edges[b - 1] + 1);
+        if (STREAMS) {
+          voice = new Audio();
+          const out = sound.createMediaElementSource(voice);
+          out.connect(sound.destination);
+          out.connect(meter); // the dome moves with the voice
+          voice.src = SILENT; // played inside the tap, so later answers are allowed to play
+          voice.play().catch(() => { /* fine: the stream will try again */ });
+        }
       }
       sound.resume();
     };
@@ -137,8 +159,8 @@
 
     // Says why nothing happened, in the line itself, then puts the usual prompt back.
     const hint = (text) => {
-      input.placeholder = text;
-      setTimeout(() => { if (input.placeholder === text) input.placeholder = placeholder; }, HINT_MS);
+      prompt(text);
+      setTimeout(() => { if (input.placeholder === text) prompt(placeholder); }, HINT_MS);
     };
 
     const listen = async () => {
@@ -157,7 +179,7 @@
       const stop = () => { if (rec.state !== 'inactive') rec.stop(); };
       recording = { stop };
       root.classList.add('listening');
-      input.placeholder = 'Listening...';
+      prompt('Listening...');
       rec.start();
       const watch = () => {
         if (rec.state === 'inactive') return;
@@ -184,43 +206,92 @@
       recording = null;
       root.classList.remove('listening');
       root.style.setProperty('--level', '0');
-      input.placeholder = placeholder;
+      prompt(placeholder);
       if (metered && !heard) { hint("I didn't catch that. Try again?"); return ''; }
-      input.placeholder = 'Thinking...';
+      prompt('Thinking...');
       try {
         const type = (rec.mimeType || chunks[0]?.type || 'audio/mp4').split(';')[0];
         const res = await fetch('/api/transcribe', { method: 'POST', headers: { 'content-type': type }, body: new Blob(chunks, { type }) });
         const text = (await res.json().catch(() => ({}))).text || '';
-        input.placeholder = placeholder;
+        prompt(placeholder);
         if (!text) hint(res.ok ? "I didn't catch that. Try again?" : 'My ears are busy. Try again in a moment?');
         return text;
       } catch (err) {
-        input.placeholder = placeholder;
+        prompt(placeholder);
         throw err;
       }
     };
 
-    // Plays a signed answer in Anmol's voice; resolves when it's finished, stopped or failed.
-    // shortcut: waits for the whole clip before playing, about a second for a short answer; stream it if that drags.
-    const say = async (text, signature) => {
-      try {
-        const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, voice: signature }) });
-        if (res.status !== 200 || !talking) return;
-        const clip = sound.createBufferSource();
-        clip.buffer = await sound.decodeAudioData(await res.arrayBuffer());
-        clip.connect(sound.destination);
-        clip.connect(meter);
-        speaking = clip;
-        await new Promise((done) => { clip.onended = done; clip.start(); });
-      } catch (err) {
-        console.warn('Ask: could not speak the answer', err);
-      } finally { speaking = null; }
+    // A whole clip, decoded then played: the greeting, and answers where streaming isn't supported.
+    const playClip = async (buffer, begin) => {
+      if (!buffer || !talking) return;
+      const clip = sound.createBufferSource();
+      clip.buffer = await sound.decodeAudioData(buffer.slice(0)); // a copy, so the greeting can play again
+      if (!talking) return;
+      clip.connect(sound.destination);
+      clip.connect(meter);
+      await new Promise((done) => {
+        speaking = { stop: () => clip.stop() };
+        clip.onended = done;
+        clip.start();
+        begin();
+      });
+    };
+
+    // An answer that plays from its first chunk, as the server streams it.
+    const playStream = async (body, begin) => {
+      const source = new MediaSource();
+      const url = URL.createObjectURL(source);
+      voice.src = url;
+      await new Promise((ready) => source.addEventListener('sourceopen', ready, { once: true }));
+      const buffer = source.addSourceBuffer('audio/mpeg');
+      try { buffer.mode = 'sequence'; } catch { /* the default works too */ }
+      const append = (chunk) => new Promise((done) => { buffer.addEventListener('updateend', done, { once: true }); buffer.appendBuffer(chunk); });
+      const reader = body.getReader();
+      let finish;
+      const finished = new Promise((done) => { finish = done; voice.onended = done; voice.onerror = done; });
+      let stopped = false;
+      speaking = { stop: () => { stopped = true; reader.cancel().catch(() => {}); voice.pause(); finish(); } };
+      let started = false;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done || stopped) break;
+        await append(value);
+        if (!started) {
+          started = true;
+          voice.play().then(begin, (err) => { console.warn('Ask: the voice was not allowed to play', err); speaking.stop(); });
+        }
+      }
+      if (!stopped && source.readyState === 'open') source.endOfStream();
+      if (!started) finish();
+      await finished;
+      URL.revokeObjectURL(url);
+    };
+
+    // Speaks in Anmol's voice: a signed answer, or with no text the greeting. `started` settles when the first sound
+    // plays (or it fails), `done` when it ends, stops or fails.
+    const say = (text, signature) => {
+      let begin;
+      const started = new Promise((go) => { begin = go; });
+      const done = (async () => {
+        try {
+          if (!text) { await playClip(await fetchHello(), begin); return; }
+          const res = await fetch('/api/speak', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, voice: signature }) });
+          if (res.status !== 200 || !talking) return;
+          if (voice && res.body) await playStream(res.body, begin);
+          else await playClip(await res.arrayBuffer(), begin);
+        } catch (err) {
+          console.warn('Ask: could not speak', err);
+        } finally { speaking = null; begin(); }
+      })();
+      return { started, done };
     };
 
     const endTalk = () => {
       if (talking) dispatchEvent(new CustomEvent('ask:talk', { detail: null })); // I come back from the dome
       talking = false;
       document.documentElement.classList.remove('talking');
+      root.classList.remove('voice'); // the typing line comes back
       talk.setAttribute('aria-pressed', 'false');
       talk.setAttribute('aria-label', 'Talk with Anmol AI');
       recording?.stop();
@@ -228,18 +299,21 @@
     };
 
     // The voice agent: listen, answer aloud, listen again. Silence, an error or a tap ends it.
-    const startTalk = () => {
+    // From the floating mic it's voice only, and opens with the greeting said aloud.
+    const startTalk = (voiceOnly = false) => {
       wake();
       talking = true;
+      root.classList.toggle('voice', voiceOnly);
       document.documentElement.classList.add('talking');
       dispatchEvent(new CustomEvent('ask:talk', { detail: { bands: hear } })); // the bust becomes the dome
       talk.setAttribute('aria-pressed', 'true');
       talk.setAttribute('aria-label', 'Stop talking');
       open();
-      converse();
+      converse(voiceOnly && !history.length);
     };
 
-    const converse = async () => {
+    const converse = async (greet) => {
+      if (greet) await say().done;
       while (talking) {
         let words = '';
         try { words = await listen(); } catch (err) { console.warn('Ask: microphone unavailable', err); hint('I need the microphone for that.'); }
@@ -327,10 +401,11 @@
         history.pop();
         text = "Still no signal on my end. You can reach me at anmol@philanthropel.com.";
       }
+      const speech = talking && signature ? say(text, signature) : null;
+      if (speech) await Promise.race([speech.started, new Promise((wait) => setTimeout(wait, VOICE_WAIT_MS))]); // the words appear as the voice starts
       reply.classList.remove('thinking');
-      const speech = talking && signature ? say(text, signature) : null; // the voice and the typing run together
       await type(reply, text);
-      await speech;
+      await speech?.done;
       busy = false;
       form.classList.remove('busy');
     };
@@ -338,8 +413,15 @@
     form.addEventListener('submit', (e) => { e.preventDefault(); send(input.value); });
     const canTalk = Boolean(navigator.mediaDevices?.getUserMedia && window.MediaRecorder && window.AudioContext);
     // The floating mic: talking starts at once; where the browser can't record, it opens the box to type in.
+    if (canTalk) {
+      // Fetched once the page has settled, or as soon as the mic is reached for, whichever comes first.
+      if (document.readyState === 'complete') setTimeout(fetchHello, 1500);
+      else addEventListener('load', () => setTimeout(fetchHello, 1500), { once: true });
+      launch.addEventListener('pointerenter', fetchHello, { once: true });
+      launch.addEventListener('focus', fetchHello, { once: true });
+    }
     launch.addEventListener('click', () => {
-      if (canTalk && !busy && !recording) startTalk();
+      if (canTalk && !busy && !recording) startTalk(true);
       else { open(); input.focus(); }
     });
     // On phones it shrinks to just the mic once the hero has gone, so it never sits on the words.
