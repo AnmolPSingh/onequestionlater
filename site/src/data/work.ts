@@ -67,21 +67,25 @@ export const RELEASES: Release[] = [
     slug: 'document-assistant', title: 'AI document assistant', group: SELECTED, featured: true,
     summary: 'I built a shared place for consultants to collect project knowledge and find earlier work. A case study from ten years earlier helped win a new contract.',
     figure: 'document-assistant',
+    flow: ['Collect records', 'Find earlier work'],
   },
   {
     slug: 'voice-receptionist', title: 'AI voice receptionist', group: SELECTED, featured: true,
     summary: 'I built a shared voice receptionist for a restaurant group. Callers could ask about catering and book on the same call, and the owner reported more catering bookings.',
     figure: 'voice-receptionist',
+    flow: ['Incoming call', 'Table booking', 'Catering booking'],
   },
   {
     slug: 'invoice-processing', title: 'AI invoice processing', group: SELECTED, featured: true,
     summary: 'I built an assistant that organised scattered invoices, flagged those that needed review, and prepared emails for an admin to approve.',
     figure: 'invoice-processing',
+    flow: ['Read and organise', 'Review the draft', 'Approve and send'],
   },
   {
     slug: 'research-assistant', title: 'AI research assistant', group: SELECTED, featured: true,
     summary: "I built an assistant that gathered sources on request and answered from the collected material. When I tested it with a made-up claim, it told me the sources didn't support it.",
     figure: 'research-assistant',
+    flow: ['Collect sources', 'Check the collection', 'Cite the evidence', 'Show the gap'],
   },
   {
     slug: 'philanthropel', title: 'Philanthropel', group: 'Philanthropel', kind: 'What I build now', year: '2026',
