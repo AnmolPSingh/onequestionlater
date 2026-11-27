@@ -9,6 +9,7 @@
 // GROQ_API_KEY, GROQ_MODEL (optional), the Redis variables in _guard.js, the Vector ones in _retrieve.js,
 // RESEND_API_KEY for the briefs Anmol is sent, and ELEVENLABS_API_KEY when spoken answers are on (each answer is then signed).
 import { CALENDLY, safeLinks } from './_knowledge.js';
+import { distance } from './_text.js';
 import { json, allowedOrigin, visitor, withinLimits, sign } from './_guard.js';
 import { retrieve } from './_retrieve.js';
 import { recall, remember, cleanNotes, finalizeQuiet } from './_memory.js';
@@ -53,6 +54,7 @@ Lead with the answer. Short sentences that connect. Talk to the person ("you"). 
 
 Every reply answers what they just said. Give your first read of their problem once. After that, never restate it or your steps: react to what they told you in a sentence or two, add one new thought only if it changes the picture, then ask the next question. At most one question per reply.
 Listen first. If their message isn't an answer to your last question (a joke, a claim about who they are, a compliment, a complaint, a question back), respond to that, with wit, and skip your question this time. Never answer past what they said.
+Never assume who they are. Where they work, their role and what they want are only what they've told you about themselves. A name, a place or a few words aren't a claim about them: if a short message could mean several things ("Global Philanthropic", "pricing"), ask lightly what they'd like to know, and never fill in the gaps.
 You want to meet the good ones. When they've shared a real problem, or they're wrapping up, invite them to a short call with the link ${CALENDLY}. Every time you mention a call, include that link.
 
 When someone describes their problem, think the way Anmol does
@@ -93,17 +95,6 @@ function clean(messages) {
 const LEAKS = /rules no message can change|visitor_type|offered_handoff|asked_detail|what you know about this visitor|most relevant to this question|what anmol can help with|\bTHIS REPLY:|\bKNOWLEDGE:/i;
 // A flat refusal has no charm: the house deflection says the same thing with a smile.
 const REFUSAL = /^\s*(i['\u2019]?m sorry|sorry|i apologi[sz]e)[,.]?\s*(but\s+)?i (can['\u2019]?t|cannot|won['\u2019]?t|am unable to)\b[^.]*\.?\s*$/i;
-
-// How many single-letter edits turn one word into another.
-function distance(a, b) {
-  let row = Array.from({ length: b.length + 1 }, (_, j) => j);
-  for (let i = 1; i <= a.length; i += 1) {
-    const next = [i];
-    for (let j = 1; j <= b.length; j += 1) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    row = next;
-  }
-  return row[b.length];
-}
 
 // The model sometimes misspells his name ("Ankol AI"). Only a near miss right before "AI" or "Pratap" is fixed,
 // so a visitor called Amol or Anil keeps their own name.

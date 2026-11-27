@@ -36,6 +36,8 @@ export function createScore() {
   let music = null; // the track, ducked under the static while the dial is searching
   let hiss = null;
   let tuned = 0;
+  let quiet = false; // a visitor is talking with Anmol AI: the track steps out of the way
+  const level = () => (quiet ? 0 : VOLUME);
 
   const boot = () => {
     ctx = new AudioContext();
@@ -74,7 +76,7 @@ export function createScore() {
     },
     // 0..1 loudness of the bass and the highs. Both are 0 while silent.
     levels() {
-      if (!on || !analyser) return { low: 0, high: 0 };
+      if (!on || quiet || !analyser) return { low: 0, high: 0 };
       analyser.getByteFrequencyData(bins);
       return { low: average(bins, LOW_BINS), high: average(bins, HIGH_BINS) };
     },
@@ -103,7 +105,7 @@ export function createScore() {
         const now = ctx.currentTime;
         gain.gain.cancelScheduledValues(now);
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(VOLUME, now + (from ? RESUME_FADE_SECONDS : FADE_IN_SECONDS));
+        gain.gain.linearRampToValueAtTime(level(), now + (from ? RESUME_FADE_SECONDS : FADE_IN_SECONDS));
         return true;
       };
 
@@ -128,6 +130,15 @@ export function createScore() {
         }
         remember(false);
         if (!await start()) show(false, 'Sound off');
+      });
+
+      // While a visitor talks with Anmol AI (Ask.astro's ask:talk, with detail while on and null after), the
+      // track and its static fade out quickly, then come back gently. It keeps playing silently, so no new tap is needed.
+      addEventListener('ask:talk', (event) => {
+        quiet = Boolean(event.detail);
+        if (!on || !ctx) return;
+        gain.gain.cancelScheduledValues(ctx.currentTime);
+        gain.gain.setTargetAtTime(level(), ctx.currentTime, quiet ? 0.15 : 0.8);
       });
 
       // Leaving for another page, note where the track was, so the next page carries on from there.

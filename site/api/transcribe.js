@@ -2,6 +2,7 @@
 // the question, which the page then sends to the chat like any typed one. The audio is never stored or logged.
 // Uses the chat's GROQ_API_KEY and the same origin check and limits (counted separately, under "hear").
 import { json, allowedOrigin, visitor, withinLimits } from './_guard.js';
+import { distance, words } from './_text.js';
 
 const MODEL = process.env.GROQ_WHISPER_MODEL || 'whisper-large-v3-turbo';
 const GROQ_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
@@ -11,6 +12,27 @@ const MAX_QUESTION = 500; // the chat's own limit
 // and the names it should expect help it spell them.
 const LANGUAGE = 'en';
 const NAMES = 'Anmol, Anmol AI, Philanthropel, One Question Later, Global Philanthropic.';
+// Whisper invents words on near-silence: it reads the names above back, or fills in "Okay." or "Thank you."
+// A stretch it rates as probably silent, or barely guessed, is dropped (both scores come with each segment).
+const NO_SPEECH = 0.5; // chance the stretch is silence, above which it's dropped
+const UNSURE = -1; // average log-probability of its words, below which it's dropped
+const ECHO = 0.8; // share of the words that are the names above, at which the whole clip is an echo
+const NAME_WORDS = [...new Set(words(NAMES))];
+
+const isName = (word) => NAME_WORDS.some((name) => distance(word, name) <= (name.length > 4 ? 2 : 0));
+
+// The words someone actually said, from Whisper's detailed answer: unsure stretches out, and nothing if all
+// that's left is the names it was told to expect.
+export function spoken(data) {
+  const segments = Array.isArray(data?.segments) ? data.segments : null;
+  const text = segments
+    ? segments.filter((s) => !(s.no_speech_prob > NO_SPEECH) && !(s.avg_logprob < UNSURE)).map((s) => String(s.text || '')).join(' ')
+    : String(data?.text || '');
+  const said = words(text);
+  if (!said.length || (said.length >= 3 && said.filter(isName).length / said.length >= ECHO)) return '';
+  return text.replace(/\s+/g, ' ').trim().slice(0, MAX_QUESTION);
+}
+
 const TYPES = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'mp4', 'audio/mpeg': 'mp3', 'audio/wav': 'wav' };
 
 export async function POST(request) {
@@ -40,7 +62,7 @@ export async function POST(request) {
   const form = new FormData();
   form.append('file', new Blob([audio], { type }), `question.${ext}`);
   form.append('model', MODEL);
-  form.append('response_format', 'json');
+  form.append('response_format', 'verbose_json'); // with each stretch's confidence, read by spoken()
   form.append('temperature', '0');
   form.append('language', LANGUAGE);
   form.append('prompt', NAMES);
@@ -50,8 +72,7 @@ export async function POST(request) {
       console.error('hear: model returned', res.status, (await res.text()).slice(0, 300));
       return json({ error: res.status === 429 ? 'busy' : 'unavailable' }, res.status === 429 ? 429 : 502);
     }
-    const text = String((await res.json())?.text || '').trim().slice(0, MAX_QUESTION);
-    return json({ text });
+    return json({ text: spoken(await res.json()) });
   } catch (err) {
     console.error('hear: model request failed', err.message);
     return json({ error: 'unavailable' }, 502);

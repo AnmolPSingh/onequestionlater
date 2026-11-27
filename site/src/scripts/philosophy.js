@@ -242,7 +242,7 @@ async function start() {
     stage.canvas.style.opacity = (1 - handover).toFixed(3);
     desert.canvas.style.opacity = handover.toFixed(3);
     rail.classList.toggle('gone', handover > 0.3); // the chapters belong to the philosophy, not the close
-    const on = root.classList.contains('sound-on');
+    const on = root.classList.contains('sound-on') && !root.classList.contains('talking'); // quiet while talking with Anmol AI
     tone.play(field.hz ?? 0, on && handover < 0.5);
     if (handover < 1) {
       dust.step(dt, score.levels().low * 0.8);
