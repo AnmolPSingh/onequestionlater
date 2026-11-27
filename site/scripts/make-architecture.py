@@ -101,6 +101,19 @@ DIAGRAMS = {
                ('drafting', 2, 0, 'AI', 'Drafting agents', 'write the proposal', True),
                ('proposal', 3, 0, 'OUT', 'Client-ready proposal', 'about seven minutes', False)],
         edges=[('brief', 'analysis', '', False), ('analysis', 'drafting', '', False), ('drafting', 'proposal', '', False)]),
+    'tp-geneva-app': dict(
+        title='Talking Philanthropy Geneva app', desc='Guests check in with their name and organisation against the in-person list and carry a QR pass; a scan at the door sends the name ahead to the lanyard desk, and the app then runs the day.',
+        nodes=[('guest', 0, 1, 'IN', 'Guest', 'name · organisation', False),
+               ('list', 1, 0, 'STORE', 'Guest list', 'confirmed in person', False),
+               ('checkin', 1, 1, 'APP', 'Check-in', 'no email to wait for', True),
+               ('pass', 2, 1, 'OUT', 'QR pass', "on the guest's phone", False),
+               ('door', 3, 1, 'HUMAN', 'Volunteer', 'scans at the door', False),
+               ('desk', 4, 1, 'OUT', 'Lanyard desk', 'names in scan order', True),
+               ('day', 2, 2, 'APP', 'The day', 'programme · people', False),
+               ('team', 3, 2, 'HUMAN', 'The team', 'bookings in their calendars', False)],
+        edges=[('guest', 'checkin', '', False), ('list', 'checkin', 'MATCH', False), ('checkin', 'pass', '', False),
+               ('pass', 'door', 'SCAN', False), ('door', 'desk', 'PREPARE', False),
+               ('checkin', 'day', '', False), ('day', 'team', 'BOOK', False)]),
 }
 
 

@@ -147,6 +147,22 @@ function svg(item,still=false){
 const donors=()=>[[14,12],[36,12],[14,48],[36,48],[14,84],[36,84]].map(([x,y])=>paper(x,y,15,15,0,3)).join('');
 // An agent: a low lit node, so several can sit side by side without hiding each other.
 const agent=(x,y)=>C(x,y,11,0,7,'mid')+C(x,y,7,7,3,'hi')+D(x,y,10.1,'lit',1.4);
+// A phone lying on the plate with a QR pass on its screen.
+const QR=['11101','10001','10101','00110','11011'];
+const phone=(x,y,w=18,d=30)=>{
+  let s=S(x,y,w,d,0,2.4,'mid',2.6)+S(x+1.6,y+2.4,w-3.2,d-4.8,2.4,.4,'hi',1.4)+L([x+6,y+1.2,2.42],[x+w-6,y+1.2,2.42],'lo');
+  QR.forEach((row,j)=>[...row].forEach((bit,i)=>{if(bit==='1')s+=D(x+3.8+i*2.6,y+8+j*2.6,2.82,'lit',.8);}));
+  return s;
+};
+// A stack of name badges with a clip and a strap: the lanyards at the desk.
+const lanyards=(x,y,w=26,d=22)=>{
+  let s='';
+  for(let i=0;i<5;i++)s+=S(x,y,w,d,i*1.3,1.1,i===4?'hi':'mid',1);
+  const top=4*1.3+1.11;
+  s+=S(x+w/2-2,y+1.5,4,2.5,top,1,'hi',.6)+L([x+w/2-1,y+2,top+1],[x+4,y-12,top+1],'mid')+L([x+w/2+1,y+2,top+1],[x+w-4,y-12,top+1],'mid');
+  s+=L([x+5,y+9,top],[x+w-5,y+9,top],'hi')+L([x+5,y+13,top],[x+w-10,y+13,top],'mid');
+  return s;
+};
 const systems=[
  {key:'philanthropel',alt:"An organisation's own records pass to a switchboard of agents built with the team, and arrive at a desk the organisation runs itself.",
  routes:[['Their data',[[56,38],[90,38],[90,59],[118,59]]],['',[[56,80],[90,80],[90,59],[118,59]]],['Agents built with them',[[171,59],[222,59]]]],
@@ -160,6 +176,9 @@ const systems=[
  {key:'proposal-system',alt:'A client brief goes through a scanner for brief analysis, splits to two drafting agents, and comes out as one client-ready proposal.',
  routes:[['Client brief',[[48,59],[70,59]]],['Brief analysis',[[118,58],[140,58],[140,34],[160,34]]],['',[[118,60],[140,60],[140,84],[160,84]]],['Drafting agents',[[171,34],[205,34],[205,59],[234,59]]],['',[[171,84],[205,84],[205,59],[234,59]]]],
  art:()=>tray(14,44,34,30)+scanner(70,38)+agent(160,34)+agent(160,84)+envelope(234,42)},
+ {key:'tp-geneva-app',alt:'The guest list sends a pass to a guest’s phone. The phone is scanned at the door, the name runs ahead to the desk, and a lanyard is handed over.',
+ routes:[['Check in',[[40,60],[58,60]]],['Scan',[[76,60],[94,60]]],['Prepare',[[142,59],[162,59]]],['Given',[[202,59],[226,59]]]],
+ art:()=>tray(12,44,28,30)+phone(58,45)+scanner(94,39)+terminal(162,45,40,28,true)+lanyards(226,46)},
 ];
 // The site's figures, 7 Nov 2026: line art on the page's own dark, like the illos.dev isometric library, and animated.
 // Every face is filled with the page colour so hidden lines drop out; only pale outlines show. The work moves one step at

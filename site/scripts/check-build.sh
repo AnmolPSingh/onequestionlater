@@ -18,5 +18,10 @@ if grep -rliE 'open to work|hire me|available for roles|download (my )?cv|salary
   echo "FAIL: job-search phrase in rendered HTML"; fail=1
 fi
 
+# The TP Geneva app is Anmol's own design: never name the product it was modelled on.
+if grep -rliE 'ted ?connect' dist; then
+  echo "FAIL: TED Connect is named in the build"; fail=1
+fi
+
 [ "$fail" -eq 0 ] && echo "check-build: clean"
 exit "$fail"

@@ -31,7 +31,7 @@ export interface Release {
   logo?: ImageMetadata;
   /** The website pages stay, but these don't get a slide of their own. */
   noSlide?: boolean;
-  /** One of the four cases that lead Selected Work, each with its isometric figure as the cover. */
+  /** One of the five cases that lead Selected Work, each with its isometric figure as the cover. */
   featured?: boolean;
   /** The animated isometric figure of the system, by file name in src/assets/work/ (portfolio-handoff/source/build.mjs draws them). */
   figure?: string;
@@ -41,6 +41,9 @@ export interface Release {
   video?: { id: string; title: string };
   /** A short silent loop in public/ (path without extension; .webm and .mp4 both exist), played where the cover would be. The cover is its poster. */
   loop?: string;
+  /** Videos with sound and controls at the top of the page. `src` and `captions` are paths in public/ (src without
+   * extension; .webm and .mp4 both exist), `poster` is an image in public/. Nothing loads until it's played. */
+  media?: { src: string; poster: string; title: string; captions?: string }[];
   /** What the home page's list shows on hover, when it should differ from the cover. */
   peek?: ImageMetadata;
 }
@@ -49,6 +52,17 @@ const GP = 'Global Philanthropic';
 const SELECTED = 'Selected work';
 
 export const RELEASES: Release[] = [
+  {
+    slug: 'tp-geneva-app', title: 'Talking Philanthropy Geneva app', group: SELECTED, featured: true, kind: 'Event app', year: '2026',
+    summary: 'I built the app guests used at the Talking Philanthropy Geneva Summit. They checked in with their name, carried their pass on their phone, and the desk had each lanyard ready before they reached it.',
+    figure: 'tp-geneva-app',
+    flow: ['Check in', 'Scan', 'Prepare', 'Given'],
+    media: [
+      { src: '/media/tp-checkin', poster: '/media/tp-checkin.jpg', captions: '/media/tp-checkin.vtt', title: 'Check-in, from the scan to the lanyard' },
+      { src: '/media/tp-features', poster: '/media/tp-features.jpg', captions: '/media/tp-features.vtt', title: 'The whole summit, in one app' },
+    ],
+    links: [{ label: 'The Talking Philanthropy website', href: '/work/talking-philanthropy' }],
+  },
   {
     slug: 'document-assistant', title: 'AI document assistant', group: SELECTED, featured: true,
     summary: 'I built a shared place for consultants to collect project knowledge and find earlier work. A case study from ten years earlier helped win a new contract.',
