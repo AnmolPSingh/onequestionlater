@@ -329,6 +329,10 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 @media (max-width: 699px) {
   /* The figure shrinks to the phone's width, too small for its step names, so they move out into a list below it. */
   .release .iso-figure.system :is(.tag, .lead, .lead-dot) { display: none; }
+  /* On the home cards the same labels would be unreadable, and the card's own text says what the figure shows. */
+  .case-figure :is(.tag, .lead, .lead-dot) { display: none; }
+  /* The nav wraps to two rows here, so the dark fade holds behind both before it lets the page through. */
+  .site-header { background: linear-gradient(rgb(13 12 11) 80%, rgb(13 12 11 / 0)); }
   /* While more of the diagram sits off to the right, its edge fades out to say it scrolls. */
   .architecture-figure.more { mask-image: linear-gradient(to right, #000 78%, transparent); }
 }
