@@ -54,9 +54,9 @@ const SELECTED = 'Selected work';
 export const RELEASES: Release[] = [
   {
     slug: 'tp-geneva-app', title: 'Talking Philanthropy Geneva app', group: SELECTED, featured: true, kind: 'Event app', year: '2026',
-    summary: 'I built the app guests used at the Talking Philanthropy Geneva Summit. They checked in with their name, carried their pass on their phone, and the desk had each lanyard ready before they reached it.',
+    summary: 'I built the app that ran the Talking Philanthropy Geneva Summit. Guests checked in with their name, carried their pass on their phone, and found each lanyard ready before they reached the desk. Then the same app ran their day: the programme, the people, questions for the panels and time with the team.',
     figure: 'tp-geneva-app',
-    flow: ['Check in', 'Scan', 'Prepare', 'Given'],
+    flow: ['Check in', 'Scan', 'Given', 'Meet', 'Ask', 'Book'],
     media: [
       { src: '/media/tp-checkin', poster: '/media/tp-checkin.jpg', captions: '/media/tp-checkin.vtt', title: 'Check-in, from the scan to the lanyard' },
       { src: '/media/tp-features', poster: '/media/tp-features.jpg', captions: '/media/tp-features.vtt', title: 'The whole summit, in one app' },
