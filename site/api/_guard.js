@@ -1,8 +1,8 @@
 // What every Anmol AI route checks before spending anything: the request comes from the site itself, and the
 // visitor is inside their limits (kept in Upstash Redis, so they hold across every server). Shared by chat,
 // transcribe and speak. The underscore keeps Vercel from serving this file as a route.
-const PER_MINUTE = 20; // per visitor, per kind
-const PER_DAY = 400; // per visitor, per kind
+const PER_MINUTE = 8; // per visitor, per kind
+const PER_DAY = 60; // per visitor, per kind
 const SITE_PER_DAY = 900; // for everyone together, per kind: the free quota can never be spent in one day
 const SITES = ['https://onequestionlater.com', 'https://www.onequestionlater.com'];
 
