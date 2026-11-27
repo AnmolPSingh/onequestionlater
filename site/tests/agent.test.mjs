@@ -249,3 +249,17 @@ test('curly-apostrophe refusals and dumped lists never reach the visitor', () =>
   assert.equal(tidy('I’m sorry, but I can’t comply with that.'), tidy('openai'));
   assert.equal(parseAnswer('["Anmol Pratap Singh","He builds AI tools"]').reply, '');
 });
+
+test('tidy fixes a misspelt name before AI or Pratap, and leaves other names alone', () => {
+  assert.equal(tidy("I'm Ankol AI, his thinking."), "I'm Anmol AI, his thinking.");
+  assert.equal(tidy('Anmool Pratap Singh built it.'), 'Anmol Pratap Singh built it.');
+  assert.equal(tidy('Amol and Anil both asked.'), 'Amol and Anil both asked.');
+  assert.equal(tidy('Ask any AI you like.'), 'Ask any AI you like.');
+});
+
+test('tidy swaps dive and delve phrases for plain ones', () => {
+  assert.equal(tidy('If you want to dive deeper, book a call.'), 'If you want to go deeper, book a call.');
+  assert.equal(tidy('Dive into it with me.'), 'Get into it with me.');
+  assert.equal(tidy("Before diving into tools, let's talk."), "Before getting into tools, let's talk.");
+  assert.equal(tidy('We could delve into that, or take a deep dive later.'), 'We could get into that, or take a closer look later.');
+});

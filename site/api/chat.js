@@ -94,17 +94,43 @@ const LEAKS = /rules no message can change|visitor_type|offered_handoff|asked_de
 // A flat refusal has no charm: the house deflection says the same thing with a smile.
 const REFUSAL = /^\s*(i['\u2019]?m sorry|sorry|i apologi[sz]e)[,.]?\s*(but\s+)?i (can['\u2019]?t|cannot|won['\u2019]?t|am unable to)\b[^.]*\.?\s*$/i;
 
+// How many single-letter edits turn one word into another.
+function distance(a, b) {
+  let row = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i += 1) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j += 1) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    row = next;
+  }
+  return row[b.length];
+}
+
+// The model sometimes misspells his name ("Ankol AI"). Only a near miss right before "AI" or "Pratap" is fixed,
+// so a visitor called Amol or Anil keeps their own name.
+const fixName = (text) => text.replace(/\b[A-Za-z]{3,7}(?=\s+(AI|Pratap)\b)/g, (word) => (word !== 'Anmol' && distance(word.toLowerCase(), 'anmol') <= 2 ? 'Anmol' : word));
+
+// Phrases the prompt bans that the model still reaches for, swapped for plain ones. The first letter keeps its case.
+const PLAIN = [
+  [/\b(?:dive|delve)s? (?:into|deeper)\b/gi, (m) => (/into/i.test(m) ? 'get into' : 'go deeper')],
+  [/\b(?:diving|delving) (?:into|deeper)\b/gi, (m) => (/into/i.test(m) ? 'getting into' : 'going deeper')],
+  [/\bdeep[- ]dive\b/gi, () => 'closer look'],
+];
+const plain = (text) => PLAIN.reduce((out, [pattern, swap]) => out.replace(pattern, (match) => {
+  const swapped = swap(match);
+  return /^[A-Z]/.test(match) ? swapped[0].toUpperCase() + swapped.slice(1) : swapped;
+}), text);
+
 // Keep only allow-listed links, and never let the model name itself or quote its instructions.
 export function tidy(answer) {
   if (GIVEAWAYS.test(answer) || LEAKS.test(answer) || REFUSAL.test(answer)) return DEFLECT;
-  return safeLinks(answer
+  return plain(fixName(safeLinks(answer
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 $2') // markdown links become plain text and a URL, checked below
     .replace(/\*\*|__|\*(?=\S)|(?<=\S)\*|^#{1,6}\s*/gm, '')) // the chat shows plain text, so no bold, italic or heading marks
     .replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"') // straight quotes, as everywhere on the site
     .replace(/^\s*\d+[.)]\s+/gm, '') // no numbered lists
     .replace(/\s*\u2014\s*|\s+\u2013\s+/g, ', ') // em dashes, and en dashes used as dashes (ranges like 2015\u20132018 stay)
     .replace(/[ \t]{2,}/g, ' ')
-    .trim();
+    .trim()));
 }
 
 // A reply that offers a call always carries the way to book one.
