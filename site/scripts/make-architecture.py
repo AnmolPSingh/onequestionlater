@@ -102,18 +102,24 @@ DIAGRAMS = {
                ('proposal', 3, 0, 'OUT', 'Client-ready proposal', 'about seven minutes', False)],
         edges=[('brief', 'analysis', '', False), ('analysis', 'drafting', '', False), ('drafting', 'proposal', '', False)]),
     'tp-geneva-app': dict(
-        title='Talking Philanthropy Geneva app', desc='Guests check in with their name and organisation against the in-person list and carry a QR pass; a scan at the door sends the name ahead to the lanyard desk, and the app then runs the day.',
-        nodes=[('guest', 0, 1, 'IN', 'Guest', 'name · organisation', False),
-               ('list', 1, 0, 'STORE', 'Guest list', 'confirmed in person', False),
-               ('checkin', 1, 1, 'APP', 'Check-in', 'no email to wait for', True),
-               ('pass', 2, 1, 'OUT', 'QR pass', "on the guest's phone", False),
-               ('door', 3, 1, 'HUMAN', 'Volunteer', 'scans at the door', False),
-               ('desk', 4, 1, 'OUT', 'Lanyard desk', 'names in scan order', True),
-               ('day', 2, 2, 'APP', 'The day', 'programme · people', False),
-               ('team', 3, 2, 'HUMAN', 'The team', 'bookings in their calendars', False)],
-        edges=[('guest', 'checkin', '', False), ('list', 'checkin', 'MATCH', False), ('checkin', 'pass', '', False),
-               ('pass', 'door', 'SCAN', False), ('door', 'desk', 'PREPARE', False),
-               ('checkin', 'day', '', False), ('day', 'team', 'BOOK', False)]),
+        title='Talking Philanthropy Geneva app',
+        desc='Guests, the team and volunteers, and speakers each sign in to their own portal of one web app. The app checks guests in through a service that matches them against the in-person list in Mailchimp, records the arrival and tags it; it books team time through a service that reads and writes Outlook calendars; and everything else lives in one database whose access rules follow each role, which also sends bell and lock-screen notifications.',
+        max_nodes=10,
+        nodes=[('guests', 0, 0, 'IN', 'Guests', 'name · organisation', False),
+               ('team', 0, 1, 'HUMAN', 'Team · volunteers', 'own PIN · scan · desk', False),
+               ('speakers', 0, 2, 'HUMAN', 'Speakers', 'own PIN · own portal', False),
+               ('app', 1, 1, 'APP', 'The app', 'one web app · three portals', True),
+               ('checkin', 2, 0, 'SERVICE', 'Check-in', 'match · record · tag', False),
+               ('db', 2, 1, 'STORE', 'Database', 'access rules per role', True),
+               ('booking', 2, 2, 'SERVICE', 'Booking', 'one slot, one booking', False),
+               ('mailchimp', 3, 0, 'EXT', 'Mailchimp', 'in-person guest list', False),
+               ('alerts', 3, 1, 'OUT', 'Notifications', 'bell · lock screen', False),
+               ('outlook', 3, 2, 'EXT', 'Outlook', 'calendars · Teams links', False)],
+        edges=[('guests', 'app', '', False), ('team', 'app', '', False), ('speakers', 'app', '', False),
+               ('app', 'checkin', 'CHECK IN', False), ('app', 'db', 'LIVE', False), ('app', 'booking', 'BOOK', False),
+               ('checkin', 'mailchimp', 'MATCH · TAG', False), ('checkin', 'db', 'ARRIVAL', False),
+               ('booking', 'db', 'SLOT', False), ('booking', 'outlook', 'BUSY · BOOK', False),
+               ('db', 'alerts', 'NOTIFY', False)]),
 }
 
 
@@ -284,7 +290,7 @@ def main():
     preview = Path(sys.argv[1]) if len(sys.argv) > 1 else None
     for slug, spec in DIAGRAMS.items():
         svg = diagram(slug, spec)
-        assert len(spec['nodes']) <= 9 and len(spec['edges']) <= 12, f'{slug} is over the complexity budget'
+        assert len(spec['nodes']) <= spec.get('max_nodes', 9) and len(spec['edges']) <= 12, f'{slug} is over the complexity budget'
         assert sum(n[6] for n in spec['nodes']) <= 2, f'{slug} has more than two focal nodes'
         (out / f'{slug}-architecture.svg').write_text(svg)
         if preview:

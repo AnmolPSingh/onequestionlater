@@ -440,6 +440,7 @@ html.scene-on .close-details .small-print { color: rgb(13 12 11 / 0.66); font-si
 .plain-main { max-width: 42rem; margin: 0 auto; padding: calc(var(--header-h) + 3.5rem) var(--gutter) 6rem; }
 .plain-main h1 { margin-bottom: 0.6rem; font-size: clamp(2.4rem, 1.5rem + 3.4vw, 4.25rem); letter-spacing: -0.02em; }
 .plain-main h2 { margin: 2.75rem 0 0.9rem; font-size: 1.35rem; }
+.plain-main h3 { margin: 1.9rem 0 0.4rem; font-size: 1.05rem; color: var(--dim); }
 /* Every project ends on what it left open, so the last thing on the page is a question. */
 .release h2:last-of-type { color: var(--onair); text-shadow: var(--onair-glow); }
 .release h2:last-of-type + p { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-family: var(--display); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
