@@ -16,7 +16,7 @@ const NAMES = 'Anmol, Anmol AI, Philanthropel, One Question Later, Global Philan
 // A stretch it rates as probably silent, or barely guessed, is dropped (both scores come with each segment).
 const NO_SPEECH = 0.5; // chance the stretch is silence, above which it's dropped
 const UNSURE = -1; // average log-probability of its words, below which it's dropped
-const ECHO = 0.8; // share of the words that are the names above, at which the whole clip is an echo
+const ECHO = 0.8; // share of the words that are the names above, at which a clip of three or more words is an echo; shorter ones must be all names
 const NAME_WORDS = [...new Set(words(NAMES))];
 
 const isName = (word) => NAME_WORDS.some((name) => distance(word, name) <= (name.length > 4 ? 2 : 0));
@@ -29,7 +29,8 @@ export function spoken(data) {
     ? segments.filter((s) => !(s.no_speech_prob > NO_SPEECH) && !(s.avg_logprob < UNSURE)).map((s) => String(s.text || '')).join(' ')
     : String(data?.text || '');
   const said = words(text);
-  if (!said.length || (said.length >= 3 && said.filter(isName).length / said.length >= ECHO)) return '';
+  const names = said.filter(isName).length;
+  if (!said.length || names === said.length || (said.length >= 3 && names / said.length >= ECHO)) return '';
   return text.replace(/\s+/g, ' ').trim().slice(0, MAX_QUESTION);
 }
 

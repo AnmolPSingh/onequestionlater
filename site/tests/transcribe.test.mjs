@@ -20,9 +20,14 @@ test('spoken drops the name hint read back on silence, even misspelt', () => {
   assert.equal(spoken({ segments: [seg(' Anmol, Anmol AI, Philanthropel.')] }), '');
 });
 
-test('spoken keeps a short real mention of a name', () => {
-  assert.equal(spoken({ segments: [seg(' Global Philanthropic.')] }), 'Global Philanthropic.');
+test('spoken drops a clip that is only names, at any length', () => {
+  assert.equal(spoken({ segments: [seg(' Anmol.')] }), '');
+  assert.equal(spoken({ segments: [seg(' Global Philanthropic.')] }), '');
+});
+
+test('spoken keeps a name inside real words', () => {
   assert.equal(spoken({ segments: [seg(' Hi Anmol.')] }), 'Hi Anmol.');
+  assert.equal(spoken({ segments: [seg(' What did you build at Global Philanthropic?')] }), 'What did you build at Global Philanthropic?');
 });
 
 test('spoken falls back to plain text when there are no segments', () => {
