@@ -322,6 +322,9 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .release video.loop { display: block; width: 100%; height: auto; margin-block: 1.5rem; border-radius: 3px; background: #000; }
 .release .video { position: relative; aspect-ratio: 16 / 9; margin-block: 1.5rem; background: var(--raised); }
 .release .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 3px; }
+.release .film { margin: 1.5rem 0 2rem; }
+.release .film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 3px; background: #000; }
+.release .film figcaption { margin-top: 0.6rem; color: var(--dim); }
 .architecture-figure { overflow-x: auto; } /* the diagram keeps its readable width; a phone scrolls it, not the page */
 @media (min-width: 900px) { .release .iso-figure { width: min(64rem, 90vw); margin-left: 50%; translate: -50% 0; } } /* wider than the reading column, so the labels stay legible */
 @media (min-width: 900px) { .release .architecture-figure { width: min(72rem, 94vw); } }
