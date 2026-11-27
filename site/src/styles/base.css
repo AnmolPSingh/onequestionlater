@@ -326,6 +326,15 @@ html:not(.scene-on) .arrangement, html:not(.scene-on) .playhead { display: none;
 .release .film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 3px; background: #000; }
 .release .film figcaption { margin-top: 0.6rem; color: var(--dim); }
 .architecture-figure { overflow-x: auto; } /* the diagram keeps its readable width; a phone scrolls it, not the page */
+@media (max-width: 699px) {
+  /* The figure shrinks to the phone's width, too small for its step names, so they move out into a list below it. */
+  .release .iso-figure.system :is(.tag, .lead, .lead-dot) { display: none; }
+  /* While more of the diagram sits off to the right, its edge fades out to say it scrolls. */
+  .architecture-figure.more { mask-image: linear-gradient(to right, #000 78%, transparent); }
+}
+.flow-steps { list-style: none; padding: 0 !important; margin: -1rem 0 2rem !important; display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; color: var(--dim); }
+.flow-steps span { color: var(--onair); text-shadow: var(--onair-glow); margin-right: 0.4em; font-variant-numeric: tabular-nums; }
+@media (min-width: 700px) { .flow-steps { display: none; } } /* wider screens read the names inside the figure */
 @media (min-width: 900px) { .release .iso-figure { width: min(64rem, 90vw); margin-left: 50%; translate: -50% 0; } } /* wider than the reading column, so the labels stay legible */
 @media (min-width: 900px) { .release .architecture-figure { width: min(72rem, 94vw); } }
 .case-number { color: var(--dim); }

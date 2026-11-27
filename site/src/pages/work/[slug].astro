@@ -51,6 +51,11 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
       <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="eager" />
     ))}
     {release.figure && <IsoFigure class="system" name={release.figure} />}
+    {release.figure && release.flow && (
+      <ol class="flow-steps label" aria-hidden="true">
+        {release.flow.map((step, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{step}</li>)}
+      </ol>
+    )}
     {(release.figure || release.diagram) && <IsoFigure class="architecture-figure" name={`${release.slug}-architecture`} />}
     {release.video && release.cover && <Image src={release.cover} alt={release.coverAlt!} widths={[640, 1200]} sizes="(min-width: 700px) 42rem, 92vw" loading="lazy" />}
     {release.stats && (
@@ -74,4 +79,15 @@ const extra = (release.sites ?? []).filter((site) => site.image !== release.cove
   import '../../scripts/ambient.js';
   // Reduced motion: loops stay on their poster frame.
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll<HTMLVideoElement>('[data-loop]').forEach((v) => { v.removeAttribute('autoplay'); v.pause(); });
+  // On a phone the architecture diagram scrolls sideways: start it at its first box, not the frame's empty margin,
+  // and fade the right edge while there's more to see.
+  const arch = document.querySelector<HTMLElement>('.architecture-figure');
+  const plan = arch?.querySelector<SVGSVGElement>('svg');
+  if (arch && plan && arch.scrollWidth > arch.clientWidth + 1) {
+    const scale = plan.clientWidth / plan.viewBox.baseVal.width;
+    arch.scrollLeft = Math.max(0, plan.getBBox().x * scale - 12);
+    const more = () => arch.classList.toggle('more', arch.scrollLeft + arch.clientWidth < arch.scrollWidth - 4);
+    arch.addEventListener('scroll', more, { passive: true });
+    more();
+  }
 </script>

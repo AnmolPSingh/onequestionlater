@@ -196,7 +196,7 @@ const systems=[
  {key:'proposal-system',alt:'A client brief goes through a scanner for brief analysis, splits to two drafting agents, and comes out as one client-ready proposal.',
  routes:[['Client brief',[[48,59],[70,59]]],['Brief analysis',[[118,58],[140,58],[140,34],[160,34]]],['',[[118,60],[140,60],[140,84],[160,84]]],['Drafting agents',[[171,34],[205,34],[205,59],[234,59]]],['',[[171,84],[205,84],[205,59],[234,59]]]],
  art:()=>tray(14,44,34,30)+scanner(70,38)+agent(160,34)+agent(160,84)+envelope(234,42)},
- {key:'tp-geneva-app',alt:'At the back, the guest list sends a pass to a guest's phone, the phone is scanned at the door, the name runs ahead to the desk, and a lanyard is handed over. In front, during the day, the guest's phone reaches other guests, sends a question to the stage, and books a slot in the team's calendar.',
+ {key:'tp-geneva-app',alt:"At the back, the guest list sends a pass to a guest's phone, the phone is scanned at the door, the name runs ahead to the desk, and a lanyard is handed over. In front, during the day, the guest's phone reaches other guests, sends a question to the stage, and books a slot in the team's calendar.",
  routes:[['Check in',[[32,23],[58,23]]],['Scan',[[76,23],[100,23]]],['',[[148,23],[168,23]]],['Given',[[208,23],[236,23]]],
   ['Meet',[[84,81],[30,81]]],['Ask',[[102,76],[146,76]]],['Book',[[102,90],[124,90],[124,104],[218,104],[218,88],[234,88]]]],
  art:()=>tray(4,10,28,26)+phone(58,8)+scanner(100,3)+terminal(168,10,40,26,true)+lanyards(236,12)
