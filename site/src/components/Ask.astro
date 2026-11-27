@@ -108,7 +108,7 @@
     const VOICE_WAIT_MS = 4000; // the answer's text waits this long at most for its voice, so they arrive together
     let voice = null;
     // The greeting's sound, fetched ahead of time (the CDN keeps it), so it plays the moment the mic is tapped.
-    const GREETING_VERSION = 3; // raise it when the greeting's sound changes, so caches fetch the new one
+    const GREETING_VERSION = 4; // raise it when the greeting's sound changes, so caches fetch the new one
     let hello = null;
     const fetchHello = () => (hello ||= fetch(`/api/speak?v=${GREETING_VERSION}`).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null));
     let talking = false; // the voice agent is on
