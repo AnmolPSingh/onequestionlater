@@ -78,6 +78,8 @@
 
     // Voice. Hearing stops at a pause after speech, a second tap, or the cap; silence alone is never sent.
     const LOUD = 6; // peak wobble around the waveform's middle (128) that counts as speech; low, as noise suppression quietens voices
+    const MIN_SPEECH_MS = 250; // loud time, added up, before a clip counts as speech: a short "yes" passes, a click or echo doesn't
+    const MAX_FRAME_MS = 100; // a slow or throttled frame never counts for more than this
     const MAX_UNMETERED_MS = 12000; // if the meter can't run, a tap or this ends the recording instead of a pause
     const HINT_MS = 3500;
     const PAUSE_MS = 1200;
@@ -198,6 +200,8 @@
       source.connect(meter);
       const started = performance.now();
       let heard = false;
+      let loudMs = 0;
+      let last = started;
       let metered = false; // whether the meter ever ran; if it never did, the clip is sent anyway rather than thrown away
       let quietSince = 0;
       const stopped = new Promise((done) => { rec.onstop = done; });
@@ -219,7 +223,12 @@
         let peak = 0;
         for (const v of wave) peak = Math.max(peak, Math.abs(v - 128));
         root.style.setProperty('--level', Math.min(1, peak / 48).toFixed(2)); // the mic's ring grows with the voice
-        if (peak > LOUD) { heard = true; quietSince = 0; } else quietSince ||= now;
+        if (peak > LOUD) {
+          loudMs += Math.min(now - last, MAX_FRAME_MS);
+          heard ||= loudMs >= MIN_SPEECH_MS;
+          quietSince = 0;
+        } else quietSince ||= now;
+        last = now;
         const paused = heard && quietSince && now - quietSince > PAUSE_MS;
         if (paused || now - started > MAX_LISTEN_MS || (!heard && now - started > NO_SPEECH_MS)) stop();
         else requestAnimationFrame(watch);
